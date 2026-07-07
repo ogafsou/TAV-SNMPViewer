@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title><%= title %></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">NovaStar H Series</p>
+          <h1>SNMP Viewer</h1>
+        </div>
+        <div class="status-pill" id="connectionStatus">Pret</div>
+      </header>
+
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" type="button" data-tab="configurationTab">Configuration</button>
+        <button class="tab" type="button" data-tab="monitoringTab">Monitoring</button>
+      </nav>
+
+      <section id="configurationTab" class="tab-panel active">
+      <section class="configuration-layout">
+        <aside class="machine-sidebar">
+          <div class="add-zone">
+            <button id="openAddDialog" type="button">Add</button>
+          </div>
+
+          <div class="machine-list-zone">
+            <div class="section-title compact">
+              <h2>Machines H</h2>
+              <span id="machineCount">0</span>
+            </div>
+            <select id="machineList" class="machine-list" size="12" aria-label="Liste des machines H"></select>
+            <p class="sidebar-help" id="selectedMachineHint">Ajoutez une machine pour commencer.</p>
+          </div>
+        </aside>
+
+        <section class="monitor-zone">
+          <div class="monitor-toolbar">
+            <div>
+              <p class="eyebrow">Machine selectionnee</p>
+              <h2 id="selectedMachineName">Aucune machine</h2>
+              <span id="selectedMachineDetails">Selectionnez un equipement H dans la liste.</span>
+            </div>
+            <div class="toolbar-actions">
+              <button id="scanButton" type="button" disabled>Scan</button>
+            </div>
+          </div>
+
+          <section class="summary-grid" id="summaryGrid" aria-live="polite">
+            <div class="notice neutral">Selectionnez une machine puis lancez un scan.</div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Controleur</h2>
+              <span id="lastScan">Aucun scan</span>
+            </div>
+            <div class="field-grid" id="controllerGrid"></div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Slots d'entree</h2>
+              <span id="slotCount">0 slot</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Statut</th>
+                    <th>Firmware</th>
+                    <th>Serie</th>
+                    <th>Sources</th>
+                    <th>Source active</th>
+                  </tr>
+                </thead>
+                <tbody id="slotsTable">
+                  <tr><td colspan="6" class="empty">Lancez un scan pour lire les slots d'entree.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Ecrans</h2>
+              <span id="screenCount">0 ecran</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ecran</th>
+                    <th>Nom</th>
+                    <th>Resolution</th>
+                    <th>Frequence</th>
+                    <th>Luminosite</th>
+                    <th>Mode</th>
+                  </tr>
+                </thead>
+                <tbody id="screensTable">
+                  <tr><td colspan="6" class="empty">Lancez un scan pour lire les ecrans.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Receiving cards</h2>
+              <span id="cardCount">Optionnel</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Port</th>
+                    <th>Card</th>
+                    <th>Link</th>
+                    <th>Travail</th>
+                    <th>Temp.</th>
+                    <th>Voltage</th>
+                    <th>Versions</th>
+                  </tr>
+                </thead>
+                <tbody id="cardsTable">
+                  <tr><td colspan="8" class="empty">Activez la lecture receiving cards dans la configuration machine.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </section>
+      </section>
+
+      <section id="monitoringTab" class="tab-panel" hidden>
+        <div class="monitoring-header">
+          <div>
+            <p class="eyebrow">Vue globale</p>
+            <h2>Monitoring</h2>
+            <span id="monitoringHint">Les cartes utilisent la liste des machines configurees.</span>
+          </div>
+          <button id="refreshMonitoring" type="button">Refresh</button>
+        </div>
+
+        <div id="monitoringCards" class="monitoring-grid">
+          <div class="notice neutral">Ajoutez des machines dans Configuration pour alimenter le monitoring.</div>
+        </div>
+      </section>
+    </main>
+
+    <div id="machineContextMenu" class="context-menu" hidden>
+      <button id="editMachine" type="button">Edit</button>
+      <button id="deleteMachine" type="button">Delete</button>
+    </div>
+
+    <div id="dialogBackdrop" class="dialog-backdrop" hidden>
+      <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+        <div class="section-title">
+          <h2 id="dialogTitle">Ajouter une machine H</h2>
+          <button id="closeAddDialog" class="ghost-button" type="button">Fermer</button>
+        </div>
+
+        <form id="machineForm" class="machine-form">
+          <label>
+            <span>Nom</span>
+            <input name="name" type="text" placeholder="H9 Regie principale" autocomplete="off" required />
+          </label>
+
+          <label>
+            <span>Adresse IP</span>
+            <input name="host" type="text" value="192.168.1.10" autocomplete="off" required />
+          </label>
+
+          <label>
+            <span>Modele</span>
+            <select name="model">
+              <option value="H9">H9</option>
+              <option value="H5">H5</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Lecture</span>
+            <input name="readCommunity" type="text" value="public" autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Ecriture</span>
+            <input name="writeCommunity" type="text" value="private" autocomplete="off" />
+          </label>
+
+          <label>
+            <span>Timeout ms</span>
+            <input name="timeout" type="number" min="500" max="10000" step="100" value="2000" />
+          </label>
+
+          <label>
+            <span>Retries</span>
+            <input name="retries" type="number" min="0" max="5" step="1" value="1" />
+          </label>
+
+          <label>
+            <span>Slots d'entree max</span>
+            <input name="maxInputSlots" type="number" min="1" max="32" placeholder="auto" />
+          </label>
+
+          <label>
+            <span>Ecrans max</span>
+            <input name="maxScreens" type="number" min="1" max="16" placeholder="auto" />
+          </label>
+
+          <label>
+            <span>Receiving cards / port</span>
+            <input name="recvCardsPerPort" type="number" min="1" max="12" value="1" />
+          </label>
+
+          <label class="toggle-row">
+            <input name="includeReceivingCards" type="checkbox" />
+            <span>Lire les receiving cards</span>
+          </label>
+
+          <div class="dialog-actions">
+            <button class="secondary-button" id="cancelAddDialog" type="button">Annuler</button>
+            <button type="submit">OK</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <script>
+      var LEGACY_STORAGE_KEY = "novastarMachines";
+      var MODEL_PROFILES = {
+        H5: {
+          label: "H5",
+          maxInputSlots: "10",
+          maxOutputSlots: "3"
+        },
+        H9: {
+          label: "H9",
+          maxInputSlots: "15",
+          maxOutputSlots: "5"
+        }
+      };
+      var machines = [];
+      var selectedMachineId = localStorage.getItem("novastarSelectedMachineId") || "";
+      var contextMachineId = "";
+      var editingMachineId = "";
+      var monitoringState = {};
+
+      var machineList = document.getElementById("machineList");
+      var machineCount = document.getElementById("machineCount");
+      var selectedMachineName = document.getElementById("selectedMachineName");
+      var selectedMachineDetails = document.getElementById("selectedMachineDetails");
+      var selectedMachineHint = document.getElementById("selectedMachineHint");
+      var scanButton = document.getElementById("scanButton");
+      var statusNode = document.getElementById("connectionStatus");
+      var dialogBackdrop = document.getElementById("dialogBackdrop");
+      var machineForm = document.getElementById("machineForm");
+      var dialogTitle = document.getElementById("dialogTitle");
+      var contextMenu = document.getElementById("machineContextMenu");
+      var editMachineButton = document.getElementById("editMachine");
+      var deleteMachineButton = document.getElementById("deleteMachine");
+      var monitoringCards = document.getElementById("monitoringCards");
+      var refreshMonitoringButton = document.getElementById("refreshMonitoring");
+
+      document.querySelectorAll(".tab").forEach(function(tabButton) {
+        tabButton.addEventListener("click", function() {
+          activateTab(tabButton.dataset.tab);
+        });
+      });
+
+      document.getElementById("openAddDialog").addEventListener("click", openAddDialog);
+      document.getElementById("closeAddDialog").addEventListener("click", closeDialog);
+      document.getElementById("cancelAddDialog").addEventListener("click", closeDialog);
+      dialogBackdrop.addEventListener("click", function(event) {
+        if (event.target === dialogBackdrop) {
+          closeDialog();
+        }
+      });
+
+      machineList.addEventListener("change", function() {
+        selectedMachineId = machineList.value;
+        localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+        renderSelectedMachine();
+        resetScanResults();
+      });
+
+      machineList.addEventListener("contextmenu", function(event) {
+        event.preventDefault();
+
+        if (!machines.length) {
+          return;
+        }
+
+        if (event.target && event.target.value) {
+          selectedMachineId = event.target.value;
+          machineList.value = selectedMachineId;
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+          renderSelectedMachine();
+          resetScanResults();
+        }
+
+        contextMachineId = selectedMachineId;
+        openContextMenu(event.clientX, event.clientY);
+      });
+
+      document.addEventListener("click", function(event) {
+        if (!contextMenu.hidden && !contextMenu.contains(event.target)) {
+          closeContextMenu();
+        }
+      });
+
+      editMachineButton.addEventListener("click", function() {
+        var machine = getMachineById(contextMachineId);
+        closeContextMenu();
+
+        if (machine) {
+          openEditDialog(machine);
+        }
+      });
+
+      deleteMachineButton.addEventListener("click", function() {
+        var machine = getMachineById(contextMachineId);
+        closeContextMenu();
+
+        if (machine) {
+          deleteMachine(machine.id);
+        }
+      });
+
+      machineForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        var formData = new FormData(machineForm);
+        var machine = {
+          id: editingMachineId || String(Date.now()),
+          name: String(formData.get("name") || "").trim(),
+          host: String(formData.get("host") || "").trim(),
+          model: normalizeModel(formData.get("model")),
+          readCommunity: String(formData.get("readCommunity") || "public").trim() || "public",
+          writeCommunity: String(formData.get("writeCommunity") || "private").trim() || "private",
+          timeout: String(formData.get("timeout") || "2000"),
+          retries: String(formData.get("retries") || "1"),
+          maxOutputSlots: String(formData.get("maxOutputSlots") || ""),
+          maxScreens: String(formData.get("maxScreens") || ""),
+          maxInputSlots: String(formData.get("maxInputSlots") || ""),
+          recvCardsPerPort: String(formData.get("recvCardsPerPort") || "1"),
+          includeReceivingCards: machineForm.includeReceivingCards.checked
+        };
+
+        if (!machine.name || !machine.host) {
+          setStatus("Configuration incomplete", "error");
+          return;
+        }
+
+        var wasEditing = !!editingMachineId;
+        var previousMachines = machines.slice();
+        var previousSelectedMachineId = selectedMachineId;
+
+        if (wasEditing) {
+          machines = machines.map(function(existingMachine) {
+            return existingMachine.id === editingMachineId ? machine : existingMachine;
+          });
+        } else {
+          machines.push(machine);
+        }
+
+        selectedMachineId = machine.id;
+        try {
+          await saveMachines();
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+          renderMachines();
+          renderSelectedMachine();
+          renderMonitoringCards();
+          resetScanResults();
+          closeDialog();
+          setStatus(wasEditing ? "Machine modifiee" : "Machine ajoutee", "ok");
+        } catch (error) {
+          machines = previousMachines;
+          selectedMachineId = previousSelectedMachineId;
+          setStatus("Sauvegarde impossible", "error");
+        }
+      });
+
+      scanButton.addEventListener("click", async function() {
+        var machine = getSelectedMachine();
+
+        if (!machine) {
+          setStatus("Aucune machine", "error");
+          return;
+        }
+
+        setStatus("Scan en cours", "busy");
+        scanButton.disabled = true;
+
+        var params = machineToParams(machine);
+
+        try {
+          var response = await fetch("/api/monitor?" + params.toString());
+          var data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Erreur SNMP");
+          }
+
+          renderMonitor(data);
+          monitoringState[machine.id] = buildMonitoringState(data);
+          renderMonitoringCards();
+          setStatus("Connecte", "ok");
+        } catch (error) {
+          setStatus("Erreur", "error");
+          renderError(error.message);
+          monitoringState[machine.id] = buildOfflineState(machine, error.message);
+          renderMonitoringCards();
+        } finally {
+          scanButton.disabled = !getSelectedMachine();
+        }
+      });
+
+      refreshMonitoringButton.addEventListener("click", async function() {
+        if (!machines.length) {
+          setStatus("Aucune machine", "error");
+          return;
+        }
+
+        refreshMonitoringButton.disabled = true;
+        setStatus("Monitoring", "busy");
+
+        for (var index = 0; index < machines.length; index += 1) {
+          var machine = machines[index];
+          monitoringState[machine.id] = {
+            connected: false,
+            state: "pending",
+            label: "Scan",
+            message: "Scan en cours",
+            controller: [{ label: "C", ok: null }],
+            outputSlots: [],
+            screens: [],
+            receivingCards: []
+          };
+          renderMonitoringCards();
+
+          try {
+            var response = await fetch("/api/monitor?" + machineToParams(machine).toString());
+            var data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.error || "Erreur SNMP");
+            }
+
+            monitoringState[machine.id] = buildMonitoringState(data);
+          } catch (error) {
+            monitoringState[machine.id] = buildOfflineState(machine, error.message);
+          }
+
+          renderMonitoringCards();
+        }
+
+        refreshMonitoringButton.disabled = false;
+        setStatus("Monitoring OK", "ok");
+      });
+
+      initializeMachines();
+
+      function activateTab(tabId) {
+        document.querySelectorAll(".tab").forEach(function(tabButton) {
+          tabButton.classList.toggle("active", tabButton.dataset.tab === tabId);
+        });
+
+        document.querySelectorAll(".tab-panel").forEach(function(panel) {
+          var active = panel.id === tabId;
+          panel.classList.toggle("active", active);
+          panel.hidden = !active;
+        });
+
+        if (tabId === "monitoringTab") {
+          renderMonitoringCards();
+        }
+      }
+
+      function openAddDialog() {
+        editingMachineId = "";
+        dialogTitle.textContent = "Ajouter une machine H";
+        machineForm.reset();
+        machineForm.host.value = "192.168.1.10";
+        machineForm.model.value = "H9";
+        machineForm.readCommunity.value = "public";
+        machineForm.writeCommunity.value = "private";
+        machineForm.timeout.value = "2000";
+        machineForm.retries.value = "1";
+        machineForm.recvCardsPerPort.value = "1";
+        dialogBackdrop.hidden = false;
+        machineForm.name.focus();
+      }
+
+      function openEditDialog(machine) {
+        editingMachineId = machine.id;
+        dialogTitle.textContent = "Modifier une machine H";
+        machineForm.reset();
+        machineForm.name.value = machine.name || "";
+        machineForm.host.value = machine.host || "";
+        machineForm.model.value = normalizeModel(machine.model);
+        machineForm.readCommunity.value = machine.readCommunity || "public";
+        machineForm.writeCommunity.value = machine.writeCommunity || "private";
+        machineForm.timeout.value = machine.timeout || "2000";
+        machineForm.retries.value = machine.retries || "1";
+        machineForm.maxInputSlots.value = machine.maxInputSlots || machine.maxOutputSlots || "";
+        machineForm.maxScreens.value = machine.maxScreens || "";
+        machineForm.recvCardsPerPort.value = machine.recvCardsPerPort || "1";
+        machineForm.includeReceivingCards.checked = !!machine.includeReceivingCards;
+        dialogBackdrop.hidden = false;
+        machineForm.name.focus();
+      }
+
+      function closeDialog() {
+        dialogBackdrop.hidden = true;
+        editingMachineId = "";
+      }
+
+      async function initializeMachines() {
+        machines = await loadMachines();
+        renderMachines();
+        renderSelectedMachine();
+        renderMonitoringCards();
+      }
+
+      async function loadMachines() {
+        try {
+          var response = await fetch("/api/machines");
+          var parsed = await response.json();
+
+          if (!response.ok) {
+            throw new Error(parsed.error || "Impossible de charger les machines");
+          }
+
+          var serverMachines = Array.isArray(parsed) ? parsed : [];
+
+          if (serverMachines.length) {
+            return serverMachines;
+          }
+
+          var legacyMachines = loadLegacyMachines();
+          if (legacyMachines.length) {
+            machines = legacyMachines;
+            await saveMachines();
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+            setStatus("Configuration importee", "ok");
+            return legacyMachines;
+          }
+
+          return serverMachines;
+        } catch (error) {
+          setStatus("Chargement impossible", "error");
+          return [];
+        }
+      }
+
+      function loadLegacyMachines() {
+        try {
+          var parsed = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      async function saveMachines() {
+        var response = await fetch("/api/machines", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(machines)
+        });
+        var result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || "Impossible de sauvegarder les machines");
+        }
+      }
+
+      function renderMachines() {
+        machineCount.textContent = String(machines.length);
+        machineList.innerHTML = machines.map(function(machine) {
+          return '<option value="' + escapeHtml(machine.id) + '">' +
+            escapeHtml(machine.name + " - " + getModelProfile(machine.model).label + " - " + machine.host) +
+          "</option>";
+        }).join("");
+
+        if (machines.length && !machines.some(function(machine) { return machine.id === selectedMachineId; })) {
+          selectedMachineId = machines[0].id;
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+        }
+
+        machineList.value = selectedMachineId;
+      }
+
+      async function deleteMachine(machineId) {
+        var previousMachines = machines.slice();
+        var previousSelectedMachineId = selectedMachineId;
+
+        machines = machines.filter(function(machine) {
+          return machine.id !== machineId;
+        });
+
+        if (selectedMachineId === machineId) {
+          selectedMachineId = machines.length ? machines[0].id : "";
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+          resetScanResults();
+        }
+
+        try {
+          await saveMachines();
+          renderMachines();
+          renderSelectedMachine();
+          delete monitoringState[machineId];
+          renderMonitoringCards();
+          setStatus("Machine supprimee", "ok");
+        } catch (error) {
+          machines = previousMachines;
+          selectedMachineId = previousSelectedMachineId;
+          renderMachines();
+          renderSelectedMachine();
+          setStatus("Suppression impossible", "error");
+        }
+      }
+
+      function renderSelectedMachine() {
+        var machine = getSelectedMachine();
+
+        if (!machine) {
+          selectedMachineName.textContent = "Aucune machine";
+          selectedMachineDetails.textContent = "Selectionnez un equipement H dans la liste.";
+          selectedMachineHint.textContent = "Ajoutez une machine pour commencer.";
+          scanButton.disabled = true;
+          return;
+        }
+
+        selectedMachineName.textContent = machine.name;
+        selectedMachineDetails.textContent = getModelProfile(machine.model).label + " | " + machine.host +
+          " | lecture: " + machine.readCommunity +
+          " | ecriture: " + machine.writeCommunity;
+        selectedMachineHint.textContent = "Selection: " + machine.name;
+        scanButton.disabled = false;
+      }
+
+      function getSelectedMachine() {
+        return getMachineById(selectedMachineId);
+      }
+
+      function getMachineById(machineId) {
+        return machines.find(function(machine) {
+          return machine.id === machineId;
+        });
+      }
+
+      function openContextMenu(x, y) {
+        contextMenu.hidden = false;
+
+        var menuWidth = contextMenu.offsetWidth;
+        var menuHeight = contextMenu.offsetHeight;
+        var left = Math.min(x, window.innerWidth - menuWidth - 8);
+        var top = Math.min(y, window.innerHeight - menuHeight - 8);
+
+        contextMenu.style.left = Math.max(8, left) + "px";
+        contextMenu.style.top = Math.max(8, top) + "px";
+      }
+
+      function closeContextMenu() {
+        contextMenu.hidden = true;
+        contextMachineId = "";
+      }
+
+      function machineToParams(machine) {
+        var params = new URLSearchParams();
+        params.set("host", machine.host);
+        params.set("model", normalizeModel(machine.model));
+        params.set("readCommunity", machine.readCommunity);
+        params.set("writeCommunity", machine.writeCommunity);
+        params.set("timeout", machine.timeout || "2000");
+        params.set("retries", machine.retries || "1");
+        params.set("recvCardsPerPort", machine.recvCardsPerPort || "1");
+        params.set("includeReceivingCards", machine.includeReceivingCards ? "1" : "0");
+
+        if (machine.maxOutputSlots) {
+          params.set("maxOutputSlots", machine.maxOutputSlots);
+        }
+
+        if (machine.maxInputSlots) {
+          params.set("maxInputSlots", machine.maxInputSlots);
+        }
+
+        if (machine.maxScreens) {
+          params.set("maxScreens", machine.maxScreens);
+        }
+
+        return params;
+      }
+
+      function resetScanResults() {
+        document.getElementById("summaryGrid").innerHTML = '<div class="notice neutral">Lancez un scan pour lire la machine selectionnee.</div>';
+        document.getElementById("lastScan").textContent = "Aucun scan";
+        document.getElementById("slotCount").textContent = "0 slot";
+        document.getElementById("screenCount").textContent = "0 ecran";
+        document.getElementById("cardCount").textContent = "Optionnel";
+        document.getElementById("controllerGrid").innerHTML = "";
+        document.getElementById("slotsTable").innerHTML = '<tr><td colspan="6" class="empty">Lancez un scan pour lire les slots d\'entree.</td></tr>';
+        document.getElementById("screensTable").innerHTML = '<tr><td colspan="6" class="empty">Lancez un scan pour lire les ecrans.</td></tr>';
+        document.getElementById("cardsTable").innerHTML = '<tr><td colspan="8" class="empty">Activez la lecture receiving cards dans la configuration machine.</td></tr>';
+      }
+
+      function renderMonitor(data) {
+        document.getElementById("lastScan").textContent = formatDate(data.timestamp);
+        var primarySlots = data.inputSlots || data.outputSlots;
+        document.getElementById("slotCount").textContent = primarySlots.error
+          ? "Erreur: " + primarySlots.error
+          : plural(primarySlots.count, "slot");
+        document.getElementById("screenCount").textContent = data.screens.error
+          ? "Erreur: " + data.screens.error
+          : plural(data.screens.count, "ecran");
+        document.getElementById("cardCount").textContent = plural(data.receivingCards.length, "card");
+
+        renderSummary(data);
+        renderController(data.controller);
+        renderSlots(primarySlots.slots);
+        renderScreens(data.screens.screens);
+        renderCards(data.receivingCards);
+      }
+
+      function renderMonitoringCards() {
+        if (!machines.length) {
+          monitoringCards.innerHTML = '<div class="notice neutral">Ajoutez des machines dans Configuration pour alimenter le monitoring.</div>';
+          return;
+        }
+
+        monitoringCards.innerHTML = machines.map(function(machine) {
+          var state = monitoringState[machine.id] || buildUnknownState(machine);
+
+          return '<article class="monitoring-card ' + escapeHtml(state.state) + '">' +
+            '<div class="card-head">' +
+              '<div><h3>' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
+              '<strong>' + escapeHtml(state.label) + '</strong>' +
+            '</div>' +
+            '<div class="pill-section">' +
+              pillGroup("Controleur", state.controller) +
+              pillGroup("Slots d'entree", state.inputSlots || state.outputSlots) +
+              pillGroup("Ecrans", state.screens) +
+              pillGroup("Receiving cards", state.receivingCards) +
+            '</div>' +
+            '<p class="card-message">' + escapeHtml(state.message) + '</p>' +
+          '</article>';
+        }).join("");
+      }
+
+      function buildUnknownState(machine) {
+        return {
+          connected: false,
+          state: "unknown",
+          label: "Non scanne",
+          message: "Aucun resultat disponible.",
+          controller: [{ label: "C", ok: null }],
+          inputSlots: [],
+          outputSlots: [],
+          screens: [],
+          receivingCards: []
+        };
+      }
+
+      function buildOfflineState(machine, message) {
+        return {
+          connected: false,
+          state: "offline",
+          label: "Offline",
+          message: message || "Equipement non connecte.",
+          controller: [{ label: "C", ok: false }],
+          inputSlots: [],
+          outputSlots: [],
+          screens: [],
+          receivingCards: []
+        };
+      }
+
+      function buildMonitoringState(data) {
+        var controllerOk = fieldsAreHealthy(data.controller);
+        var primarySlots = data.inputSlots || data.outputSlots;
+        var inputSlots = primarySlots.slots.map(function(slot) {
+          return {
+            label: String(slot.slotId),
+            ok: fieldsAreHealthy(slot.fields)
+          };
+        });
+        var screens = data.screens.screens.map(function(screen) {
+          return {
+            label: String(screen.screenId),
+            ok: fieldsAreHealthy(screen.fields)
+          };
+        });
+        var receivingCards = data.receivingCards.map(function(card) {
+          return {
+            label: card.outputSlotId + "." + card.netPortId + "." + card.recvCardId,
+            ok: fieldsAreHealthy(card.fields)
+          };
+        });
+        var hasProblem = !controllerOk ||
+          inputSlots.some(function(item) { return item.ok === false; }) ||
+          screens.some(function(item) { return item.ok === false; }) ||
+          receivingCards.some(function(item) { return item.ok === false; });
+
+        return {
+          connected: true,
+          state: hasProblem ? "problem" : "ok",
+          label: hasProblem ? "Probleme" : "OK",
+          message: "Dernier scan: " + formatDate(data.timestamp),
+          controller: [{ label: "C", ok: controllerOk }],
+          inputSlots: inputSlots,
+          outputSlots: inputSlots,
+          screens: screens,
+          receivingCards: receivingCards
+        };
+      }
+
+      function fieldsAreHealthy(fields) {
+        return Object.keys(fields || {}).every(function(key) {
+          var field = fields[key];
+
+          if (!field || field.ok === false) {
+            return false;
+          }
+
+          return !looksLikeProblem(field.value);
+        });
+      }
+
+      function looksLikeProblem(value) {
+        var text = String(value || "").toLowerCase();
+
+        return [
+          "alarm",
+          "error",
+          "fault",
+          "fail",
+          "failed",
+          "problem",
+          "abnormal",
+          "disconnect",
+          "offline",
+          "down"
+        ].some(function(pattern) {
+          return text.indexOf(pattern) !== -1;
+        });
+      }
+
+      function pillGroup(title, items) {
+        var safeItems = items && items.length ? items : [{ label: "-", ok: null }];
+
+        return '<div class="pill-group"><span>' + escapeHtml(title) + '</span><div>' +
+          safeItems.map(statusPill).join("") +
+        '</div></div>';
+      }
+
+      function statusPill(item) {
+        var className = item.ok === true ? "ok" : item.ok === false ? "bad" : "unknown";
+        var title = item.ok === true ? "OK" : item.ok === false ? "Probleme" : "Non scanne";
+
+        return '<span class="monitor-pill ' + className + '" title="' + escapeHtml(title) + '">' +
+          escapeHtml(item.label) +
+        '</span>';
+      }
+
+      function renderSummary(data) {
+        var controller = data.controller;
+        var model = data.configuredModel || fieldValue(controller.model);
+        var firmware = fieldValue(controller.firmware);
+        var status = fieldValue(controller.workingStatus);
+        var temp = fieldValue(controller.temperatureStatus);
+
+        document.getElementById("summaryGrid").innerHTML = [
+          summaryTile("Equipement", data.host),
+          summaryTile("Modele", model || "-"),
+          summaryTile("Firmware", firmware || "-"),
+          summaryTile("Statut", status || "-"),
+          summaryTile("Temperature", temp || "-"),
+          summaryTile("Slots entree", (data.inputSlots && data.inputSlots.count) || 0)
+        ].join("");
+      }
+
+      function renderController(controller) {
+        var labels = {
+          oidVersion: "OID version",
+          summary: "Resume",
+          workingTime: "Temps de marche",
+          model: "Modele",
+          firmware: "Firmware",
+          serial: "Numero de serie",
+          macAddress: "MAC",
+          wiredIpAddress: "IP filaire",
+          armVersion: "ARM",
+          temperatureStatus: "Temperature",
+          fanCount: "Ventilateurs",
+          powerCount: "Alimentations",
+          genlockStatus: "Genlock",
+          genlockFrame: "Frame genlock",
+          workingStatus: "Statut",
+          cpuStatus: "CPU",
+          memoryStatus: "Memoire",
+          fansStatus: "Statut ventilateurs",
+          powerStatus: "Statut alimentation"
+        };
+
+        document.getElementById("controllerGrid").innerHTML = Object.keys(labels).map(function(key) {
+          return fieldTile(labels[key], controller[key]);
+        }).join("");
+      }
+
+      function renderSlots(slots) {
+        var body = document.getElementById("slotsTable");
+
+        if (!slots.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">Aucun slot retourne.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = slots.map(function(slot) {
+          return "<tr>" +
+            cell(slot.slotId) +
+            cell(fieldValue(slot.fields.status)) +
+            cell(fieldValue(slot.fields.firmware)) +
+            cell(fieldValue(slot.fields.serial)) +
+            cell(fieldValue(slot.fields.sourceCount)) +
+            cell(formatInputSource(slot.fields), "wide") +
+          "</tr>";
+        }).join("");
+      }
+
+      function formatInputSource(fields) {
+        var width = fieldValue(fields.sourceWidth);
+        var height = fieldValue(fields.sourceHeight);
+        var frameRate = fieldValue(fields.sourceFrameRate);
+        var type = fieldValue(fields.sourceType);
+        var parts = [];
+
+        if (width && height) {
+          parts.push(width + " x " + height);
+        }
+
+        if (frameRate) {
+          parts.push(frameRate + " Hz");
+        }
+
+        if (type) {
+          parts.push("type " + type);
+        }
+
+        return parts.join(" / ") || fieldValue(fields.summary) || "-";
+      }
+
+      function renderScreens(screens) {
+        var body = document.getElementById("screensTable");
+
+        if (!screens.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">Aucun ecran retourne.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = screens.map(function(screen) {
+          var width = fieldValue(screen.fields.width);
+          var height = fieldValue(screen.fields.height);
+
+          return "<tr>" +
+            cell(screen.screenId) +
+            cell(fieldValue(screen.fields.name)) +
+            cell(width && height ? width + " x " + height : "-") +
+            cell(fieldValue(screen.fields.frameRate)) +
+            cell(fieldValue(screen.fields.brightness)) +
+            cell(fieldValue(screen.fields.displayMode)) +
+          "</tr>";
+        }).join("");
+      }
+
+      function renderCards(cards) {
+        var body = document.getElementById("cardsTable");
+
+        if (!cards.length) {
+          body.innerHTML = '<tr><td colspan="8" class="empty">Aucune receiving card lue.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = cards.map(function(card) {
+          return "<tr>" +
+            cell(card.outputSlotId) +
+            cell(card.netPortId) +
+            cell(card.recvCardId) +
+            cell(fieldValue(card.fields.netPortLinkStatus)) +
+            cell(fieldValue(card.fields.workingStatus)) +
+            cell(fieldValue(card.fields.temperatureValue)) +
+            cell(fieldValue(card.fields.voltageValue)) +
+            cell([fieldValue(card.fields.fpgaVersion), fieldValue(card.fields.mcuVersion)].filter(Boolean).join(" / ") || "-") +
+          "</tr>";
+        }).join("");
+      }
+
+      function renderError(message) {
+        document.getElementById("summaryGrid").innerHTML = '<div class="notice">' + escapeHtml(message) + '</div>';
+      }
+
+      function summaryTile(label, value) {
+        return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+      }
+
+      function fieldTile(label, field) {
+        var value = fieldValue(field) || "-";
+        var className = field && field.ok === false ? "field bad" : "field";
+        var title = field && field.error ? ' title="' + escapeHtml(field.oid + " - " + field.error) + '"' : "";
+
+        return '<div class="' + className + '"' + title + '><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+      }
+
+      function fieldValue(field) {
+        if (!field) {
+          return "";
+        }
+
+        return field.ok ? String(field.value || "") : "Erreur";
+      }
+
+      function cell(value, className) {
+        return '<td class="' + (className || "") + '">' + escapeHtml(value === "" || value === null || value === undefined ? "-" : value) + '</td>';
+      }
+
+      function plural(count, label) {
+        return count + " " + label + (count > 1 ? "s" : "");
+      }
+
+      function formatDate(value) {
+        return new Date(value).toLocaleString("fr-FR");
+      }
+
+      function setStatus(text, state) {
+        statusNode.textContent = text;
+        statusNode.className = "status-pill " + (state || "");
+      }
+
+      function normalizeModel(value) {
+        var model = String(value || "H9").toUpperCase();
+        return MODEL_PROFILES[model] ? model : "H9";
+      }
+
+      function getModelProfile(value) {
+        return MODEL_PROFILES[normalizeModel(value)];
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+    </script>
+  </body>
+</html>

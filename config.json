@@ -1,0 +1,5 @@
+{
+    "port" : 80,
+    "snmp-machines" : "./snmp-machines.json",
+    "loglevel":"debug"
+}
