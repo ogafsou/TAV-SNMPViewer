@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "1783432154855",
+    "name": "H5-Main",
+    "host": "192.168.69.86",
+    "model": "H9",
+    "readCommunity": "public",
+    "writeCommunity": "private",
+    "timeout": "2000",
+    "retries": "1",
+    "maxOutputSlots": "",
+    "maxScreens": "",
+    "maxInputSlots": "",
+    "recvCardsPerPort": "1",
+    "includeReceivingCards": false
+  },
+  {
+    "id": "1783432208742",
+    "name": "H5-Backup",
+    "host": "192.168.69.85",
+    "model": "H9",
+    "readCommunity": "public",
+    "writeCommunity": "private",
+    "timeout": "2000",
+    "retries": "1",
+    "maxOutputSlots": "",
+    "maxScreens": "",
+    "maxInputSlots": "",
+    "recvCardsPerPort": "1",
+    "includeReceivingCards": false
+  }
+]

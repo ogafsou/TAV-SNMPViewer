@@ -8,7 +8,21 @@ function ensureDirectory(filePath) {
 }
 
 function normalizeMachines(value) {
-  return Array.isArray(value) ? value : [];
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((machine) => {
+    const normalized = Object.assign({}, machine);
+    normalized.type = normalizeMachineType(normalized.type);
+    delete normalized.model;
+    return normalized;
+  });
+}
+
+function normalizeMachineType(value) {
+  const type = String(value || "novastar-h").toLowerCase();
+  return ["novastar-h", "kiloview", "other"].includes(type) ? type : "novastar-h";
 }
 
 function loadMachines() {

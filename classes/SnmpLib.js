@@ -196,6 +196,11 @@ class SNMPConnector {
     try {
       const value = type === "number" ? await this.getNumber(oid) : await this.getString(oid);
       logger.debug("SNMP field read", { host: this.host, key, oid });
+
+      if (isBusinessErrorValue(value)) {
+        return { ok: true, value, oid, state: "notApplicable" };
+      }
+
       return { ok: true, value, oid };
     } catch (error) {
       logger.warning("SNMP field read failed", { host: this.host, key, oid, error: error.message });
@@ -290,23 +295,76 @@ class SNMPConnector {
   async readInputSlot(slotId) {
     logger.debug("SNMP input slot read started", { host: this.host, slotId });
     const selectorError = await this.setSelector(OIDS.inputSlotSelector, "integer", slotId);
+    const fields = await this.readFields([
+      { key: "status", oid: OIDS.inputSlotStatus, type: "number" },
+      { key: "firmware", oid: OIDS.inputSlotFirmware },
+      { key: "serial", oid: OIDS.inputSlotSerial },
+      { key: "sourceCount", oid: OIDS.inputSlotSourceCount, type: "number" },
+      { key: "summary", oid: OIDS.inputSlotSummary },
+      { key: "sourceStatus", oid: OIDS.inputSourceStatus, type: "number" },
+      { key: "sourceWidth", oid: OIDS.inputSourceWidth, type: "number" },
+      { key: "sourceHeight", oid: OIDS.inputSourceHeight, type: "number" },
+      { key: "sourceFrameRate", oid: OIDS.inputSourceFrameRate },
+      { key: "sourceType", oid: OIDS.inputSourceType, type: "number" }
+    ]);
+    const inputSources = selectorError
+      ? []
+      : await this.readInputSources({
+        inputSlotId: slotId,
+        sourceCount: Number(fields.sourceCount && fields.sourceCount.value) || 0
+      });
 
     return {
       slotId,
       selectorError,
+      fields,
+      inputSources
+    };
+  }
+
+  buildInputSourceSelector({ inputSlotId, sourceId }) {
+    return JSON.stringify({
+      inputSlotId: Number(inputSlotId),
+      sourceId: Number(sourceId)
+    });
+  }
+
+  async readInputSource({ inputSlotId, sourceId }) {
+    logger.debug("SNMP input source read started", { host: this.host, inputSlotId, sourceId });
+    const selectorError = await this.setSelector(
+      OIDS.inputSourceSelector,
+      "string",
+      this.buildInputSourceSelector({ inputSlotId, sourceId })
+    );
+
+    return {
+      inputSlotId,
+      sourceId,
+      selectorError,
       fields: await this.readFields([
-        { key: "status", oid: OIDS.inputSlotStatus, type: "number" },
-        { key: "firmware", oid: OIDS.inputSlotFirmware },
-        { key: "serial", oid: OIDS.inputSlotSerial },
-        { key: "sourceCount", oid: OIDS.inputSlotSourceCount, type: "number" },
-        { key: "summary", oid: OIDS.inputSlotSummary },
-        { key: "sourceStatus", oid: OIDS.inputSourceStatus, type: "number" },
-        { key: "sourceWidth", oid: OIDS.inputSourceWidth, type: "number" },
-        { key: "sourceHeight", oid: OIDS.inputSourceHeight, type: "number" },
-        { key: "sourceFrameRate", oid: OIDS.inputSourceFrameRate },
-        { key: "sourceType", oid: OIDS.inputSourceType, type: "number" }
+        { key: "status", oid: OIDS.inputSourceStatus, type: "number" },
+        { key: "width", oid: OIDS.inputSourceWidth, type: "number" },
+        { key: "height", oid: OIDS.inputSourceHeight, type: "number" },
+        { key: "frameRate", oid: OIDS.inputSourceFrameRate },
+        { key: "type", oid: OIDS.inputSourceType, type: "number" }
       ])
     };
+  }
+
+  async readInputSources({ inputSlotId, sourceCount }) {
+    const sources = [];
+    logger.info("SNMP input sources read started", { host: this.host, inputSlotId, sourceCount });
+
+    for (let sourceId = 1; sourceId <= sourceCount; sourceId += 1) {
+      const source = await this.readInputSource({ inputSlotId, sourceId });
+      sources.push(source);
+
+      if (source.selectorError) {
+        break;
+      }
+    }
+
+    return sources;
   }
 
   async readInputSlots(maxSlots) {
@@ -370,10 +428,15 @@ class SNMPConnector {
 
   async readReceivingCard(selection) {
     logger.debug("SNMP receiving card read started", Object.assign({ host: this.host }, selection));
-    await this.setString(OIDS.recvCardSelector, this.buildReceivingCardSelector(selection));
+    const selectorError = await this.setSelector(
+      OIDS.recvCardSelector,
+      "string",
+      this.buildReceivingCardSelector(selection)
+    );
 
     return {
       ...selection,
+      selectorError,
       fields: await this.readFields([
         { key: "netPortLinkStatus", oid: OIDS.netPortLinkStatus, type: "number" },
         { key: "netPortBackupStatus", oid: OIDS.netPortBackupStatus, type: "number" },
@@ -410,6 +473,10 @@ class SNMPConnector {
             netPortId,
             recvCardId
           }));
+
+          if (cards[cards.length - 1].selectorError) {
+            break;
+          }
         }
       }
     }
@@ -489,6 +556,12 @@ class SNMPConnector {
       inputSlots,
       outputSlots,
       screens,
+      outputPorts: [],
+      mvrCards: [],
+      mvrVideo: {},
+      usbPorts: [],
+      fans: [],
+      powerSupplies: [],
       receivingCards
     };
     logger.info("SNMP monitor completed", { host: this.host });
@@ -527,4 +600,8 @@ function parseJsonField(field) {
   } catch (error) {
     return null;
   }
+}
+
+function isBusinessErrorValue(value) {
+  return typeof value === "string" && /^ERROR:\s*BizIdError$/i.test(value.trim());
 }
