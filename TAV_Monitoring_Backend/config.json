@@ -1,0 +1,20 @@
+{
+  "port": 3001,
+  "monitor_interval_s": 30,
+  "machines_file": "./machines.json",
+  "monitoring_reference_mode": true,
+  "loglevel": "debug",
+  "max_parallel_scans": 8,
+  "alerts": {
+    "enabled": true,
+    "provider": "ntfy",
+    "server_url": "https://ntfy.sh",
+    "topic": "tav-rg26-monitoring-novastar-test-vdoconnect-270726",
+    "token": "",
+    "frontend_url": "https://tav.vdoconnect.net",
+    "failure_threshold": 2,
+    "recovery_threshold": 2,
+    "request_timeout_ms": 5000,
+    "notify_recovery": true
+  }
+}

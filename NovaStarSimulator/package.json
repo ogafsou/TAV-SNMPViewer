@@ -1,0 +1,14 @@
+{
+  "name": "novastar-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simulateur HTTP d'une matrice NovaStar H pour SNMPViewer",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js && node --check test/integration.js",
+    "test": "node test/integration.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

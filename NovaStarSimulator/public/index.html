@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NovaStar H Simulator</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <div><span class="eyebrow">TAV LAB</span><h1>NovaStar H Simulator</h1></div>
+    <div class="connection"><span class="pulse"></span><span>API active</span><code id="apiUrl"></code></div>
+  </header>
+  <main>
+    <section class="panel config-panel">
+      <div class="panel-title"><div><span class="step">01</span><h2>Configuration matérielle</h2></div><button id="reset" class="ghost">Réinitialiser H9</button></div>
+      <form id="configForm">
+        <div class="form-grid">
+          <label>Modèle<select name="model"><option>H2</option><option>H5</option><option>H9</option><option>Custom</option></select></label>
+          <label>Nom<input name="name" maxlength="80"></label>
+          <label>IP annoncée<input name="ip"></label>
+          <label>Cartes Input<input name="inputCards" type="number" min="0" max="16"></label>
+          <label>Entrées par carte<input name="inputsPerCard" type="number" min="1" max="16"></label>
+          <label>Types d'entrées<input name="inputTypes" placeholder="HDMI, SDI, DVI, DP"></label>
+          <label>Cartes Output<input name="outputCards" type="number" min="0" max="8"></label>
+          <label>Sorties par carte<input name="outputsPerCard" type="number" min="1" max="32"></label>
+          <label>Ventilateurs<input name="fans" type="number" min="0" max="16"></label>
+          <label>Alimentations<input name="powerSupplies" type="number" min="0" max="8"></label>
+          <label>Résolution<input name="resolution" placeholder="3840 × 2160"></label>
+          <label>Fréquence (Hz)<input name="refreshRate" type="number" min="1" max="240"></label>
+        </div>
+        <div class="form-actions"><span id="saveStatus">Configuration sauvegardée automatiquement</span><button type="submit">Appliquer la configuration</button></div>
+      </form>
+    </section>
+
+    <section class="panel state-panel">
+      <div class="panel-title"><div><span class="step">02</span><h2>Injection d'états</h2></div><div class="legend"><i class="ok"></i>OK <i class="warning"></i>Warning <i class="error"></i>Error</div></div>
+      <p class="hint">Cliquez sur un composant pour faire défiler ses états : OK → Warning → Error.</p>
+      <div id="components"></div>
+    </section>
+  </main>
+  <div id="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

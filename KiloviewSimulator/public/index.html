@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kiloview Simulator</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <header><div><p class="eyebrow">TAV Monitoring · Simulateur API</p><h1>Kiloview Simulator</h1><p>Configurez un encodeur ou un décodeur et injectez ses défauts.</p></div><span id="apiBadge" class="badge">API prête</span></header>
+  <main>
+    <section class="panel">
+      <div class="panel-title"><div><h2>Configuration</h2><p>Les changements sont sauvegardés automatiquement.</p></div><button id="reset" class="secondary">Réinitialiser</button></div>
+      <form id="configForm" class="grid">
+        <label>Mode<select name="mode"><option value="encoder">Encodeur</option><option value="decoder">Décodeur</option></select></label>
+        <label>Modèle<input name="model"></label><label>Nom de l’équipement<input name="deviceName"></label>
+        <label>Adresse annoncée<input name="deviceAddress"></label><label>Interface réseau<input name="networkInterface"></label>
+        <label>Entrée vidéo<select name="videoInput"><option>HDMI</option><option>SDI</option><option>DVI</option><option>DisplayPort</option></select></label>
+        <label>Résolution d’entrée<input name="inputResolution"></label><label>Résolution de sortie<input name="outputResolution"></label>
+        <label>Nom du canal<input name="channelName"></label><label>Nom de la source NDI<input name="sourceName"></label>
+        <label>URL de la source<input name="sourceUrl"></label><label>IP de la source<input name="sourceIp"></label>
+        <label>Fréquence (fps)<input name="frameRate" type="number"></label><label>Débit vidéo (Kbit/s)<input name="videoBitrate" type="number"></label>
+        <label>Charge CPU (%)<input name="cpuLoad" type="number"></label><label>Mémoire utilisée (Mo)<input name="memoryUsed" type="number"></label>
+      </form>
+    </section>
+    <section class="panel"><div class="panel-title"><div><h2>État des composants</h2><p>Cliquez sur OK, warning ou erreur pour simuler l’état.</p></div></div><div id="components" class="components"></div></section>
+    <section class="help"><strong>Connexion TAV Monitoring</strong><code>Type : Kiloview</code><code>Hôte / URL : http://127.0.0.1:8081</code><code>Identifiants : valeurs libres</code></section>
+  </main>
+  <script src="/app.js"></script>
+</body></html>

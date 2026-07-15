@@ -1,0 +1,14 @@
+{
+  "name": "tav-monitoring-ui",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node ../tests/run.js"
+  },
+  "dependencies": {
+    "ejs": "~2.6.1",
+    "express": "~4.16.1",
+    "morgan": "~1.9.1"
+  }
+}

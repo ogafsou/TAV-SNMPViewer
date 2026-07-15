@@ -1,0 +1,10 @@
+{
+  "port": 4000,
+  "backend_rest_url": "http://127.0.0.1:3001",
+  "backend_ws_url": "ws://127.0.0.1:3001/ws",
+  "backend_rest_url_local": "http://127.0.0.1:3001",
+  "backend_ws_url_local": "ws://127.0.0.1:3001/ws",
+  "backend_rest_url_tav": "https://tav.vdoconnect.net",
+  "backend_ws_url_tav": "ws://tav.vdoconnect.net/ws",
+  "rest_refresh_s": 60
+}

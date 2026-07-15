@@ -1,0 +1,12 @@
+{
+  "name": "kiloview-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simulateur HTTP Kiloview pour TAV Monitoring",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js && node --check test/integration.js",
+    "test": "node test/integration.js"
+  },
+  "engines": { "node": ">=18" }
+}

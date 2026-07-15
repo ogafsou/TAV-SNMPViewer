@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title><%= title %></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <svg class="icon-filter-defs" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="icon-green" color-interpolation-filters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.035 0.38" />
+            <feFuncG type="table" tableValues="0.28 0.92" />
+            <feFuncB type="table" tableValues="0.13 0.52" />
+            <feFuncA type="identity" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="icon-orange" color-interpolation-filters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.55 1" />
+            <feFuncG type="table" tableValues="0.20 0.72" />
+            <feFuncB type="table" tableValues="0.015 0.18" />
+            <feFuncA type="identity" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="icon-red" color-interpolation-filters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.48 1" />
+            <feFuncG type="table" tableValues="0.025 0.35" />
+            <feFuncB type="table" tableValues="0.02 0.30" />
+            <feFuncA type="identity" />
+          </feComponentTransfer>
+        </filter>
+        <filter id="icon-gray" color-interpolation-filters="sRGB">
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.25 0.78" />
+            <feFuncG type="table" tableValues="0.29 0.83" />
+            <feFuncB type="table" tableValues="0.33 0.87" />
+            <feFuncA type="identity" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">NovaStar H Series</p>
+          <h1>SNMP Viewer</h1>
+        </div>
+        <div class="status-pill" id="connectionStatus">Pret</div>
+      </header>
+
+      <nav class="tabs" aria-label="Sections">
+        <button class="tab active" type="button" data-tab="configurationTab">Configuration</button>
+        <button class="tab" type="button" data-tab="monitoringTab">Monitoring</button>
+      </nav>
+
+      <section id="configurationTab" class="tab-panel active">
+      <section class="configuration-options" aria-label="Options du monitoring">
+        <label class="reference-mode-option">
+          <input id="monitoringReferenceMode" type="checkbox" />
+          <span>
+            <strong>Mode Set reference</strong>
+            <small>Compare chaque scan a un etat de reference defini pour la machine.</small>
+          </span>
+        </label>
+      </section>
+      <section class="configuration-layout">
+        <aside class="machine-sidebar">
+          <div class="add-zone">
+            <button id="openAddDialog" type="button">Add</button>
+          </div>
+
+          <div class="machine-list-zone">
+            <div class="section-title compact">
+              <h2>Machines H</h2>
+              <span id="machineCount">0</span>
+            </div>
+            <select id="machineList" class="machine-list" size="12" aria-label="Liste des machines H"></select>
+            <p class="sidebar-help" id="selectedMachineHint">Ajoutez une machine pour commencer.</p>
+          </div>
+        </aside>
+
+        <section class="monitor-zone">
+          <div class="monitor-toolbar">
+            <div>
+              <p class="eyebrow">Machine selectionnee</p>
+              <h2 id="selectedMachineName">Aucune machine</h2>
+              <span id="selectedMachineDetails">Selectionnez un equipement H dans la liste.</span>
+            </div>
+            <div class="toolbar-actions">
+              <button id="scanButton" type="button" disabled>Scan</button>
+            </div>
+          </div>
+
+          <section class="summary-grid" id="summaryGrid" aria-live="polite">
+            <div class="notice neutral">Selectionnez une machine puis lancez un scan.</div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Ports de sortie</h2>
+              <span id="portCount">0 port</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Port</th>
+                    <th>Link</th>
+                    <th>Backup</th>
+                    <th>Fibre</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody id="portsTable">
+                  <tr><td colspan="6" class="empty">Aucun port de sortie retourne.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Controleur</h2>
+              <span id="lastScan">Aucun scan</span>
+            </div>
+            <div class="field-grid" id="controllerGrid"></div>
+          </section>
+
+          <section class="data-section" id="systemHealthSection" hidden>
+            <div class="section-title">
+              <h2>Sante systeme</h2>
+            </div>
+            <div class="field-grid" id="systemHealthGrid"></div>
+          </section>
+
+          <section class="data-section" id="mvrSection" hidden>
+            <div class="section-title">
+              <h2>Cartes MVR</h2>
+              <span id="mvrCount">0 carte</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Slot</th><th>Modele</th><th>Serie</th><th>Statut</th><th>Resolution</th><th>Interfaces</th></tr></thead>
+                <tbody id="mvrTable"><tr><td colspan="6" class="empty">Aucune carte MVR retournee.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section" id="mvrVideoSection" hidden>
+            <div class="section-title"><h2>Video MVR</h2></div>
+            <div class="field-grid" id="mvrVideoGrid"></div>
+          </section>
+
+          <section class="data-section" id="usbSection" hidden>
+            <div class="section-title"><h2>USB</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Port</th><th>Statut</th></tr></thead><tbody id="usbTable"></tbody></table></div>
+          </section>
+
+          <section class="data-section" id="fansSection" hidden>
+            <div class="section-title"><h2>Ventilateurs</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Ventilateur</th><th>Statut</th></tr></thead><tbody id="fansTable"></tbody></table></div>
+          </section>
+
+          <section class="data-section" id="powerSection" hidden>
+            <div class="section-title"><h2>Alimentations</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Alimentation</th><th>Statut</th></tr></thead><tbody id="powerTable"></tbody></table></div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Slots d'entree</h2>
+              <span id="slotCount">0 slot</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Statut</th>
+                    <th>Firmware</th>
+                    <th>Serie</th>
+                    <th>Sources</th>
+                    <th>Source active</th>
+                  </tr>
+                </thead>
+                <tbody id="slotsTable">
+                  <tr><td colspan="6" class="empty">Lancez un scan pour lire les slots d'entree.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Ecrans</h2>
+              <span id="screenCount">0 ecran</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ecran</th>
+                    <th>Nom</th>
+                    <th>Resolution</th>
+                    <th>Frequence</th>
+                    <th>Luminosite</th>
+                    <th>Mode</th>
+                  </tr>
+                </thead>
+                <tbody id="screensTable">
+                  <tr><td colspan="6" class="empty">Lancez un scan pour lire les ecrans.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2 id="cardsTitle">Receiving cards</h2>
+              <span id="cardCount">Optionnel</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Port</th>
+                    <th>Card</th>
+                    <th>Link</th>
+                    <th>Travail</th>
+                    <th>Temp.</th>
+                    <th>Voltage</th>
+                    <th>Versions</th>
+                  </tr>
+                </thead>
+                <tbody id="cardsTable">
+                  <tr><td colspan="8" class="empty">Activez la lecture receiving cards dans la configuration machine.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </section>
+      </section>
+
+      <section id="monitoringTab" class="tab-panel" hidden>
+        <div class="monitoring-header">
+          <div>
+            <p class="eyebrow">Vue globale</p>
+            <h2>Monitoring</h2>
+            <span id="monitoringHint">Les cartes utilisent la liste des machines configurees.</span>
+            <span id="autoRefreshHint"></span>
+          </div>
+          <button id="refreshMonitoring" type="button">Refresh</button>
+        </div>
+
+        <div id="monitoringCards" class="monitoring-grid">
+          <div class="notice neutral">Ajoutez des machines dans Configuration pour alimenter le monitoring.</div>
+        </div>
+      </section>
+    </main>
+
+    <div id="machineContextMenu" class="context-menu" hidden>
+      <button id="editMachine" type="button">Edit</button>
+      <button id="deleteMachine" type="button">Delete</button>
+    </div>
+
+    <div id="dialogBackdrop" class="dialog-backdrop" hidden>
+      <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+        <div class="section-title">
+          <h2 id="dialogTitle">Ajouter une machine</h2>
+          <button id="closeAddDialog" class="ghost-button" type="button">Fermer</button>
+        </div>
+
+        <form id="machineForm" class="machine-form">
+          <div class="machine-form-row identity-row">
+            <label>
+              <span>Type</span>
+              <select name="type">
+                <option value="novastar-h">NovaStar H</option>
+                <option value="kiloview">Kiloview</option>
+                <option value="other">Autres</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Nom</span>
+              <input name="name" type="text" placeholder="H9 Regie principale" autocomplete="off" required />
+            </label>
+
+            <label>
+              <span>Adresse IP</span>
+              <input name="host" type="text" value="192.168.1.10" autocomplete="off" required />
+            </label>
+          </div>
+
+          <div class="machine-form-row credentials-row api-field" hidden>
+            <label class="credential-field">
+              <span>Utilisateur API</span>
+              <input name="apiUsername" type="text" value="admin" autocomplete="off" />
+            </label>
+
+            <label class="credential-field">
+              <span>Mot de passe API</span>
+              <input name="apiPassword" type="password" value="admin" autocomplete="new-password" />
+            </label>
+          </div>
+
+          <fieldset class="access-mode-field novastar-only">
+            <legend>Source des infos</legend>
+            <label class="toggle-row">
+              <input name="accessMethod" type="radio" value="snmp" checked />
+              <span>SNMP</span>
+            </label>
+            <label class="toggle-row">
+              <input name="accessMethod" type="radio" value="api" />
+              <span>API NovaStar H</span>
+            </label>
+            <label class="toggle-row">
+              <input name="accessMethod" type="radio" value="snmp+api" />
+              <span>SNMP + API</span>
+            </label>
+          </fieldset>
+
+          <details class="advanced-settings novastar-only">
+            <summary>Parametres avances</summary>
+            <div class="advanced-settings-grid">
+              <label class="snmp-field">
+                <span>Lecture</span>
+                <input name="readCommunity" type="text" value="public" autocomplete="off" />
+              </label>
+              <label class="snmp-field">
+                <span>Ecriture</span>
+                <input name="writeCommunity" type="text" value="private" autocomplete="off" />
+              </label>
+              <label class="shared-field">
+                <span>Timeout ms</span>
+                <input name="timeout" type="number" min="500" max="10000" step="100" value="2000" />
+              </label>
+              <label class="snmp-field">
+                <span>Retries</span>
+                <input name="retries" type="number" min="0" max="5" step="1" value="1" />
+              </label>
+              <label class="api-field" hidden>
+                <span>URL API</span>
+                <input name="apiBaseUrl" type="text" placeholder="http://192.168.69.86" autocomplete="off" />
+              </label>
+              <label class="api-field" hidden>
+                <span>Device ID</span>
+                <input name="apiDeviceId" type="number" min="0" max="999" step="1" value="0" />
+              </label>
+              <label class="snmp-field">
+                <span>Slots d'entree max</span>
+                <input name="maxInputSlots" type="number" min="1" max="32" placeholder="auto" />
+              </label>
+              <label class="snmp-field">
+                <span>Ecrans max</span>
+                <input name="maxScreens" type="number" min="1" max="16" placeholder="auto" />
+              </label>
+              <label class="snmp-field">
+                <span>Receiving cards / port</span>
+                <input name="recvCardsPerPort" type="number" min="1" max="12" value="1" />
+              </label>
+              <label class="toggle-row snmp-field">
+                <input name="includeReceivingCards" type="checkbox" />
+                <span>Lire les receiving cards</span>
+              </label>
+            </div>
+          </details>
+
+          <div class="dialog-actions">
+            <button class="secondary-button" id="cancelAddDialog" type="button">Annuler</button>
+            <button type="submit">OK</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <script>
+      var LEGACY_STORAGE_KEY = "novastarMachines";
+      var AUTOREFRESH_S = Number(<%- JSON.stringify(rest_refresh_s || 0) %>) || 0;
+      var REFERENCE_MODE_ENABLED = false;
+      var BACKEND_MONITOR_INTERVAL_S = 0;
+      var machines = [];
+      var selectedMachineId = localStorage.getItem("novastarSelectedMachineId") || "";
+      var contextMachineId = "";
+      var editingMachineId = "";
+      var monitoringState = {};
+      var monitoringRecords = {};
+      var activeTabId = "configurationTab";
+      var monitoringRefreshInProgress = false;
+      var autoRefreshTimer = null;
+
+      var machineList = document.getElementById("machineList");
+      var machineCount = document.getElementById("machineCount");
+      var selectedMachineName = document.getElementById("selectedMachineName");
+      var selectedMachineDetails = document.getElementById("selectedMachineDetails");
+      var selectedMachineHint = document.getElementById("selectedMachineHint");
+      var scanButton = document.getElementById("scanButton");
+      var statusNode = document.getElementById("connectionStatus");
+      var dialogBackdrop = document.getElementById("dialogBackdrop");
+      var machineForm = document.getElementById("machineForm");
+      var dialogTitle = document.getElementById("dialogTitle");
+      var contextMenu = document.getElementById("machineContextMenu");
+      var editMachineButton = document.getElementById("editMachine");
+      var deleteMachineButton = document.getElementById("deleteMachine");
+      var monitoringCards = document.getElementById("monitoringCards");
+      var refreshMonitoringButton = document.getElementById("refreshMonitoring");
+      var autoRefreshHint = document.getElementById("autoRefreshHint");
+      var monitoringReferenceMode = document.getElementById("monitoringReferenceMode");
+
+      document.querySelectorAll(".tab").forEach(function(tabButton) {
+        tabButton.addEventListener("click", function() {
+          activateTab(tabButton.dataset.tab);
+        });
+      });
+
+      document.getElementById("openAddDialog").addEventListener("click", openAddDialog);
+      document.getElementById("closeAddDialog").addEventListener("click", closeDialog);
+      document.getElementById("cancelAddDialog").addEventListener("click", closeDialog);
+      machineForm.elements.type.addEventListener("change", updateMachineFormFields);
+      machineForm.host.addEventListener("input", function() {
+        if (getSelectedAccessMethod() !== "snmp") {
+          machineForm.apiBaseUrl.value = machineForm.host.value
+            ? "http://" + machineForm.host.value.replace(/^https?:\/\//, "")
+            : "";
+        }
+      });
+      document.querySelectorAll('input[name="accessMethod"]').forEach(function(accessInput) {
+        accessInput.addEventListener("change", updateAccessModeFields);
+      });
+      dialogBackdrop.addEventListener("click", function(event) {
+        if (event.target === dialogBackdrop) {
+          closeDialog();
+        }
+      });
+
+      machineList.addEventListener("change", function() {
+        selectedMachineId = machineList.value;
+        localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+        renderSelectedMachine();
+        resetScanResults();
+      });
+
+      machineList.addEventListener("contextmenu", function(event) {
+        event.preventDefault();
+
+        if (!machines.length) {
+          return;
+        }
+
+        if (event.target && event.target.value) {
+          selectedMachineId = event.target.value;
+          machineList.value = selectedMachineId;
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+          renderSelectedMachine();
+          resetScanResults();
+        }
+
+        contextMachineId = selectedMachineId;
+        openContextMenu(event.clientX, event.clientY);
+      });
+
+      document.addEventListener("click", function(event) {
+        if (!contextMenu.hidden && !contextMenu.contains(event.target)) {
+          closeContextMenu();
+        }
+      });
+
+      editMachineButton.addEventListener("click", function() {
+        var machine = getMachineById(contextMachineId);
+        closeContextMenu();
+
+        if (machine) {
+          openEditDialog(machine);
+        }
+      });
+
+      deleteMachineButton.addEventListener("click", function() {
+        var machine = getMachineById(contextMachineId);
+        closeContextMenu();
+
+        if (machine) {
+          deleteMachine(machine.id);
+        }
+      });
+
+      machineForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        var formData = new FormData(machineForm);
+        var editedMachine = editingMachineId ? getMachineById(editingMachineId) : null;
+        var machine = {
+          id: editingMachineId || String(Date.now()),
+          type: normalizeMachineType(formData.get("type")),
+          name: String(formData.get("name") || "").trim(),
+          host: String(formData.get("host") || "").trim(),
+          accessMethod: normalizeAccessMethod(formData.get("accessMethod")),
+          readCommunity: String(formData.get("readCommunity") || "public").trim() || "public",
+          writeCommunity: String(formData.get("writeCommunity") || "private").trim() || "private",
+          timeout: String(formData.get("timeout") || "2000"),
+          retries: String(formData.get("retries") || "1"),
+          apiBaseUrl: String(formData.get("apiBaseUrl") || "").trim(),
+          apiUsername: String(formData.get("apiUsername") || "admin").trim() || "admin",
+          apiPassword: String(formData.get("apiPassword") || ""),
+          apiDeviceId: String(formData.get("apiDeviceId") || "0"),
+          maxOutputSlots: String(formData.get("maxOutputSlots") || ""),
+          maxScreens: String(formData.get("maxScreens") || ""),
+          maxInputSlots: String(formData.get("maxInputSlots") || ""),
+          recvCardsPerPort: String(formData.get("recvCardsPerPort") || "1"),
+          includeReceivingCards: machineForm.includeReceivingCards.checked
+        };
+
+        if (machine.type === "kiloview") {
+          delete machine.accessMethod;
+          delete machine.readCommunity;
+          delete machine.writeCommunity;
+          delete machine.apiBaseUrl;
+          delete machine.apiDeviceId;
+          delete machine.retries;
+          delete machine.maxOutputSlots;
+          delete machine.maxScreens;
+          delete machine.maxInputSlots;
+          delete machine.recvCardsPerPort;
+          delete machine.includeReceivingCards;
+        } else if (machine.type === "other") {
+          machine = { id: machine.id, type: machine.type, name: machine.name, host: machine.host, timeout: machine.timeout };
+        }
+
+        if (machine.type === "novastar-h" && machine.accessMethod !== "snmp" && !machine.apiBaseUrl) {
+          machine.apiBaseUrl = machine.host ? "http://" + machine.host.replace(/^https?:\/\//, "") : "";
+        }
+
+        if (editedMachine && editedMachine.monitoringReference) {
+          machine.monitoringReference = editedMachine.monitoringReference;
+        }
+
+        if (editedMachine) {
+          if (!String(formData.get("readCommunity") || "").trim()) delete machine.readCommunity;
+          if (!String(formData.get("writeCommunity") || "").trim()) delete machine.writeCommunity;
+          if (!String(formData.get("apiPassword") || "")) delete machine.apiPassword;
+          delete machine.monitoringReference;
+        }
+
+        if (!machine.name || !machine.host) {
+          setStatus("Configuration incomplete", "error");
+          return;
+        }
+
+        var wasEditing = !!editingMachineId;
+        try {
+          var endpoint = wasEditing ? "/api/machines/" + encodeURIComponent(editingMachineId) : "/api/machines";
+          var response = await fetch(endpoint, {
+            method: wasEditing ? "PATCH" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(machine)
+          });
+          var result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Impossible de sauvegarder la machine");
+          if (wasEditing) {
+            machines = machines.map(function(existingMachine) { return existingMachine.id === result.machine.id ? result.machine : existingMachine; });
+          } else {
+            machines.push(result.machine);
+          }
+          selectedMachineId = result.machine.id;
+          if (result.monitoring) applyMonitoringRecord(result.monitoring);
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+          renderMachines();
+          renderSelectedMachine();
+          renderMonitoringCards();
+          resetScanResults();
+          closeDialog();
+          setStatus(wasEditing ? "Machine modifiee" : "Machine ajoutee", "ok");
+        } catch (error) {
+          setStatus(error.message || "Sauvegarde impossible", "error");
+        }
+      });
+
+      scanButton.addEventListener("click", async function() {
+        var machine = getSelectedMachine();
+
+        if (!machine) {
+          setStatus("Aucune machine", "error");
+          return;
+        }
+
+        setStatus("Scan en cours", "busy");
+        scanButton.disabled = true;
+        monitoringState[machine.id] = buildTransientMonitoringState(machine, "pending", "Scan", "Scan en cours");
+        renderMonitoringCards();
+
+        try {
+          var response = await fetch("/api/machines/" + encodeURIComponent(machine.id) + "/scan", { method: "POST" });
+          var record = await response.json();
+
+          if (!response.ok) {
+            throw new Error(record.error || "Erreur de scan");
+          }
+
+          applyMonitoringRecord(record);
+          if (!record.view || !record.view.connected) throw new Error(record.raw && record.raw.error || "Equipement non connecte");
+          renderMonitor(record.raw);
+          renderMonitoringCards();
+          setStatus("Connecte", "ok");
+        } catch (error) {
+          setStatus("Erreur", "error");
+          renderError(error.message);
+          monitoringState[machine.id] = buildTransientMonitoringState(machine, "offline", "Offline", error.message || "Equipement non connecte.");
+          renderMonitoringCards();
+        } finally {
+          scanButton.disabled = !getSelectedMachine();
+        }
+      });
+
+      refreshMonitoringButton.addEventListener("click", function() {
+        refreshMonitoring(true);
+      });
+
+      monitoringReferenceMode.addEventListener("change", async function() {
+        var requestedMode = monitoringReferenceMode.checked;
+        monitoringReferenceMode.disabled = true;
+
+        try {
+          var response = await fetch("/api/config/monitoring-reference-mode", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ enabled: requestedMode })
+          });
+          var result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Impossible de sauvegarder le mode de monitoring");
+          }
+
+          REFERENCE_MODE_ENABLED = result.enabled === true;
+          monitoringReferenceMode.checked = REFERENCE_MODE_ENABLED;
+          renderMonitoringCards();
+          updateAutoRefreshHint();
+          setStatus(REFERENCE_MODE_ENABLED ? "Mode reference active" : "Mode actuel actif", "ok");
+        } catch (error) {
+          monitoringReferenceMode.checked = REFERENCE_MODE_ENABLED;
+          setStatus("Sauvegarde impossible", "error");
+        } finally {
+          monitoringReferenceMode.disabled = false;
+        }
+      });
+
+      monitoringCards.addEventListener("click", function(event) {
+        var button = event.target.closest(".set-reference-button");
+        if (button) {
+          setMachineReference(button.dataset.machineId);
+        }
+      });
+
+      initializeApplication();
+      setupRestRefresh();
+      setupWebSocket();
+
+      async function refreshMonitoring(manual) {
+        if (!machines.length) {
+          setStatus("Aucune machine", "error");
+          return;
+        }
+
+        if (monitoringRefreshInProgress) {
+          return;
+        }
+
+        monitoringRefreshInProgress = true;
+        refreshMonitoringButton.disabled = true;
+        setStatus(manual ? "Monitoring" : "Auto refresh", "busy");
+
+        var refreshSucceeded = false;
+        try {
+          machines.forEach(function(machine) {
+            monitoringState[machine.id] = buildTransientMonitoringState(machine, "pending", "Scan", "Scan en cours");
+          });
+          renderMonitoringCards();
+          var response = await fetch("/api/monitoring/scan", { method: "POST" });
+          var snapshot = await response.json();
+          if (!response.ok) throw new Error(snapshot.error || "Erreur de scan");
+          applyMonitoringSnapshot(snapshot);
+          refreshSucceeded = true;
+        } catch (error) {
+          setStatus(error.message || "Erreur de scan", "error");
+        } finally {
+          refreshMonitoringButton.disabled = false;
+          monitoringRefreshInProgress = false;
+          if (refreshSucceeded) setStatus("Monitoring OK", "ok");
+          updateAutoRefreshHint();
+        }
+      }
+
+      function activateTab(tabId) {
+        activeTabId = tabId;
+        document.querySelectorAll(".tab").forEach(function(tabButton) {
+          tabButton.classList.toggle("active", tabButton.dataset.tab === tabId);
+        });
+
+        document.querySelectorAll(".tab-panel").forEach(function(panel) {
+          var active = panel.id === tabId;
+          panel.classList.toggle("active", active);
+          panel.hidden = !active;
+        });
+
+        if (tabId === "monitoringTab") {
+          renderMonitoringCards();
+          updateAutoRefreshHint();
+        }
+      }
+
+      function setupRestRefresh() {
+        updateAutoRefreshHint();
+
+        if (AUTOREFRESH_S <= 0) {
+          return;
+        }
+
+        autoRefreshTimer = window.setInterval(function() {
+          syncMonitoringSnapshot();
+        }, AUTOREFRESH_S * 1000);
+      }
+
+      function updateAutoRefreshHint() {
+        if (!autoRefreshHint) {
+          return;
+        }
+
+        var refreshText = AUTOREFRESH_S > 0
+          ? "Synchronisation REST: " + AUTOREFRESH_S + " s"
+          : "Synchronisation REST: desactivee";
+        var scanText = BACKEND_MONITOR_INTERVAL_S > 0
+          ? " - Scan backend: " + BACKEND_MONITOR_INTERVAL_S + " s"
+          : " - Scan backend automatique desactive";
+        autoRefreshHint.textContent = refreshText + scanText + (REFERENCE_MODE_ENABLED ? " - Comparaison a la reference" : " - Evaluation des statuts");
+      }
+
+      function openAddDialog() {
+        editingMachineId = "";
+        dialogTitle.textContent = "Ajouter une machine";
+        machineForm.reset();
+        machineForm.elements.type.value = "novastar-h";
+        machineForm.host.value = "192.168.1.10";
+        machineForm.readCommunity.value = "public";
+        machineForm.writeCommunity.value = "private";
+        machineForm.readCommunity.placeholder = "";
+        machineForm.writeCommunity.placeholder = "";
+        machineForm.timeout.value = "2000";
+        machineForm.retries.value = "1";
+        machineForm.apiBaseUrl.value = "";
+        machineForm.apiUsername.value = "admin";
+        machineForm.apiPassword.value = "admin";
+        machineForm.apiPassword.placeholder = "";
+        machineForm.apiDeviceId.value = "0";
+        machineForm.recvCardsPerPort.value = "1";
+        setAccessMethod("snmp");
+        updateMachineFormFields();
+        dialogBackdrop.hidden = false;
+        machineForm.name.focus();
+      }
+
+      function openEditDialog(machine) {
+        editingMachineId = machine.id;
+        dialogTitle.textContent = "Modifier une machine";
+        machineForm.reset();
+        machineForm.elements.type.value = normalizeMachineType(machine.type);
+        machineForm.name.value = machine.name || "";
+        machineForm.host.value = machine.host || "";
+        setAccessMethod(machine.accessMethod || "snmp");
+        machineForm.readCommunity.value = "";
+        machineForm.writeCommunity.value = "";
+        machineForm.readCommunity.placeholder = machine.readCommunityConfigured ? "Configuree - laisser vide pour conserver" : "public";
+        machineForm.writeCommunity.placeholder = machine.writeCommunityConfigured ? "Configuree - laisser vide pour conserver" : "private";
+        machineForm.timeout.value = machine.timeout || "2000";
+        machineForm.retries.value = machine.retries || "1";
+        machineForm.apiBaseUrl.value = machine.apiBaseUrl || (machine.host ? "http://" + String(machine.host).replace(/^https?:\/\//, "") : "");
+        machineForm.apiUsername.value = machine.apiUsername || "admin";
+        machineForm.apiPassword.value = "";
+        machineForm.apiPassword.placeholder = machine.apiPasswordConfigured ? "Configure - laisser vide pour conserver" : "";
+        machineForm.apiDeviceId.value = machine.apiDeviceId || "0";
+        machineForm.maxInputSlots.value = machine.maxInputSlots || machine.maxOutputSlots || "";
+        machineForm.maxScreens.value = machine.maxScreens || "";
+        machineForm.recvCardsPerPort.value = machine.recvCardsPerPort || "1";
+        machineForm.includeReceivingCards.checked = !!machine.includeReceivingCards;
+        updateMachineFormFields();
+        dialogBackdrop.hidden = false;
+        machineForm.name.focus();
+      }
+
+      function closeDialog() {
+        dialogBackdrop.hidden = true;
+        editingMachineId = "";
+      }
+
+      async function initializeApplication() {
+        await loadBackendConfig();
+        machines = await loadMachines();
+        renderMachines();
+        renderSelectedMachine();
+        renderMonitoringCards();
+        await syncMonitoringSnapshot();
+      }
+
+      async function loadBackendConfig() {
+        try {
+          var response = await fetch("/api/config");
+          var backendConfig = await response.json();
+          if (!response.ok) throw new Error(backendConfig.error || "Configuration backend indisponible");
+          REFERENCE_MODE_ENABLED = backendConfig.monitoring_reference_mode === true;
+          BACKEND_MONITOR_INTERVAL_S = Number(backendConfig.monitor_interval_s) || 0;
+          monitoringReferenceMode.checked = REFERENCE_MODE_ENABLED;
+          updateAutoRefreshHint();
+        } catch (error) {
+          setStatus("Backend indisponible", "error");
+        }
+      }
+
+      async function loadMachines() {
+        try {
+          var response = await fetch("/api/machines");
+          var parsed = await response.json();
+
+          if (!response.ok) {
+            throw new Error(parsed.error || "Impossible de charger les machines");
+          }
+
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          setStatus("Chargement impossible", "error");
+          return [];
+        }
+      }
+
+      async function syncMonitoringSnapshot() {
+        try {
+          var response = await fetch("/api/monitoring");
+          var snapshot = await response.json();
+          if (!response.ok) throw new Error(snapshot.error || "Monitoring indisponible");
+          applyMonitoringSnapshot(snapshot);
+        } catch (error) {
+          setStatus("Synchronisation impossible", "error");
+        }
+      }
+
+      function applyMonitoringSnapshot(snapshot) {
+        (snapshot.machines || []).forEach(applyMonitoringRecord);
+        renderMonitoringCards();
+      }
+
+      function applyMonitoringRecord(record) {
+        if (!record || !record.machineId) return;
+        var previous = monitoringRecords[record.machineId];
+        if (previous && Number(previous.revision) > Number(record.revision)) return;
+        monitoringRecords[record.machineId] = record;
+        monitoringState[record.machineId] = record.view || buildMonitoringState(record.raw || {});
+      }
+
+      function setupWebSocket() {
+        var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        var socket = new WebSocket(protocol + "//" + window.location.host + "/ws");
+        socket.addEventListener("message", function(event) {
+          try { handleWebSocketMessage(JSON.parse(event.data)); } catch (error) { setStatus("Message WebSocket invalide", "error"); }
+        });
+        socket.addEventListener("open", function() { setStatus("Temps reel connecte", "ok"); });
+        socket.addEventListener("close", function() {
+          setStatus("Temps reel deconnecte", "error");
+          window.setTimeout(setupWebSocket, 3000);
+        });
+      }
+
+      function handleWebSocketMessage(message) {
+        if (message.type === "monitoring.snapshot") {
+          applyMonitoringSnapshot(message);
+          return;
+        }
+        if (message.type === "monitoring.initialized" || message.type === "monitoring.changed") {
+          applyMonitoringRecord(message.monitoring);
+          renderMonitoringCards();
+          return;
+        }
+        if (message.type === "telemetry.patch") {
+          var record = monitoringRecords[message.machineId];
+          if (!record || Number(record.revision) > Number(message.revision)) return;
+          Object.keys(message.changes || {}).forEach(function(path) { setObjectPath(record.raw, path, message.changes[path]); });
+          record.revision = message.revision;
+          record.timestamp = message.timestamp;
+          if (monitoringState[message.machineId] && message.message) monitoringState[message.machineId].message = message.message;
+          if (selectedMachineId === message.machineId && record.raw) renderMonitor(record.raw);
+          renderMonitoringCards();
+          return;
+        }
+        if (message.type === "machine.deleted") {
+          delete monitoringRecords[message.machineId];
+          delete monitoringState[message.machineId];
+          renderMonitoringCards();
+        }
+      }
+
+      function setObjectPath(target, path, value) {
+        var keys = String(path).split(".");
+        var node = target;
+        keys.forEach(function(key, index) {
+          if (index === keys.length - 1) {
+            if (value === null) delete node[key]; else node[key] = value;
+          } else {
+            if (!node[key] || typeof node[key] !== "object") node[key] = /^\d+$/.test(keys[index + 1]) ? [] : {};
+            node = node[key];
+          }
+        });
+      }
+
+      function renderMachines() {
+        machineCount.textContent = String(machines.length);
+        machineList.innerHTML = machines.map(function(machine) {
+          var source = accessMethodLabel(machine.accessMethod);
+          var type = machineTypeLabel(machine.type);
+          return '<option value="' + escapeHtml(machine.id) + '">' +
+            escapeHtml(machine.name + " - " + type + (normalizeMachineType(machine.type) === "novastar-h" ? " - " + source : "") + " - " + machine.host) +
+          "</option>";
+        }).join("");
+
+        if (machines.length && !machines.some(function(machine) { return machine.id === selectedMachineId; })) {
+          selectedMachineId = machines[0].id;
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+        }
+
+        machineList.value = selectedMachineId;
+      }
+
+      async function deleteMachine(machineId) {
+        var previousMachines = machines.slice();
+        var previousSelectedMachineId = selectedMachineId;
+
+        machines = machines.filter(function(machine) {
+          return machine.id !== machineId;
+        });
+
+        if (selectedMachineId === machineId) {
+          selectedMachineId = machines.length ? machines[0].id : "";
+          localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+          resetScanResults();
+        }
+
+        try {
+          var response = await fetch("/api/machines/" + encodeURIComponent(machineId), { method: "DELETE" });
+          if (!response.ok) {
+            var result = await response.json();
+            throw new Error(result.error || "Suppression impossible");
+          }
+          renderMachines();
+          renderSelectedMachine();
+          delete monitoringRecords[machineId];
+          delete monitoringState[machineId];
+          renderMonitoringCards();
+          setStatus("Machine supprimee", "ok");
+        } catch (error) {
+          machines = previousMachines;
+          selectedMachineId = previousSelectedMachineId;
+          renderMachines();
+          renderSelectedMachine();
+          setStatus(error.message || "Suppression impossible", "error");
+        }
+      }
+
+      function renderSelectedMachine() {
+        var machine = getSelectedMachine();
+
+        if (!machine) {
+          selectedMachineName.textContent = "Aucune machine";
+          selectedMachineDetails.textContent = "Selectionnez un equipement H dans la liste.";
+          selectedMachineHint.textContent = "Ajoutez une machine pour commencer.";
+          scanButton.disabled = true;
+          return;
+        }
+
+        selectedMachineName.textContent = machine.name;
+        var type = normalizeMachineType(machine.type);
+        if (type === "kiloview") {
+          selectedMachineDetails.textContent = "Kiloview | " + machine.host + " | user: " + (machine.apiUsername || "-");
+        } else if (type === "other") {
+          selectedMachineDetails.textContent = "Autres | " + machine.host + " | verification par ping";
+        } else if (normalizeAccessMethod(machine.accessMethod) === "api") {
+          selectedMachineDetails.textContent = machine.host +
+            " | API: " + (machine.apiBaseUrl || machine.host) +
+            " | user: " + (machine.apiUsername || "admin");
+        } else if (normalizeAccessMethod(machine.accessMethod) === "snmp+api") {
+          selectedMachineDetails.textContent = machine.host +
+            " | SNMP + API (priorite SNMP)" +
+            " | user: " + (machine.apiUsername || "admin");
+        } else {
+          selectedMachineDetails.textContent = machine.host +
+            " | lecture: " + machine.readCommunity +
+            " | ecriture: " + machine.writeCommunity;
+        }
+        selectedMachineHint.textContent = "Selection: " + machine.name;
+        scanButton.disabled = false;
+      }
+
+      function getSelectedMachine() {
+        return getMachineById(selectedMachineId);
+      }
+
+      function getMachineById(machineId) {
+        return machines.find(function(machine) {
+          return machine.id === machineId;
+        });
+      }
+
+      function openContextMenu(x, y) {
+        contextMenu.hidden = false;
+
+        var menuWidth = contextMenu.offsetWidth;
+        var menuHeight = contextMenu.offsetHeight;
+        var left = Math.min(x, window.innerWidth - menuWidth - 8);
+        var top = Math.min(y, window.innerHeight - menuHeight - 8);
+
+        contextMenu.style.left = Math.max(8, left) + "px";
+        contextMenu.style.top = Math.max(8, top) + "px";
+      }
+
+      function closeContextMenu() {
+        contextMenu.hidden = true;
+        contextMachineId = "";
+      }
+
+      function setAccessMethod(value) {
+        var method = normalizeAccessMethod(value);
+        document.querySelectorAll('input[name="accessMethod"]').forEach(function(accessInput) {
+          accessInput.checked = accessInput.value === method;
+        });
+      }
+
+      function getSelectedAccessMethod() {
+        var selected = machineForm.querySelector('input[name="accessMethod"]:checked');
+        return normalizeAccessMethod(selected && selected.value);
+      }
+
+      function updateAccessModeFields() {
+        updateMachineFormFields();
+      }
+
+      function updateMachineFormFields() {
+        var type = normalizeMachineType(machineForm.elements.type.value);
+        var method = getSelectedAccessMethod();
+        var isNovaStar = type === "novastar-h";
+        var isKiloview = type === "kiloview";
+
+        document.querySelectorAll(".novastar-only").forEach(function(node) {
+          node.hidden = !isNovaStar;
+        });
+        document.querySelectorAll(".snmp-field").forEach(function(node) {
+          node.hidden = !isNovaStar || method === "api";
+        });
+        document.querySelectorAll(".api-field").forEach(function(node) {
+          node.hidden = isNovaStar ? method === "snmp" : !isKiloview;
+        });
+
+        var credentialsRow = machineForm.querySelector(".credentials-row");
+        credentialsRow.classList.toggle("reserve-space", isNovaStar);
+
+        document.querySelectorAll(".credential-field span").forEach(function(node, index) {
+          node.textContent = (index === 0 ? "Utilisateur" : "Mot de passe") + (isNovaStar ? " API" : "");
+        });
+
+        if (isNovaStar && method !== "snmp" && !machineForm.apiBaseUrl.value && machineForm.host.value) {
+          machineForm.apiBaseUrl.value = "http://" + machineForm.host.value.replace(/^https?:\/\//, "");
+        }
+      }
+
+      function resetScanResults() {
+        document.getElementById("summaryGrid").innerHTML = '<div class="notice neutral">Lancez un scan pour lire la machine selectionnee.</div>';
+        document.getElementById("lastScan").textContent = "Aucun scan";
+        document.getElementById("slotCount").textContent = "0 slot";
+        document.getElementById("screenCount").textContent = "0 ecran";
+        document.getElementById("portCount").textContent = "0 port";
+        document.getElementById("cardCount").textContent = "Optionnel";
+        document.getElementById("controllerGrid").innerHTML = "";
+        ["systemHealthSection", "mvrSection", "mvrVideoSection", "usbSection", "fansSection", "powerSection"].forEach(function(id) {
+          document.getElementById(id).hidden = true;
+        });
+        document.getElementById("slotsTable").innerHTML = '<tr><td colspan="6" class="empty">Lancez un scan pour lire les slots d\'entree.</td></tr>';
+        document.getElementById("screensTable").innerHTML = '<tr><td colspan="6" class="empty">Lancez un scan pour lire les ecrans.</td></tr>';
+        document.getElementById("portsTable").innerHTML = '<tr><td colspan="6" class="empty">Aucun port de sortie retourne.</td></tr>';
+        document.getElementById("cardsTable").innerHTML = '<tr><td colspan="8" class="empty">Activez la lecture receiving cards dans la configuration machine.</td></tr>';
+      }
+
+      function renderMonitor(data) {
+        document.getElementById("lastScan").textContent = formatDate(data.timestamp);
+        var primarySlots = data.inputSlots || data.outputSlots;
+        document.getElementById("slotCount").textContent = primarySlots.error
+          ? "Erreur: " + primarySlots.error
+          : plural(primarySlots.count, "slot");
+        document.getElementById("screenCount").textContent = data.screens.error
+          ? "Erreur: " + data.screens.error
+          : plural(data.screens.count, "ecran");
+        var outputPorts = Array.isArray(data.outputPorts) ? data.outputPorts : [];
+        var receivingCards = Array.isArray(data.receivingCards) ? data.receivingCards : [];
+        document.getElementById("portCount").textContent = plural(outputPorts.length, "port");
+        document.getElementById("cardCount").textContent = plural(receivingCards.length, "card");
+
+        renderSummary(data);
+        renderController(data.controller, data.type);
+        renderSystemHealth(data.controller);
+        renderMvr(data.mvrCards || [], data.mvrVideo || {});
+        renderSimpleStatusSection("usbSection", "usbTable", data.usbPorts || [], "usbId", "USB ");
+        renderSimpleStatusSection("fansSection", "fansTable", data.fans || [], "fanId", "Ventilateur ");
+        renderSimpleStatusSection("powerSection", "powerTable", data.powerSupplies || [], "powerId", "Alimentation ");
+        renderSlots(primarySlots.slots);
+        renderScreens(data.screens.screens);
+        renderOutputPorts(outputPorts);
+        renderCards(receivingCards);
+      }
+
+      function renderMonitoringCards() {
+        if (!machines.length) {
+          monitoringCards.innerHTML = '<div class="notice neutral">Ajoutez des machines dans Configuration pour alimenter le monitoring.</div>';
+          return;
+        }
+
+        monitoringCards.innerHTML = machines.map(function(machine) {
+          var baseState = monitoringState[machine.id] || buildUnknownState(machine);
+          var state = baseState;
+          var referenceButton = REFERENCE_MODE_ENABLED
+            ? '<button class="set-reference-button" type="button" data-machine-id="' + escapeHtml(machine.id) + '"' +
+                (baseState.connected ? '' : ' disabled') +
+                ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">Set reference</button>'
+            : '';
+
+          return '<article class="monitoring-card ' + escapeHtml(state.state) + '">' +
+            '<div class="card-head">' +
+              '<div><h3>' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
+              '<div class="card-head-actions"><strong>' + escapeHtml(state.label) + '</strong>' + referenceButton + '</div>' +
+            '</div>' +
+            '<div class="pill-section">' +
+              (machine.type === "kiloview" ? kiloviewMonitoring(state) :
+                ioStatusTable("Inputs", state.inputTables, state.inputSlots) +
+                ioStatusTable("Outputs", state.outputTables, state.outputSlots) +
+                hardwareStatusTable(state.usbPorts, state.fans, state.powerSupplies) +
+                pillGroup("Sante", state.systemHealth) +
+                statusOverviewRow(state)) +
+            '</div>' +
+            '<p class="card-message">' + escapeHtml(state.message) + '</p>' +
+          '</article>';
+        }).join("");
+      }
+
+      async function setMachineReference(machineId) {
+        var machine = getMachineById(machineId);
+        var state = monitoringState[machineId];
+
+        if (!REFERENCE_MODE_ENABLED || !machine || !state || !state.connected) {
+          return;
+        }
+
+        try {
+          var response = await fetch("/api/machines/" + encodeURIComponent(machineId) + "/reference", { method: "PUT" });
+          var result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Reference impossible");
+          machines = machines.map(function(item) { return item.id === machineId ? result.machine : item; });
+          applyMonitoringRecord(result.monitoring);
+          renderMonitoringCards();
+          setStatus("Reference enregistree", "ok");
+        } catch (error) {
+          setStatus(error.message || "Sauvegarde impossible", "error");
+        }
+      }
+
+      function referenceButtonTitle(machine) {
+        var setAt = machine.monitoringReference && machine.monitoringReference.setAt;
+        return setAt
+          ? "Reference actuelle: " + formatDate(setAt)
+          : "Enregistrer le dernier scan comme etat normal";
+      }
+
+      function stableFingerprint(value) {
+        function normalize(item) {
+          if (Array.isArray(item)) return item.map(normalize);
+          if (item && typeof item === "object") {
+            return Object.keys(item).sort().reduce(function(result, key) {
+              if (item[key] !== undefined) result[key] = normalize(item[key]);
+              return result;
+            }, {});
+          }
+          return item;
+        }
+
+        return JSON.stringify(normalize(value));
+      }
+
+      function buildUnknownState(machine) {
+        return {
+          connected: false,
+          state: "unknown",
+          label: "Non scanne",
+          message: "Aucun resultat disponible.",
+          controller: [{ label: "C", ok: null }],
+          inputSlots: [],
+          outputSlots: [],
+          inputTables: [],
+          outputTables: [],
+          screens: [],
+          outputPorts: [],
+          systemHealth: [],
+          mvrCards: [],
+          usbPorts: [],
+          fans: [],
+          powerSupplies: [],
+          receivingCards: [],
+          kiloviewGroups: []
+        };
+      }
+
+      function buildOfflineState(machine, message) {
+        return {
+          connected: false,
+          state: "offline",
+          label: "Offline",
+          message: message || "Equipement non connecte.",
+          controller: [{ label: "C", ok: false }],
+          inputSlots: [],
+          outputSlots: [],
+          inputTables: [],
+          outputTables: [],
+          screens: [],
+          outputPorts: [],
+          systemHealth: [],
+          mvrCards: [],
+          usbPorts: [],
+          fans: [],
+          powerSupplies: [],
+          receivingCards: [],
+          kiloviewGroups: []
+        };
+      }
+
+      function buildTransientMonitoringState(machine, state, label, message) {
+        var previous = monitoringState[machine.id] || buildUnknownState(machine);
+        return Object.assign({}, previous, {
+          connected: false,
+          state: state,
+          label: label,
+          message: message
+        });
+      }
+
+      function buildMonitoringState(data) {
+        var controllerState = fieldsVisualState(data.controller);
+        var controllerOk = stateHealth(controllerState);
+        var primarySlots = data.inputSlots || data.outputSlots;
+        var inputTables = [];
+        var inputSlots = (primarySlots && primarySlots.slots ? primarySlots.slots : []).reduce(function(items, slot) {
+          var inputSources = Array.isArray(slot.inputSources) ? slot.inputSources : [];
+
+          if (!inputSources.length) {
+            var fallbackInputState = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
+            var fallbackInput = {
+              label: String(slot.slotId),
+              ok: stateHealth(fallbackInputState),
+              state: fallbackInputState,
+              icon: interfaceIcon(slot.fields),
+              referenceKey: "input:" + String(slot.slotId) + ":-",
+              referenceValue: stableFingerprint({ state: fallbackInputState, icon: interfaceIcon(slot.fields) })
+            };
+            items.push(fallbackInput);
+            inputTables.push({ label: String(slot.slotId), ports: [Object.assign({}, fallbackInput, { label: "-" })] });
+            return items;
+          }
+
+          var inputPorts = [];
+          inputSources.forEach(function(source) {
+            var inputState = inputSignalState(source.fields && source.fields.status);
+            var inputPort = {
+              label: String(slot.slotId) + "." + String(source.sourceId),
+              portLabel: String(source.sourceId),
+              ok: stateHealth(inputState),
+              state: inputState,
+              icon: interfaceIcon(source.fields),
+              referenceKey: "input:" + String(slot.slotId) + ":" + String(source.sourceId),
+              referenceValue: stableFingerprint({ state: inputState, icon: interfaceIcon(source.fields) })
+            };
+            items.push(inputPort);
+            inputPorts.push(Object.assign({}, inputPort, { label: inputPort.portLabel }));
+          });
+          inputTables.push({ label: String(slot.slotId), ports: inputPorts });
+
+          return items;
+        }, []);
+        var outputTables = [];
+        var outputSlots = (data.outputSlots && data.outputSlots.slots ? data.outputSlots.slots : []).reduce(function(items, slot) {
+          var ports = Array.isArray(slot.outputPorts) ? slot.outputPorts : [];
+
+          if (!ports.length) {
+            var fallbackOutputState = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
+            if (fallbackOutputState === "ok") fallbackOutputState = "inactive";
+            var fallbackOutput = {
+              label: String(slot.slotId),
+              ok: stateHealth(fallbackOutputState),
+              state: fallbackOutputState,
+              icon: "rj45",
+              referenceKey: "output:" + String(slot.slotId) + ":-",
+              referenceValue: stableFingerprint({ state: fallbackOutputState, icon: "rj45" })
+            };
+            items.push(fallbackOutput);
+            outputTables.push({ label: String(slot.slotId), ports: [Object.assign({}, fallbackOutput, { label: "-" })] });
+            return items;
+          }
+
+          var outputTablePorts = ports.map(function(port) {
+            var outputPort = {
+              label: String(slot.slotId) + "." + String(port.portId),
+              portLabel: String(port.portId),
+              ok: rawPortHealth(port.status),
+              state: rawPortState(port.status),
+              icon: "rj45",
+              referenceKey: "output:" + String(slot.slotId) + ":" + String(port.portId),
+              referenceValue: stableFingerprint({ state: rawPortState(port.status), icon: "rj45" })
+            };
+            items.push(outputPort);
+            return Object.assign({}, outputPort, { label: outputPort.portLabel });
+          });
+          outputTables.push({ label: String(slot.slotId), ports: outputTablePorts });
+          return items;
+        }, []);
+        var screens = data.screens.screens.map(function(screen) {
+          var state = fieldsVisualState(screen.fields);
+          return {
+            label: String(screen.screenId),
+            ok: stateHealth(state),
+            state: state,
+            referenceKey: "screen:" + String(screen.screenId),
+            referenceValue: state
+          };
+        });
+        var receivingCards = data.receivingCards.map(function(card) {
+          var state = fieldsVisualState(card.fields);
+          return {
+            label: card.outputSlotId + "." + card.netPortId + "." + card.recvCardId,
+            ok: stateHealth(state),
+            state: state,
+            referenceKey: "receiving:" + card.outputSlotId + ":" + card.netPortId + ":" + card.recvCardId,
+            referenceValue: state
+          };
+        });
+        var outputPorts = (data.outputPorts || []).map(function(port) {
+          var state = outputPortHealth(port) === null ? "inactive" : fieldsVisualState(port.fields);
+          return {
+            label: port.outputSlotId + "." + port.netPortId,
+            ok: stateHealth(state),
+            state: state,
+            icon: "rj45"
+          };
+        });
+        var systemHealth = [
+          iconStatusItem("Temp.", data.controller && data.controller.temperatureStatus, "temperature", "health:temperature"),
+          iconStatusItem("Tension", data.controller && data.controller.voltageStatus, "psu", "health:voltage")
+        ].filter(function(item) { return item.ok !== null; });
+        if (normalizeMachineType(data.type) === "novastar-h") {
+          var genlock = iconStatusItem("Genlock", data.controller && data.controller.genlockStatus, "bnc", "health:genlock");
+          var genlockFrame = fieldValue(data.controller && data.controller.genlockFrame);
+          var genlockStatus = fieldValue(data.controller && data.controller.genlockStatus);
+          genlock.referenceValue = stableFingerprint({
+            state: genlock.state,
+            icon: genlock.icon,
+            frame: genlockFrame
+          });
+          genlock.title = "Genlock: " + (genlockStatus || stateTitle(genlock.state)) +
+            (genlockFrame ? " - Frame: " + genlockFrame : "");
+          systemHealth.push(genlock);
+        }
+        var mvrCards = (data.mvrCards || []).map(function(card) {
+          var states = [fieldsVisualState(card.fields)].concat(card.interfaces.map(function(intf) { return fieldsVisualState(intf.fields); }));
+          var state = combinedVisualState(states);
+          return {
+            label: card.slotId,
+            ok: stateHealth(state),
+            state: state,
+            referenceKey: "mvr:" + String(card.slotId),
+            referenceValue: state
+          };
+        });
+        var usbPorts = (data.usbPorts || []).map(function(usb) {
+          return iconStatusItem(String(usb.usbId), usb.status, "usb", "usb:" + String(usb.usbId));
+        });
+        var fans = (data.fans || []).map(function(fan) {
+          return iconStatusItem(String(fan.fanId), fan.status, "fan", "fan:" + String(fan.fanId));
+        });
+        var powerSupplies = (data.powerSupplies || []).map(function(power) {
+          return iconStatusItem(String(power.powerId), power.status, "psu", "power:" + String(power.powerId));
+        });
+        var hasWarning = !controllerOk ||
+          inputSlots.some(function(item) { return item.ok === false; }) ||
+          outputSlots.some(function(item) { return item.ok === false; }) ||
+          screens.some(function(item) { return item.ok === false; }) ||
+          outputPorts.some(function(item) { return item.ok === false; }) ||
+          systemHealth.some(function(item) { return item.ok === false; }) ||
+          mvrCards.some(function(item) { return item.ok === false; }) ||
+          usbPorts.some(function(item) { return item.ok === false; }) ||
+          fans.some(function(item) { return item.ok === false; }) ||
+          powerSupplies.some(function(item) { return item.ok === false; }) ||
+          receivingCards.some(function(item) { return item.ok === false; });
+        var allStatusItems = [{ state: controllerState }]
+          .concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies, receivingCards);
+        var hasError = allStatusItems.some(function(item) { return item.state === "error"; });
+        var overallState = hasError ? "error" : hasWarning ? "warning" : "ok";
+
+        return {
+          connected: true,
+          state: overallState,
+          label: hasError ? "Erreur" : hasWarning ? "Avertissement" : "OK",
+          message: "Dernier scan: " + formatDate(data.timestamp),
+          controller: [{
+            label: "C",
+            ok: controllerOk,
+            state: controllerState,
+            referenceKey: "controller",
+            referenceValue: controllerState
+          }],
+          inputSlots: inputSlots,
+          outputSlots: outputSlots,
+          inputTables: inputTables,
+          outputTables: outputTables,
+          screens: screens,
+          outputPorts: outputPorts,
+          systemHealth: systemHealth,
+          mvrCards: mvrCards,
+          usbPorts: usbPorts,
+          fans: fans,
+          powerSupplies: powerSupplies,
+          receivingCards: receivingCards
+        };
+      }
+
+      function outputPortHealth(port) {
+        var link = fieldValue(port && port.fields && port.fields.netPortLinkStatus).toLowerCase();
+        if (!link || link.indexOf("inactif") !== -1 || /^0\b/.test(link)) {
+          return null;
+        }
+        return fieldsAreHealthy(port.fields);
+      }
+
+      function inputSignalHealth(field) {
+        var value = fieldValue(field).trim();
+        if (!value || /^0\b/.test(value)) return null;
+        return fieldHealth(field);
+      }
+
+      function inputSignalState(field) {
+        var value = fieldValue(field).trim();
+        if (!value || /^0\b/.test(value)) return "inactive";
+        return fieldVisualState(field);
+      }
+
+      function rawPortState(value) {
+        var number = Number(value);
+        if (number === 0) return "inactive";
+        if (number === 1 || number === 3) return "ok";
+        return "warning";
+      }
+
+      function stateHealth(state) {
+        if (state === "ok") return true;
+        if (state === "inactive") return null;
+        return false;
+      }
+
+      function fieldVisualState(field) {
+        if (!field || field.value === "" || field.value === null || field.value === undefined || field.state === "notApplicable") {
+          return "inactive";
+        }
+        if (field.error || looksLikeError(field.value)) return "error";
+        if (field.ok === false || looksLikeProblem(field.value)) return "warning";
+        return "ok";
+      }
+
+      function fieldsVisualState(fields) {
+        return combinedVisualState(Object.keys(fields || {}).map(function(key) {
+          return fieldVisualState(fields[key]);
+        }));
+      }
+
+      function combinedVisualState(states) {
+        if (states.some(function(state) { return state === "error"; })) return "error";
+        if (states.some(function(state) { return state === "warning"; })) return "warning";
+        if (states.length && states.every(function(state) { return state === "inactive"; })) return "inactive";
+        return "ok";
+      }
+
+      function iconStatusItem(label, field, icon, referenceKey) {
+        var state = fieldVisualState(field);
+        return {
+          label: label,
+          ok: stateHealth(state),
+          state: state,
+          icon: icon,
+          referenceKey: referenceKey,
+          referenceValue: stableFingerprint({ state: state, icon: icon })
+        };
+      }
+
+      function looksLikeError(value) {
+        var text = String(value || "").toLowerCase();
+        return ["error", "fault", "fail", "failed"].some(function(pattern) {
+          return text.indexOf(pattern) !== -1;
+        });
+      }
+
+      function rawPortHealth(value) {
+        var number = Number(value);
+        if (number === 0) return null;
+        if (number === 1 || number === 3) return true;
+        return false;
+      }
+
+      function fieldHealth(field) {
+        if (!field || field.value === "" || field.value === null || field.value === undefined) return null;
+        return field.ok !== false && !looksLikeProblem(field.value);
+      }
+
+      function fieldsAreHealthy(fields) {
+        return Object.keys(fields || {}).every(function(key) {
+          var field = fields[key];
+
+          if (!field || field.ok === false) {
+            return false;
+          }
+
+          return !looksLikeProblem(field.value);
+        });
+      }
+
+      function looksLikeProblem(value) {
+        var text = String(value || "").toLowerCase();
+
+        if (/^error:\s*biziderror$/i.test(String(value || "").trim())) {
+          return false;
+        }
+
+        return [
+          "alarm",
+          "error",
+          "fault",
+          "fail",
+          "failed",
+          "problem",
+          "abnormal",
+          "disconnect",
+          "offline",
+          "down"
+        ].some(function(pattern) {
+          return text.indexOf(pattern) !== -1;
+        });
+      }
+
+      function pillGroup(title, items) {
+        var safeItems = items && items.length ? items : [{ label: "-", ok: null }];
+
+        return '<div class="pill-group"><span>' + escapeHtml(title) + '</span><div>' +
+          safeItems.map(statusPill).join("") +
+        '</div></div>';
+      }
+
+      function ioStatusTable(title, groups, fallbackItems) {
+        var safeGroups = groups && groups.length ? groups : [];
+
+        if (!safeGroups.length) {
+          return pillGroup(title, fallbackItems);
+        }
+
+        var rows = safeGroups.map(function(group) {
+          var ports = group.ports || [];
+          var portRows = ports.length > 8
+            ? [
+                ports.filter(function(port) { return Number(port.label) % 2 === 0; }),
+                ports.filter(function(port) { return Number(port.label) % 2 !== 0; })
+              ]
+            : [ports];
+
+          return portRows.map(function(portRow, rowIndex) {
+            return '<tr>' +
+              (rowIndex === 0 ? '<th rowspan="' + portRows.length + '">' + escapeHtml(group.label) + '</th>' : '') +
+              portRow.map(ioStatusCell).join("") +
+            '</tr>';
+          }).join("");
+        }).join("");
+
+        return '<div class="io-status-group"><span>' + escapeHtml(title) + '</span>' +
+          '<div class="io-status-scroll"><table class="io-status-table"><tbody>' + rows + '</tbody></table></div>' +
+        '</div>';
+      }
+
+      function hardwareStatusTable(usbPorts, fans, powerSupplies) {
+        function row(label, items, icon) {
+          var ports = items && items.length ? items : [{ label: "-", ok: null, state: "inactive", icon: icon }];
+          return { label: label, ports: ports };
+        }
+
+        return ioStatusTable("Materiel", [
+          row("USB", usbPorts, "usb"),
+          row("Fans", fans, "fan"),
+          row("PSU", powerSupplies, "psu")
+        ], []);
+      }
+
+      function statusOverviewRow(state) {
+        return '<div class="monitoring-overview-row">' +
+          pillGroup("Controleur", state.controller) +
+          pillGroup("MVR", state.mvrCards) +
+          pillGroup("Ecrans", state.screens) +
+          pillGroup("Receiving cards", state.receivingCards) +
+        '</div>';
+      }
+
+      function kiloviewMonitoring(state) {
+        var groups = state.kiloviewGroups || [];
+        if (!groups.length) return '<div class="notice neutral">Aucune information Kiloview retournee.</div>';
+        return '<div class="kiloview-monitoring">' + groups.map(function(group) {
+          return '<section class="kiloview-status-group"><h4>' + escapeHtml(group.title) + '</h4><div>' +
+            (group.items || []).map(kiloviewStatusItem).join("") + '</div></section>';
+        }).join("") + '</div>';
+      }
+
+      function kiloviewStatusItem(item) {
+        var state = item.state || (item.ok === true ? "ok" : item.ok === false ? "error" : "inactive");
+        return '<div class="kiloview-status-item ' + escapeHtml(state) + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(item.title || stateTitle(state)) + '">' +
+          '<span>' + escapeHtml(item.label) + '</span><strong>' + escapeHtml(item.value || "-") + '</strong></div>';
+      }
+
+      function ioStatusCell(item) {
+        var className = item.state || (item.ok === true ? "ok" : item.ok === false ? "warning" : "inactive");
+        var title = stateTitle(className);
+        return '<td class="' + className + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(title) + '">' +
+          (item.icon ? statusIcon(item.icon, className, item.label) : "") +
+          '<span>' + escapeHtml(item.label) + '</span></td>';
+      }
+
+      function statusPill(item) {
+        var state = item.state || (item.ok === true ? "ok" : item.ok === false ? "error" : "inactive");
+        var className = state === "error" ? "bad" : state === "inactive" ? "unknown" : state;
+        var title = item.title || stateTitle(state);
+
+        return '<span class="monitor-pill ' + className + (item.icon ? ' icon-pill' : '') + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(title) + '">' +
+          (item.icon ? statusIcon(item.icon, state, item.label) : "") +
+          '<span>' + escapeHtml(item.label) + '</span>' +
+        '</span>';
+      }
+
+      function stateTitle(state) {
+        if (state === "ok") return "OK";
+        if (state === "warning") return "Avertissement";
+        if (state === "error") return "Erreur";
+        return "Inactif / Inconnu / Aucun signal";
+      }
+
+      function interfaceIcon(fields) {
+        var type = (fieldValue(fields && fields.type) + " " + fieldValue(fields && fields.rawType)).toLowerCase();
+        if (type.indexOf("hdmi") !== -1 || /(^|\s)(4|5)(\s|$)/.test(type)) return "hdmi";
+        if (type.indexOf("sdi") !== -1 || type.indexOf("bnc") !== -1 || /(^|\s)6(\s|$)/.test(type)) return "bnc";
+        if (type.indexOf("displayport") !== -1 || /(^|\s)(dp|8)(\s|$)/.test(type)) return "dp";
+        if (type.indexOf("dvi") !== -1 || /(^|\s)7(\s|$)/.test(type)) return "dvi";
+        if (type.indexOf("ethernet") !== -1 || type.indexOf("rj45") !== -1 || /(^|\s)2(\s|$)/.test(type)) return "rj45";
+        return "";
+      }
+
+      function statusIcon(icon, state, label) {
+        var files = {
+          bnc: "BNC-white.png",
+          dp: "DP-White.png",
+          dvi: "DVI-White.png",
+          fan: "Fan-White.png",
+          hdmi: "HDMI-White.png",
+          psu: "PSU-White.png",
+          rj45: "RJ45-white.png",
+          temperature: "Temperature-White.png",
+          usb: "USB-White.png"
+        };
+        if (!files[icon]) return "";
+        return '<img class="state-icon state-' + escapeHtml(state) + '" src="/images/' + files[icon] + '" alt="" aria-hidden="true" />';
+      }
+
+      function renderSummary(data) {
+        var controller = data.controller;
+        if (data.type === "kiloview") {
+          document.getElementById("summaryGrid").innerHTML = [
+            summaryTile("Equipement", data.host),
+            summaryTile("Type", "Kiloview"),
+            summaryTile("Mode", fieldValue(controller.kiloviewMode) || "-"),
+            summaryTile("Statut", fieldValue(controller.workingStatus) || "-"),
+            summaryTile("CPU", fieldValue(controller.cpuLoad) || "-"),
+            summaryTile("Memoire", fieldValue(controller.memoryUsed) || "-"),
+            summaryTile("Reseau", fieldValue(controller.networkState) || "-"),
+            summaryTile("Source", "KILOVIEW API")
+          ].join("");
+          return;
+        }
+        var model = data.configuredModel || fieldValue(controller.model);
+        var firmware = fieldValue(controller.firmware);
+        var status = fieldValue(controller.workingStatus);
+        var temp = fieldValue(controller.temperatureStatus);
+
+        document.getElementById("summaryGrid").innerHTML = [
+          summaryTile("Equipement", data.host),
+          summaryTile("Modele", model || "-"),
+          summaryTile("Firmware", firmware || "-"),
+          summaryTile("Statut", status || "-"),
+          summaryTile("Temperature", temp || "-"),
+          summaryTile("Source", (data.source || "snmp").toUpperCase()),
+          summaryTile("Slots entree", (data.inputSlots && data.inputSlots.count) || 0),
+          summaryTile("Slots sortie", (data.outputSlots && data.outputSlots.count) || 0)
+        ].join("");
+      }
+
+      function renderController(controller, type) {
+        var novaStarLabels = {
+          oidVersion: "OID version",
+          summary: "Resume",
+          workingTime: "Temps de marche",
+          model: "Modele",
+          firmware: "Firmware",
+          serial: "Numero de serie",
+          macAddress: "MAC",
+          wiredIpAddress: "IP filaire",
+          armVersion: "ARM",
+          genlockStatus: "Genlock",
+          genlockFrame: "Frame genlock",
+          workingStatus: "Statut",
+          cpuStatus: "CPU",
+          memoryStatus: "Memoire",
+          ethernetStatus: "Ethernet"
+        };
+        var kiloviewLabels = {
+          workingStatus: "Statut",
+          kiloviewMode: "Mode",
+          deviceAddress: "Adresse du peripherique",
+          workingTime: "Temps de fonctionnement",
+          startTime: "Date de demarrage",
+          cpuLoad: "Charge CPU",
+          memoryUsed: "Memoire utilisee",
+          memoryTotal: "Memoire totale",
+          networkInterfaces: "Interfaces reseau",
+          networkState: "Etat du reseau",
+          ndiDeviceName: "Nom du peripherique NDI",
+          ndiChannelName: "Nom du canal NDI",
+          ndiGroup: "Groupe NDI",
+          ndiConnection: "Connexion NDI",
+          encodingQuality: "Qualite d'encodage",
+          videoSignal: "Presence du signal video",
+          videoInputType: "Type d'entree video",
+          videoResolution: "Resolution video",
+          instantFrameRate: "Frequence video reelle",
+          interlaced: "Video entrelacee",
+          deinterlaced: "Desentrelacement actif",
+          videoBitrate: "Debit video",
+          audioPresence: "Presence du signal audio",
+          audioSource: "Source audio",
+          audioFormat: "Format audio",
+          audioSampling: "Echantillonnage audio",
+          audioChannels: "Canaux audio",
+          audioVolume: "Volume audio",
+          ndiSourceName: "Source NDI decodee",
+          ndiSourceUrl: "URL de la source NDI",
+          ndiSourceIp: "IP de la source NDI",
+          ndiSourceOnline: "Source NDI en ligne",
+          ndiSourceActive: "Source NDI active",
+          outputResolution: "Resolution de sortie",
+          outputFrameRate: "Frequence de sortie",
+          decoderWarning: "Avertissement decodeur",
+          warningOffline: "Source hors ligne",
+          warningUrlChanged: "URL modifiee",
+          errorNoVideo: "Absence de sortie video",
+          errorNoAudio: "Absence de sortie audio",
+          warningInvalid: "Configuration invalide",
+          warningMatch: "Erreur de format",
+          warningUnsupportedCodec: "Codec non pris en charge",
+          warningUnsupportedResolution: "Resolution non prise en charge"
+        };
+        var labels = type === "kiloview" ? kiloviewLabels : novaStarLabels;
+
+        document.getElementById("controllerGrid").innerHTML = Object.keys(labels).filter(function(key) {
+          return type !== "kiloview" || controller[key] !== undefined;
+        }).map(function(key) {
+          return fieldTile(labels[key], controller[key]);
+        }).join("");
+      }
+
+      function renderSlots(slots) {
+        var body = document.getElementById("slotsTable");
+
+        if (!slots.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">Aucun slot retourne.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = slots.map(function(slot) {
+          var sourceDetails = slot.inputSources && slot.inputSources.length
+            ? formatInputSources(slot.inputSources)
+            : formatInputSource(slot.fields);
+
+          return "<tr>" +
+            cell(slot.slotId) +
+            cell(fieldValue(slot.fields.status)) +
+            cell(fieldValue(slot.fields.firmware)) +
+            cell(fieldValue(slot.fields.serial)) +
+            cell(fieldValue(slot.fields.sourceCount)) +
+            cell(sourceDetails, "wide") +
+          "</tr>";
+        }).join("");
+      }
+
+      function formatInputSources(sources) {
+        return sources.map(function(source) {
+          var fields = source.fields;
+          var width = fieldValue(fields.width);
+          var height = fieldValue(fields.height);
+          var frameRate = fieldValue(fields.frameRate);
+          var type = fieldValue(fields.type);
+          var status = fieldValue(fields.status);
+          var parts = ["S" + source.sourceId];
+
+          if (status) {
+            parts.push("status " + status);
+          }
+
+          if (width && height) {
+            parts.push(width + " x " + height);
+          }
+
+          if (frameRate) {
+            parts.push(frameRate + " Hz");
+          }
+
+          if (type) {
+            parts.push("type " + type);
+          }
+
+          return parts.join(": ");
+        }).join("\n");
+      }
+
+      function formatInputSource(fields) {
+        var width = fieldValue(fields.sourceWidth);
+        var height = fieldValue(fields.sourceHeight);
+        var frameRate = fieldValue(fields.sourceFrameRate);
+        var type = fieldValue(fields.sourceType);
+        var parts = [];
+
+        if (width && height) {
+          parts.push(width + " x " + height);
+        }
+
+        if (frameRate) {
+          parts.push(frameRate + " Hz");
+        }
+
+        if (type) {
+          parts.push("type " + type);
+        }
+
+        return parts.join(" / ") || fieldValue(fields.summary) || "-";
+      }
+
+      function renderScreens(screens) {
+        var body = document.getElementById("screensTable");
+
+        if (!screens.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">Aucun ecran retourne.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = screens.map(function(screen) {
+          var width = fieldValue(screen.fields.width);
+          var height = fieldValue(screen.fields.height);
+
+          return "<tr>" +
+            cell(screen.screenId) +
+            cell(fieldValue(screen.fields.name)) +
+            cell(width && height ? width + " x " + height : "-") +
+            cell(fieldValue(screen.fields.frameRate)) +
+            cell(fieldValue(screen.fields.brightness)) +
+            cell(fieldValue(screen.fields.displayMode)) +
+          "</tr>";
+        }).join("");
+      }
+
+      function renderSystemHealth(controller) {
+        var fields = [
+          ["Temperature", controller.temperatureStatus],
+          ["Tension", controller.voltageStatus],
+          ["Ethernet", controller.ethernetStatus],
+          ["CPU", controller.cpuStatus],
+          ["Memoire", controller.memoryStatus],
+          ["Memoire disponible", controller.memoryValue]
+        ].filter(function(item) { return item[1] && fieldValue(item[1]) !== ""; });
+        var section = document.getElementById("systemHealthSection");
+        section.hidden = !fields.length;
+        document.getElementById("systemHealthGrid").innerHTML = fields.map(function(item) {
+          return fieldTile(item[0], item[1]);
+        }).join("");
+      }
+
+      function renderMvr(cards, video) {
+        var section = document.getElementById("mvrSection");
+        section.hidden = !cards.length;
+        document.getElementById("mvrCount").textContent = plural(cards.length, "carte");
+        document.getElementById("mvrTable").innerHTML = cards.length ? cards.map(function(card) {
+          var interfaces = card.interfaces.map(function(intf) {
+            return "#" + intf.interfaceId + " " + fieldValue(intf.fields.type) + " : " + fieldValue(intf.fields.signal);
+          }).join(" | ");
+          return "<tr>" +
+            cell(card.slotId) +
+            cell(fieldValue(card.fields.model)) +
+            cell(fieldValue(card.fields.serial)) +
+            cell(fieldValue(card.fields.status)) +
+            cell(fieldValue(card.fields.resolution)) +
+            cell(interfaces || "-") +
+          "</tr>";
+        }).join("") : '<tr><td colspan="6" class="empty">Aucune carte MVR retournee.</td></tr>';
+
+        var videoFields = [
+          ["Carte MVR", video.online],
+          ["Flux video", video.videoStatus],
+          ["URL MVR", video.mvrUrl],
+          ["URL Echo", video.echoUrl]
+        ].filter(function(item) { return item[1] && fieldValue(item[1]) !== ""; });
+        document.getElementById("mvrVideoSection").hidden = !videoFields.length;
+        document.getElementById("mvrVideoGrid").innerHTML = videoFields.map(function(item) {
+          return fieldTile(item[0], item[1]);
+        }).join("");
+      }
+
+      function renderSimpleStatusSection(sectionId, tableId, items, idKey, labelPrefix) {
+        document.getElementById(sectionId).hidden = !items.length;
+        document.getElementById(tableId).innerHTML = items.map(function(item) {
+          return "<tr>" + cell(labelPrefix + item[idKey]) + cell(fieldValue(item.status)) + "</tr>";
+        }).join("");
+      }
+
+      function renderOutputPorts(ports) {
+        var body = document.getElementById("portsTable");
+
+        if (!ports.length) {
+          body.innerHTML = '<tr><td colspan="6" class="empty">Aucun port de sortie retourne.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = ports.map(function(port) {
+          return "<tr>" +
+            cell(port.outputSlotId) +
+            cell(port.netPortId) +
+            cell(fieldValue(port.fields.netPortLinkStatus)) +
+            cell(fieldValue(port.fields.netPortBackupStatus)) +
+            cell(fieldValue(port.fields.fiberLinkStatus)) +
+            cell(fieldValue(port.fields.workingStatus)) +
+          "</tr>";
+        }).join("");
+      }
+
+      function renderCards(cards) {
+        var body = document.getElementById("cardsTable");
+
+        if (!cards.length) {
+          body.innerHTML = '<tr><td colspan="8" class="empty">Aucune receiving card lue.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = cards.map(function(card) {
+          return "<tr>" +
+            cell(card.outputSlotId) +
+            cell(card.netPortId) +
+            cell(card.recvCardId) +
+            cell(fieldValue(card.fields.netPortLinkStatus)) +
+            cell(fieldValue(card.fields.workingStatus)) +
+            cell(fieldValue(card.fields.temperatureValue)) +
+            cell(fieldValue(card.fields.voltageValue)) +
+            cell([fieldValue(card.fields.fpgaVersion), fieldValue(card.fields.mcuVersion)].filter(Boolean).join(" / ") || "-") +
+          "</tr>";
+        }).join("");
+      }
+
+      function renderError(message) {
+        document.getElementById("summaryGrid").innerHTML = '<div class="notice">' + escapeHtml(message) + '</div>';
+      }
+
+      function summaryTile(label, value) {
+        return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+      }
+
+      function fieldTile(label, field) {
+        var value = fieldValue(field) || "-";
+        var className = field && field.ok === false ? "field bad" : "field";
+        if (field && field.state === "notApplicable") {
+          className += " muted";
+        }
+        var title = field && field.error ? ' title="' + escapeHtml(field.oid + " - " + field.error) + '"' : "";
+
+        return '<div class="' + className + '"' + title + '><span>' + escapeHtml(label) + '</span>' +
+          '<div class="field-value">' + valueHtml(value) + '</div></div>';
+      }
+
+      function fieldValue(field) {
+        if (!field) {
+          return "";
+        }
+
+        if (field.ok === false && field.error) {
+          return "Erreur";
+        }
+
+        return String(field.value || "");
+      }
+
+      function cell(value, className) {
+        return '<td class="' + (className || "") + '">' + valueHtml(value === "" || value === null || value === undefined ? "-" : value) + '</td>';
+      }
+
+      function valueHtml(value) {
+        var text = String(value === null || value === undefined ? "" : value);
+        var json = tryParseJson(text);
+
+        if (!json) {
+          return escapeHtml(text).replace(/\n/g, "<br />");
+        }
+
+        return '<details class="json-collapse">' +
+          '<summary>+ JSON</summary>' +
+          '<pre>' + escapeHtml(JSON.stringify(json, null, 2)) + '</pre>' +
+        '</details>';
+      }
+
+      function tryParseJson(value) {
+        var text = String(value || "").trim();
+
+        if (!text || ["{", "["].indexOf(text.charAt(0)) === -1) {
+          return null;
+        }
+
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function plural(count, label) {
+        return count + " " + label + (count > 1 ? "s" : "");
+      }
+
+      function formatDate(value) {
+        return new Date(value).toLocaleString("fr-FR");
+      }
+
+      function setStatus(text, state) {
+        statusNode.textContent = text;
+        statusNode.className = "status-pill " + (state || "");
+      }
+
+      function normalizeAccessMethod(value) {
+        var method = String(value || "snmp").toLowerCase();
+        return method === "api" || method === "snmp+api" ? method : "snmp";
+      }
+
+      function normalizeMachineType(value) {
+        var type = String(value || "novastar-h").toLowerCase();
+        return ["novastar-h", "kiloview", "other"].indexOf(type) !== -1 ? type : "novastar-h";
+      }
+
+      function machineTypeLabel(value) {
+        var type = normalizeMachineType(value);
+        if (type === "kiloview") return "Kiloview";
+        if (type === "other") return "Autres";
+        return "NovaStar H";
+      }
+
+      function accessMethodLabel(value) {
+        var method = normalizeAccessMethod(value);
+        return method === "snmp+api" ? "SNMP + API" : method.toUpperCase();
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+    </script>
+  </body>
+</html>

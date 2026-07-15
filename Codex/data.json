@@ -1,0 +1,3026 @@
+{
+    "data": {
+        "allList": [
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 1-1",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 1,
+                    "defaultName": "input 1-1",
+                    "dynamicRange": 0,
+                    "name": "M_C_2_3_4_5",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 0,
+                "interfaceId": 0,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "M_C_2_3_4_5",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 1-2",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 1,
+                    "defaultName": "input 1-2",
+                    "dynamicRange": 0,
+                    "name": "M_C_6_7_8_9",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 1,
+                "interfaceId": 1,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "M_C_6_7_8_9",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 59.94,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 1-3",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 1,
+                    "defaultName": "input 1-3",
+                    "dynamicRange": 0,
+                    "name": "B_C_2_3_4_5",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 2,
+                "interfaceId": 2,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "B_C_2_3_4_5",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 1-4",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 1,
+                    "defaultName": "input 1-4",
+                    "dynamicRange": 0,
+                    "name": "B_C_6_7_8_9",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 3,
+                "interfaceId": 3,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "B_C_6_7_8_9",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 50.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 4,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 5,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 6,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 7,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 3-1",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 3-1",
+                    "dynamicRange": 0,
+                    "name": "MILO BACKUP",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 8,
+                "interfaceId": 0,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "MILO BACKUP",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 2,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 3-2",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 3-2",
+                    "dynamicRange": 0,
+                    "name": "input 3-2",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 9,
+                "interfaceId": 1,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "input 3-2",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 2,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 3-3",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 3-3",
+                    "dynamicRange": 0,
+                    "name": "input 3-3",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 10,
+                "interfaceId": 2,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "input 3-3",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 2,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 3-4",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 3-4",
+                    "dynamicRange": 0,
+                    "name": "input 3-4",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 11,
+                "interfaceId": 3,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "input 3-4",
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 2,
+                "sourceType": 1,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2640
+                    },
+                    "refreshRate": 50.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 12,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 13,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 14,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 15,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 16,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 17,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 18,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 19,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 20,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 21,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 22,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 23,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 24,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 25,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 26,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 27,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 8-1",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 8-1",
+                    "dynamicRange": 0,
+                    "name": "ANNEXES 1",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 28,
+                "interfaceId": 0,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "ANNEXES 1",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 50.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 7,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 8-2",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 8-2",
+                    "dynamicRange": 0,
+                    "name": "ANNEXES 2",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 29,
+                "interfaceId": 1,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "ANNEXES 2",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 50.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 7,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 8-3",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 8-3",
+                    "dynamicRange": 0,
+                    "name": "ALLEE 1",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 30,
+                "interfaceId": 2,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "ALLEE 1",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 50.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 7,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 8-4",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 8-4",
+                    "dynamicRange": 0,
+                    "name": "ALLEE 2",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 31,
+                "interfaceId": 3,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "ALLEE 2",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 50.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 7,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 32,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 33,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 34,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "",
+                    "dynamicRange": 0,
+                    "name": "",
+                    "sampleRate": 0
+                },
+                "iSignal": 1,
+                "inputId": 35,
+                "interfaceId": 0,
+                "interfaceType": 0,
+                "isEDIDSetting": 0,
+                "isSupportAudio": 0,
+                "isUsed": 1,
+                "macCompatibility": 0,
+                "modelId": 31502,
+                "name": "",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 0,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 10-1",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 10-1",
+                    "dynamicRange": 0,
+                    "name": "SOS",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 36,
+                "interfaceId": 0,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "SOS",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 9,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 10-2",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 10-2",
+                    "dynamicRange": 0,
+                    "name": "input 10-2",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 37,
+                "interfaceId": 1,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "input 10-2",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 9,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 10-3",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 10-3",
+                    "dynamicRange": 0,
+                    "name": "input 10-3",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 38,
+                "interfaceId": 2,
+                "interfaceType": 4,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "input 10-3",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 9,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            },
+            {
+                "audioInterface": {
+                    "audioSrc": 1,
+                    "linkStatus": 0,
+                    "withAudioInterface": 0
+                },
+                "backup": {
+                    "cropId": 0,
+                    "enable": 0,
+                    "inputId": 0,
+                    "type": 0
+                },
+                "crops": [],
+                "defaultName": "input 10-4",
+                "general": {
+                    "HDCPEncryted": 0,
+                    "channelNum": 1,
+                    "colorDepth": 0,
+                    "colorGamut": 0,
+                    "colorRange": 0,
+                    "colorSpace": 0,
+                    "connectCapacity": 0,
+                    "cscMode": 0,
+                    "defaultName": "input 10-4",
+                    "dynamicRange": 0,
+                    "name": "input 10-4",
+                    "sampleRate": 0
+                },
+                "iSignal": 0,
+                "inputId": 39,
+                "interfaceId": 3,
+                "interfaceType": 5,
+                "isEDIDSetting": 1,
+                "isSupportAudio": 1,
+                "isUsed": 0,
+                "macCompatibility": 0,
+                "modelId": 29953,
+                "name": "input 10-4",
+                "online": 0,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "reverseControl": {
+                    "ip": "",
+                    "port": 18986
+                },
+                "slotId": 9,
+                "sourceType": 0,
+                "timing": {
+                    "horizontal": {
+                        "addrTime": 1920,
+                        "frontPorch": 88,
+                        "sync": 44,
+                        "syncPolarity": 0,
+                        "totalTime": 2200
+                    },
+                    "refreshRate": 60.0,
+                    "templateId": 0,
+                    "templateOperationType": 0,
+                    "vertical": {
+                        "addrTime": 1080,
+                        "frontPorch": 4,
+                        "sync": 5,
+                        "syncPolarity": 0,
+                        "totalTime": 1125
+                    }
+                }
+            }
+        ],
+        "onlineList": [
+            {
+                "crops": [],
+                "inputId": 0,
+                "interfaceId": 0,
+                "interfaceType": 4,
+                "isSignal": 1,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 60.0,
+                    "width": 1920
+                },
+                "slotId": 0
+            },
+            {
+                "crops": [],
+                "inputId": 1,
+                "interfaceId": 1,
+                "interfaceType": 5,
+                "isSignal": 1,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 59.94,
+                    "width": 1920
+                },
+                "slotId": 0
+            },
+            {
+                "crops": [],
+                "inputId": 2,
+                "interfaceId": 2,
+                "interfaceType": 4,
+                "isSignal": 0,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "slotId": 0
+            },
+            {
+                "crops": [],
+                "inputId": 3,
+                "interfaceId": 3,
+                "interfaceType": 5,
+                "isSignal": 1,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 1080,
+                    "isInterlace": 0,
+                    "refresh": 50.0,
+                    "width": 1920
+                },
+                "slotId": 0
+            },
+            {
+                "crops": [],
+                "inputId": 8,
+                "interfaceId": 0,
+                "interfaceType": 4,
+                "isSignal": 0,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "slotId": 2
+            },
+            {
+                "crops": [],
+                "inputId": 9,
+                "interfaceId": 1,
+                "interfaceType": 5,
+                "isSignal": 0,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "slotId": 2
+            },
+            {
+                "crops": [],
+                "inputId": 10,
+                "interfaceId": 2,
+                "interfaceType": 4,
+                "isSignal": 0,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "slotId": 2
+            },
+            {
+                "crops": [],
+                "inputId": 11,
+                "interfaceId": 3,
+                "interfaceType": 5,
+                "isSignal": 0,
+                "modelId": 31502,
+                "online": 1,
+                "overLoadState": 0,
+                "resolution": {
+                    "height": 0,
+                    "isInterlace": 0,
+                    "refresh": 0.0,
+                    "width": 0
+                },
+                "slotId": 2
+            }
+        ]
+    },
+    "msg": "Success",
+    "status": 0
+}\n
