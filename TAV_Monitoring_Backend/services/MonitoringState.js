@@ -9,7 +9,10 @@ function buildMonitoringView(data) {
     const sources = Array.isArray(slot.inputSources) ? slot.inputSources : [];
     if (!sources.length) {
       let state = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
-      const item = referenceItem(String(slot.slotId), state, interfaceIcon(slot.fields), "input:" + slot.slotId + ":-", { state, icon: interfaceIcon(slot.fields) });
+      const item = Object.assign(referenceItem(String(slot.slotId), state, interfaceIcon(slot.fields), "input:" + slot.slotId + ":-", { state, icon: interfaceIcon(slot.fields) }), {
+        name: "Input " + slot.slotId,
+        value: fieldValue(slot.fields && slot.fields.status) || "Aucun signal"
+      });
       items.push(item);
       inputTables.push({ label: String(slot.slotId), ports: [Object.assign({}, item, { label: "-" })] });
       return items;
@@ -17,7 +20,10 @@ function buildMonitoringView(data) {
     const ports = sources.map((source) => {
       const state = inputSignalState(source.fields && source.fields.status);
       const icon = interfaceIcon(source.fields);
-      const item = referenceItem(String(slot.slotId) + "." + source.sourceId, state, icon, "input:" + slot.slotId + ":" + source.sourceId, { state, icon });
+      const item = Object.assign(referenceItem(String(slot.slotId) + "." + source.sourceId, state, icon, "input:" + slot.slotId + ":" + source.sourceId, { state, icon }), {
+        name: "Input " + slot.slotId + "." + source.sourceId,
+        value: fieldValue(source.fields && source.fields.status) || "Aucun signal"
+      });
       items.push(item);
       return Object.assign({}, item, { label: String(source.sourceId) });
     });
@@ -31,14 +37,20 @@ function buildMonitoringView(data) {
     if (!ports.length) {
       let state = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
       if (state === "ok") state = "inactive";
-      const item = referenceItem(String(slot.slotId), state, "rj45", "output:" + slot.slotId + ":-", { state, icon: "rj45" });
+      const item = Object.assign(referenceItem(String(slot.slotId), state, "rj45", "output:" + slot.slotId + ":-", { state, icon: "rj45" }), {
+        name: "Output " + slot.slotId,
+        value: "Aucun port actif"
+      });
       items.push(item);
       outputTables.push({ label: String(slot.slotId), ports: [Object.assign({}, item, { label: "-" })] });
       return items;
     }
     const cells = ports.map((port) => {
       const state = rawPortState(port.status);
-      const item = referenceItem(String(slot.slotId) + "." + port.portId, state, "rj45", "output:" + slot.slotId + ":" + port.portId, { state, icon: "rj45" });
+      const item = Object.assign(referenceItem(String(slot.slotId) + "." + port.portId, state, "rj45", "output:" + slot.slotId + ":" + port.portId, { state, icon: "rj45" }), {
+        name: "Output " + slot.slotId + "." + port.portId,
+        value: String(port.status === undefined ? "-" : port.status)
+      });
       items.push(item);
       return Object.assign({}, item, { label: String(port.portId) });
     });
@@ -48,12 +60,18 @@ function buildMonitoringView(data) {
 
   const screens = ((((data.screens || {}).screens) || [])).map((screen) => {
     const state = fieldsVisualState(screen.fields);
-    return referenceItem(String(screen.screenId), state, "", "screen:" + screen.screenId, state);
+    return Object.assign(referenceItem(String(screen.screenId), state, "", "screen:" + screen.screenId, state), {
+      name: "Ecran " + screen.screenId,
+      value: fieldValue(screen.fields && (screen.fields.workingStatus || screen.fields.status)) || stateTitle(state)
+    });
   });
   const receivingCards = (data.receivingCards || []).map((card) => {
     const state = fieldsVisualState(card.fields);
     const label = [card.outputSlotId, card.netPortId, card.recvCardId].join(".");
-    return referenceItem(label, state, "", "receiving:" + [card.outputSlotId, card.netPortId, card.recvCardId].join(":"), state);
+    return Object.assign(referenceItem(label, state, "", "receiving:" + [card.outputSlotId, card.netPortId, card.recvCardId].join(":"), state), {
+      name: "Receiving Card " + label,
+      value: [fieldValue(card.fields && card.fields.workingStatus), fieldValue(card.fields && card.fields.temperatureValue), fieldValue(card.fields && card.fields.voltageValue)].filter(Boolean).join(" / ") || stateTitle(state)
+    });
   });
   const outputPorts = (data.outputPorts || []).map((port) => {
     const state = outputPortHealth(port) === null ? "inactive" : fieldsVisualState(port.fields);
@@ -74,7 +92,10 @@ function buildMonitoringView(data) {
   const mvrCards = (data.mvrCards || []).map((card) => {
     const states = [fieldsVisualState(card.fields)].concat((card.interfaces || []).map((item) => fieldsVisualState(item.fields)));
     const state = combinedVisualState(states);
-    return referenceItem(String(card.slotId), state, "", "mvr:" + card.slotId, state);
+    return Object.assign(referenceItem(String(card.slotId), state, "", "mvr:" + card.slotId, state), {
+      name: "MVR " + card.slotId,
+      value: fieldValue(card.fields && (card.fields.workingStatus || card.fields.status)) || stateTitle(state)
+    });
   });
   const usbPorts = (data.usbPorts || []).map((item) => iconStatusItem(String(item.usbId), item.status, "usb", "usb:" + item.usbId));
   const fans = (data.fans || []).map((item) => iconStatusItem(String(item.fanId), item.status, "fan", "fan:" + item.fanId));
@@ -89,7 +110,10 @@ function buildMonitoringView(data) {
     state: overall,
     label: hasError ? "Erreur" : hasWarning ? "Avertissement" : "OK",
     message: "Dernier scan: " + formatDate(data.timestamp),
-    controller: [referenceItem("C", controllerState, "", "controller", controllerState)],
+    controller: [Object.assign(referenceItem("C", controllerState, "", "controller", controllerState), {
+      name: "Controleur",
+      value: fieldValue(data.controller && data.controller.workingStatus) || stateTitle(controllerState)
+    })],
     inputSlots, outputSlots, inputTables, outputTables, screens, outputPorts, systemHealth,
     mvrCards, usbPorts, fans, powerSupplies, receivingCards, kiloviewGroups, netgearPorts
   };
@@ -149,6 +173,11 @@ function markReferenceChanges(view, reference, current) {
   const mark = (item) => {
     if (!item || !item.referenceKey) return;
     item.changed = !Object.prototype.hasOwnProperty.call(reference.controls, item.referenceKey) || reference.controls[item.referenceKey] !== current.controls[item.referenceKey];
+    if (Object.prototype.hasOwnProperty.call(reference.controls, item.referenceKey)) {
+      let expected = reference.controls[item.referenceKey];
+      try { expected = JSON.parse(expected); } catch (_) {}
+      item.referenceState = expected && typeof expected === "object" ? expected.state : expected;
+    }
   };
   collectReferenceItems(view).forEach(mark);
   (view.inputTables || []).forEach((group) => (group.ports || []).forEach(mark));
@@ -241,7 +270,13 @@ function kiloviewItem(key, label, field) {
   const value = fieldValue(field) || "-";
   return Object.assign(referenceItem(label, state, "", "kiloview:" + key, { state, value }), { value, title: `${label}: ${value}` });
 }
-function iconStatusItem(label, field, icon, key) { const state = fieldVisualState(field); return referenceItem(label, state, icon, key, { state, icon }); }
+function iconStatusItem(label, field, icon, key) {
+  const state = fieldVisualState(field);
+  return Object.assign(referenceItem(label, state, icon, key, { state, icon }), {
+    name: label,
+    value: fieldValue(field) || stateTitle(state)
+  });
+}
 function fieldVisualState(field) {
   if (!field || field.value === "" || field.value === null || field.value === undefined || field.state === "notApplicable") return "inactive";
   if (field.error || looksLikeError(field.value)) return "error";

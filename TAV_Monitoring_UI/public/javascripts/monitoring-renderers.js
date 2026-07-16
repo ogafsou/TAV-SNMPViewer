@@ -1,3 +1,6 @@
+var referencePreviewMachineId = "";
+var referenceContextMachineId = "";
+
 function renderMonitoringCards() {
   if (!machines.length) {
     monitoringCards.innerHTML = '<div class="notice neutral">Ajoutez des machines dans Configuration pour alimenter le monitoring.</div>';
@@ -6,17 +9,17 @@ function renderMonitoringCards() {
 
   monitoringCards.innerHTML = machines.map(function(machine) {
     var baseState = monitoringState[machine.id] || buildUnknownState(machine);
-    var state = baseState;
+    var previewingReference = referencePreviewMachineId === machine.id;
+    var state = previewingReference ? buildReferencePreviewState(machine, baseState) : baseState;
     var referenceButton = REFERENCE_MODE_ENABLED
-      ? '<button class="set-reference-button" type="button" data-machine-id="' + escapeHtml(machine.id) + '"' +
-          (baseState.connected ? '' : ' disabled') +
-          ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">Set reference</button>'
+      ? '<button class="reference-button" type="button" data-machine-id="' + escapeHtml(machine.id) + '"' +
+          ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">Reference</button>'
       : '';
 
-    return '<article class="monitoring-card ' + escapeHtml(state.state) + '">' +
+    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + '" data-machine-id="' + escapeHtml(machine.id) + '">' +
       '<div class="card-head">' +
         '<div><h3>' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
-        '<div class="card-head-actions"><strong>' + escapeHtml(state.label) + '</strong>' + referenceButton + '</div>' +
+        (referenceButton ? '<div class="card-head-actions">' + referenceButton + '</div>' : '') +
       '</div>' +
       '<div class="pill-section">' +
         (machine.type === "kiloview" ? kiloviewMonitoring(state) :
@@ -24,12 +27,39 @@ function renderMonitoringCards() {
           ioStatusTable("Inputs", state.inputTables, state.inputSlots) +
           ioStatusTable("Outputs", state.outputTables, state.outputSlots) +
           hardwareStatusTable(state.usbPorts, state.fans, state.powerSupplies) +
-          pillGroup("Sante", state.systemHealth) +
           statusOverviewRow(state)) +
       '</div>' +
       '<p class="card-message">' + escapeHtml(state.message) + '</p>' +
     '</article>';
   }).join("");
+}
+
+function buildReferencePreviewState(machine, baseState) {
+  var state = JSON.parse(JSON.stringify(baseState));
+  var reference = machine.monitoringReference && machine.monitoringReference.snapshot;
+  var controls = reference && reference.controls || {};
+
+  function apply(item) {
+    if (!item || !item.referenceKey || !Object.prototype.hasOwnProperty.call(controls, item.referenceKey)) return;
+    var expected = controls[item.referenceKey];
+    try { expected = JSON.parse(expected); } catch (_) {}
+    var expectedState = expected && typeof expected === "object" ? expected.state : expected;
+    if (expectedState) {
+      item.state = expectedState;
+      item.ok = stateHealth(expectedState);
+    }
+    if (expected && typeof expected === "object" && expected.icon) item.icon = expected.icon;
+    item.changed = false;
+  }
+
+  ["controller", "inputSlots", "outputSlots", "systemHealth", "mvrCards", "screens", "receivingCards", "usbPorts", "fans", "powerSupplies", "netgearPorts"].forEach(function(key) {
+    (state[key] || []).forEach(apply);
+  });
+  (state.inputTables || []).forEach(function(group) { (group.ports || []).forEach(apply); });
+  (state.outputTables || []).forEach(function(group) { (group.ports || []).forEach(apply); });
+  (state.kiloviewGroups || []).forEach(function(group) { (group.items || []).forEach(apply); });
+  state.message = "Etat de reference" + (machine.monitoringReference.setAt ? " : " + formatDate(machine.monitoringReference.setAt) : "");
+  return state;
 }
 
 async function setMachineReference(machineId) {
@@ -56,8 +86,8 @@ async function setMachineReference(machineId) {
 function referenceButtonTitle(machine) {
   var setAt = machine.monitoringReference && machine.monitoringReference.setAt;
   return setAt
-    ? "Reference actuelle: " + formatDate(setAt)
-    : "Enregistrer le dernier scan comme etat normal";
+    ? "Maintenir pour afficher la reference du " + formatDate(setAt) + " - Clic droit pour la modifier"
+    : "Aucune reference definie - Clic droit pour en definir une";
 }
 
 function stableFingerprint(value) {
@@ -145,6 +175,8 @@ function buildMonitoringState(data) {
       var fallbackInputState = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
       var fallbackInput = {
         label: String(slot.slotId),
+        name: "Input " + String(slot.slotId),
+        value: fieldValue(slot.fields && slot.fields.status) || "Aucun signal",
         ok: stateHealth(fallbackInputState),
         state: fallbackInputState,
         icon: interfaceIcon(slot.fields),
@@ -159,9 +191,11 @@ function buildMonitoringState(data) {
     var inputPorts = [];
     inputSources.forEach(function(source) {
       var inputState = inputSignalState(source.fields && source.fields.status);
-      var inputPort = {
-        label: String(slot.slotId) + "." + String(source.sourceId),
-        portLabel: String(source.sourceId),
+        var inputPort = {
+          label: String(slot.slotId) + "." + String(source.sourceId),
+          portLabel: String(source.sourceId),
+          name: "Input " + String(slot.slotId) + "." + String(source.sourceId),
+          value: fieldValue(source.fields && source.fields.status) || "Aucun signal",
         ok: stateHealth(inputState),
         state: inputState,
         icon: interfaceIcon(source.fields),
@@ -182,8 +216,10 @@ function buildMonitoringState(data) {
     if (!ports.length) {
       var fallbackOutputState = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
       if (fallbackOutputState === "ok") fallbackOutputState = "inactive";
-      var fallbackOutput = {
-        label: String(slot.slotId),
+        var fallbackOutput = {
+          label: String(slot.slotId),
+          name: "Output " + String(slot.slotId),
+          value: "Aucun port actif",
         ok: stateHealth(fallbackOutputState),
         state: fallbackOutputState,
         icon: "rj45",
@@ -196,9 +232,11 @@ function buildMonitoringState(data) {
     }
 
     var outputTablePorts = ports.map(function(port) {
-      var outputPort = {
-        label: String(slot.slotId) + "." + String(port.portId),
-        portLabel: String(port.portId),
+        var outputPort = {
+          label: String(slot.slotId) + "." + String(port.portId),
+          portLabel: String(port.portId),
+          name: "Output " + String(slot.slotId) + "." + String(port.portId),
+          value: String(port.status === undefined ? "-" : port.status),
         ok: rawPortHealth(port.status),
         state: rawPortState(port.status),
         icon: "rj45",
@@ -215,6 +253,8 @@ function buildMonitoringState(data) {
     var state = fieldsVisualState(screen.fields);
     return {
       label: String(screen.screenId),
+      name: "Ecran " + String(screen.screenId),
+      value: fieldValue(screen.fields && (screen.fields.workingStatus || screen.fields.status)) || stateTitle(state),
       ok: stateHealth(state),
       state: state,
       referenceKey: "screen:" + String(screen.screenId),
@@ -225,6 +265,8 @@ function buildMonitoringState(data) {
     var state = fieldsVisualState(card.fields);
     return {
       label: card.outputSlotId + "." + card.netPortId + "." + card.recvCardId,
+      name: "Receiving Card " + card.outputSlotId + "." + card.netPortId + "." + card.recvCardId,
+      value: [fieldValue(card.fields && card.fields.workingStatus), fieldValue(card.fields && card.fields.temperatureValue), fieldValue(card.fields && card.fields.voltageValue)].filter(Boolean).join(" / ") || stateTitle(state),
       ok: stateHealth(state),
       state: state,
       referenceKey: "receiving:" + card.outputSlotId + ":" + card.netPortId + ":" + card.recvCardId,
@@ -262,6 +304,8 @@ function buildMonitoringState(data) {
     var state = combinedVisualState(states);
     return {
       label: card.slotId,
+      name: "MVR " + card.slotId,
+      value: fieldValue(card.fields && (card.fields.workingStatus || card.fields.status)) || stateTitle(state),
       ok: stateHealth(state),
       state: state,
       referenceKey: "mvr:" + String(card.slotId),
@@ -300,6 +344,8 @@ function buildMonitoringState(data) {
     message: "Dernier scan: " + formatDate(data.timestamp),
     controller: [{
       label: "C",
+      name: "Controleur",
+      value: fieldValue(data.controller && data.controller.workingStatus) || stateTitle(controllerState),
       ok: controllerOk,
       state: controllerState,
       referenceKey: "controller",
@@ -379,6 +425,8 @@ function iconStatusItem(label, field, icon, referenceKey) {
   var state = fieldVisualState(field);
   return {
     label: label,
+    name: label,
+    value: fieldValue(field) || stateTitle(state),
     ok: stateHealth(state),
     state: state,
     icon: icon,
@@ -456,6 +504,9 @@ function ioStatusTable(title, groups, fallbackItems) {
     return pillGroup(title, fallbackItems);
   }
 
+  var dense = safeGroups.some(function(group) {
+    return (group.ports || []).length > 8;
+  });
   var rows = safeGroups.map(function(group) {
     var ports = group.ports || [];
     var portRows = ports.length > 8
@@ -473,7 +524,7 @@ function ioStatusTable(title, groups, fallbackItems) {
     }).join("");
   }).join("");
 
-  return '<div class="io-status-group"><span>' + escapeHtml(title) + '</span>' +
+  return '<div class="io-status-group' + (dense ? ' dense' : '') + '"><span>' + escapeHtml(title) + '</span>' +
     '<div class="io-status-scroll"><table class="io-status-table"><tbody>' + rows + '</tbody></table></div>' +
   '</div>';
 }
@@ -492,11 +543,31 @@ function hardwareStatusTable(usbPorts, fans, powerSupplies) {
 }
 
 function statusOverviewRow(state) {
+  function prefixed(items, prefix) {
+    return (items || []).map(function(item) {
+      return Object.assign({}, item, { label: prefix + (item.label || "") });
+    });
+  }
+
+  var healthItems = prefixed(state.systemHealth, "");
+  var equipmentItems = []
+    .concat(prefixed(state.controller, "Ctrl "))
+    .concat(prefixed(state.mvrCards, "MVR "))
+    .concat(prefixed(state.screens, "Ecran "))
+    .concat(prefixed(state.receivingCards, "RC "));
+
+  function systemRow(label, items) {
+    var safeItems = items && items.length ? items : [{ label: "-", ok: null }];
+    return '<div class="system-status-row"><small>' + escapeHtml(label) + '</small><div>' +
+      safeItems.map(statusPill).join("") +
+    '</div></div>';
+  }
+
   return '<div class="monitoring-overview-row">' +
-    pillGroup("Controleur", state.controller) +
-    pillGroup("MVR", state.mvrCards) +
-    pillGroup("Ecrans", state.screens) +
-    pillGroup("Receiving cards", state.receivingCards) +
+    '<div class="pill-group system-pill-group"><span>Systeme</span>' +
+      systemRow("Sante", healthItems) +
+      systemRow("Equipements", equipmentItems) +
+    '</div>' +
   '</div>';
 }
 
@@ -506,7 +577,7 @@ function netgearMonitoring(state) {
   return '<div class="netgear-port-grid">' + ports.map(function(port) {
     var status = port.state || "inactive";
     var media = port.media === "fiber" ? "Optique" : "Cuivre";
-    return '<div class="netgear-port ' + escapeHtml(status) + '" title="' + escapeHtml(port.title || port.name) + '">' +
+    return '<div class="netgear-port ' + escapeHtml(status) + '" title="' + escapeHtml(monitoringItemTooltip({ name: port.name, value: [port.speed, media, port.poe].filter(Boolean).join(" / ") }, status)) + '">' +
       '<strong>' + escapeHtml(port.name) + '</strong>' +
       '<span>' + escapeHtml(port.speed || "-") + '</span>' +
       '<small>' + escapeHtml(media + (port.poe ? " · " + port.poe : "")) + '</small>' +
@@ -582,7 +653,7 @@ function kiloviewNdiGroup(group) {
     : items.some(function(item) { return item.state === "ok"; }) ? "ok" : "inactive";
 
   return '<section class="kiloview-status-group kiloview-ndi-group">' +
-    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(value) + '">' +
+    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(monitoringItemTooltip({ name: group.title, value: value }, state)) + '">' +
       '<strong>' + escapeHtml(value) + '</strong>' +
     '</div></section>';
 }
@@ -637,7 +708,7 @@ function kiloviewVideoGroup(group) {
   var value = "NDI " + resolution + (frequency ? "@" + frequency + "fps" : "") + (bitrate ? " - " + bitrate : "");
 
   return '<section class="kiloview-status-group kiloview-video-group">' +
-    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(value) + '">' +
+    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(monitoringItemTooltip({ name: group.title, value: value }, state)) + '">' +
       '<strong>' + escapeHtml(value) + '</strong>' +
     '</div></section>';
 }
@@ -668,7 +739,7 @@ function kiloviewAudioGroup(group) {
     : items.some(function(item) { return item.state === "ok"; }) ? "ok" : "inactive";
 
   return '<section class="kiloview-status-group kiloview-audio-group">' +
-    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(value) + '">' +
+    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(monitoringItemTooltip({ name: group.title, value: value }, state)) + '">' +
       '<strong>' + escapeHtml(value) + '</strong>' +
     '</div></section>';
 }
@@ -692,20 +763,20 @@ function kiloviewOutputGroup(group) {
     : items.some(function(item) { return item.state === "ok"; }) ? "ok" : "inactive";
 
   return '<section class="kiloview-status-group kiloview-output-group">' +
-    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(value) + '">' +
+    '<div class="kiloview-video-summary ' + escapeHtml(state) + '" title="' + escapeHtml(monitoringItemTooltip({ name: group.title, value: value }, state)) + '">' +
       '<strong>' + escapeHtml(value) + '</strong>' +
     '</div></section>';
 }
 
 function kiloviewStatusItem(item) {
   var state = item.state || (item.ok === true ? "ok" : item.ok === false ? "error" : "inactive");
-  return '<div class="kiloview-status-item ' + escapeHtml(state) + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(item.title || stateTitle(state)) + '">' +
+  return '<div class="kiloview-status-item ' + escapeHtml(state) + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(monitoringItemTooltip(item, state)) + '">' +
     '<span>' + escapeHtml(item.label) + '</span><strong>' + escapeHtml(item.value || "-") + '</strong></div>';
 }
 
 function ioStatusCell(item) {
   var className = item.state || (item.ok === true ? "ok" : item.ok === false ? "warning" : "inactive");
-  var title = stateTitle(className);
+  var title = monitoringItemTooltip(item, className);
   return '<td class="' + className + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(title) + '">' +
     (item.icon ? statusIcon(item.icon, className, item.label) : "") +
     '<span>' + escapeHtml(item.label) + '</span></td>';
@@ -714,7 +785,7 @@ function ioStatusCell(item) {
 function statusPill(item) {
   var state = item.state || (item.ok === true ? "ok" : item.ok === false ? "error" : "inactive");
   var className = state === "error" ? "bad" : state === "inactive" ? "unknown" : state;
-  var title = item.title || stateTitle(state);
+  var title = monitoringItemTooltip(item, state);
 
   return '<span class="monitor-pill ' + className + (item.icon ? ' icon-pill' : '') + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(title) + '">' +
     (item.icon ? statusIcon(item.icon, state, item.label) : "") +
@@ -727,6 +798,31 @@ function stateTitle(state) {
   if (state === "warning") return "Avertissement";
   if (state === "error") return "Erreur";
   return "Inactif / Inconnu / Aucun signal";
+}
+
+function monitoringItemTooltip(item, state) {
+  var lines = [monitoringItemIdentity(item) + (state ? " - " + stateTitle(state) : "")];
+  if (item && item.changed && item.referenceState) {
+    lines.push("Reference : " + stateTitle(item.referenceState));
+  }
+  return lines.join("\n");
+}
+
+function monitoringItemIdentity(item) {
+  var key = String(item && item.referenceKey || "");
+  var parts = key.split(":");
+  if ((parts[0] === "input" || parts[0] === "output") && parts[1]) {
+    return parts[1] + (parts[2] && parts[2] !== "-" ? " - " + parts[2] : "");
+  }
+  if (parts[0] === "health") return "Sante - " + (item.label || parts[1]);
+  if (parts[0] === "mvr") return "MVR - " + (item.label || parts[1]);
+  if (parts[0] === "screen") return "Ecran - " + (item.label || parts[1]);
+  if (parts[0] === "receiving") return "RC - " + (item.label || parts.slice(1).join("."));
+  if (parts[0] === "usb") return "USB - " + (item.label || parts[1]);
+  if (parts[0] === "fan") return "Fan - " + (item.label || parts[1]);
+  if (parts[0] === "power") return "PSU - " + (item.label || parts[1]);
+  if (parts[0] === "controller") return "Controleur";
+  return item && (item.name || item.label) || "Element";
 }
 
 function interfaceIcon(fields) {
@@ -754,4 +850,3 @@ function statusIcon(icon, state, label) {
   if (!files[icon]) return "";
   return '<img class="state-icon state-' + escapeHtml(state) + '" src="/images/' + files[icon] + '" alt="" aria-hidden="true" />';
 }
-

@@ -47,3 +47,39 @@ test("a reference difference colors the control red without replacing the icon s
   assert.doesNotMatch(css, /\.reference-changed\s+\.state-icon\s*\{[^}]*filter:/s);
   assert.match(renderer, /statusIcon\(item\.icon, className, item\.label\)/);
 });
+
+test("monitoring cards group system health in one compact section", () => {
+  const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
+  const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
+
+  assert.match(renderer, /systemRow\("Sante", healthItems\)/);
+  assert.match(renderer, /systemRow\("Equipements", equipmentItems\)/);
+  assert.doesNotMatch(renderer, /pillGroup\("Sante"/);
+  assert.doesNotMatch(renderer, /pillGroup\("Controleur"/);
+  assert.doesNotMatch(renderer, /escapeHtml\(state\.label\)/);
+  assert.match(css, /\.monitoring-card\s*\{[^}]*min-height:\s*0;/s);
+  assert.match(css, /\.card-head h3\s*\{[^}]*font-size:\s*20px;/s);
+  assert.match(css, /\.io-status-table td\.inactive\s*\{[^}]*background:\s*#454d5f;/s);
+  assert.match(css, /\.io-status-table,[\s\S]*?\.io-status-table tr\s*\{[^}]*background:\s*transparent;/);
+  assert.match(css, /\.io-status-group\.dense \.io-status-table td\s*\{[^}]*font-size:\s*8px;/s);
+  assert.match(renderer, /io-status-group' \+ \(dense \? ' dense' : ''\)/);
+  assert.match(renderer, /function monitoringItemTooltip\(item, state\)/);
+  assert.doesNotMatch(renderer, /"Nom : "/);
+  assert.doesNotMatch(renderer, /"Statut : "/);
+  assert.match(renderer, /Reference : " \+ stateTitle\(item\.referenceState\)/);
+  assert.match(css, /table th,[\s\S]*?table td:first-child,[\s\S]*?\.io-status-group > span\s*\{[^}]*font-family:\s*Poppins/);
+  assert.match(css, /\.io-status-table th\s*\{[^}]*vertical-align:\s*middle;/s);
+});
+
+test("reference button previews expected state and uses a confirmed context-menu action", () => {
+  const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
+  const application = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "application.js"), "utf8");
+  const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "partials", "monitoring", "machine-cards.ejs"), "utf8");
+
+  assert.match(renderer, />Reference<\/button>/);
+  assert.match(renderer, /function buildReferencePreviewState\(machine, baseState\)/);
+  assert.match(renderer, /reference-preview/);
+  assert.match(application, /addEventListener\("contextmenu"/);
+  assert.match(application, /window\.confirm\(/);
+  assert.match(view, />Set reference<\/button>/);
+});

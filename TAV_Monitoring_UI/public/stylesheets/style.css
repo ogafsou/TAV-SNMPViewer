@@ -1,19 +1,20 @@
 :root {
-  color-scheme: light;
-  --ink: #162029;
-  --muted: #617080;
-  --line: #d6dee6;
-  --panel: #ffffff;
-  --band: #eef3f7;
-  --side: #e8f2fb;
-  --add: #e3f8ec;
-  --work: #fff1f4;
-  --accent: #0b6f8a;
-  --accent-strong: #084d61;
-  --ok: #177245;
-  --warn: #b35c00;
-  --bad: #b42318;
-  --shadow: 0 10px 30px rgba(22, 32, 41, 0.08);
+  color-scheme: dark;
+  --ink: #f8f9ff;
+  --muted: #7d859c;
+  --line: #303648;
+  --panel: #171c29;
+  --panel-raised: #1d2231;
+  --band: #222839;
+  --side: #192330;
+  --add: #17362f;
+  --work: #2a202b;
+  --accent: #32c99a;
+  --accent-strong: #249b82;
+  --ok: #32c99a;
+  --warn: #e4b74c;
+  --bad: #ef6b64;
+  --shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
 }
 
 * {
@@ -22,9 +23,9 @@
 
 body {
   margin: 0;
-  background: #f7f9fb;
+  background: #080b11;
   color: var(--ink);
-  font: 14px/1.45 Arial, Helvetica, sans-serif;
+  font: 14px/1.5 Poppins, Montserrat, "Segoe UI", Arial, sans-serif;
 }
 
 .icon-filter-defs {
@@ -320,18 +321,18 @@ button:disabled {
 
 .monitoring-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 14px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .monitoring-card {
   display: grid;
-  gap: 14px;
+  gap: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 16px;
-  min-height: 260px;
+  padding: 11px;
+  min-height: 0;
   background: #eef1f3;
   box-shadow: var(--shadow);
 }
@@ -364,48 +365,59 @@ button:disabled {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .card-head h3 {
   margin: 0;
   color: var(--ink);
-  font-size: 26px;
-  letter-spacing: 0;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .card-head span,
 .card-message {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .card-head strong {
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   background: #fff;
   color: var(--ink);
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
 .card-head-actions {
   display: grid;
   justify-items: end;
-  gap: 7px;
+  gap: 4px;
 }
 
-.set-reference-button {
+.reference-button {
   height: 30px;
   padding: 0 10px;
   font-size: 11px;
   white-space: nowrap;
 }
 
+.monitoring-card.reference-preview,
+.monitoring-card.reference-preview.ok,
+.monitoring-card.reference-preview.warning,
+.monitoring-card.reference-preview.error,
+.monitoring-card.reference-preview.offline {
+  border-color: #697184;
+  background: #303644;
+  filter: grayscale(0.45);
+}
+
 .pill-section {
   display: grid;
-  gap: 12px;
+  gap: 7px;
 }
 
 .kiloview-monitoring {
@@ -541,8 +553,8 @@ button:disabled {
 
 .monitoring-overview-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3px;
   align-items: start;
 }
 
@@ -566,6 +578,46 @@ button:disabled {
   height: 22px;
   padding: 0 5px;
   font-size: 10px;
+}
+
+.monitoring-card .card-message {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.monitoring-card .pill-group,
+.monitoring-card .io-status-group {
+  gap: 3px;
+}
+
+.system-pill-group {
+  display: grid;
+  gap: 3px;
+}
+
+.system-status-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+}
+
+.system-status-row > small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.system-status-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-width: 0;
 }
 
 .pill-group {
@@ -629,6 +681,7 @@ button:disabled {
   background: #fff;
   font-weight: 700;
   text-align: left;
+  vertical-align: middle;
 }
 
 .io-status-table td {
@@ -648,7 +701,26 @@ button:disabled {
 }
 
 .io-status-table td.inactive {
-  background: #dfe3e6;
+  background: #454d5f;
+  color: #d8dce6;
+}
+
+.io-status-table,
+.io-status-table tbody,
+.io-status-table tr {
+  background: transparent;
+}
+
+.io-status-group.dense .io-status-table th,
+.io-status-group.dense .io-status-table td {
+  padding-inline: 1px;
+  font-size: 8px;
+}
+
+.io-status-group.dense .state-icon {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
 }
 
 .monitor-pill {
@@ -1171,4 +1243,197 @@ select:focus {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+/* Dark dashboard theme derived from Codex/colorAndFonts.png. */
+h1,
+h2,
+h3,
+button,
+strong,
+table th,
+table td:first-child,
+.io-status-group > span {
+  font-family: Poppins, Montserrat, "Segoe UI", Arial, sans-serif;
+}
+
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+.topbar,
+.tabs {
+  border-color: var(--line);
+}
+
+.tab,
+.configuration-options,
+.monitor-toolbar,
+.monitoring-header,
+.monitoring-card,
+.data-section,
+.summary-grid,
+.field,
+.dialog,
+.context-menu,
+.kiloview-status-group,
+.kiloview-video-summary,
+.kiloview-system-summary,
+.netgear-port {
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.tab {
+  color: var(--muted);
+}
+
+.tab.active,
+button:not(.secondary-button):not(.ghost-button):not(.tab) {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  color: #ffffff;
+}
+
+button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2ca88c, #3bd8a5);
+}
+
+.machine-sidebar,
+.machine-list-zone,
+.table-wrap,
+.advanced-settings,
+.advanced-settings-grid,
+.machine-form-row,
+.access-mode-field,
+.io-status-group,
+.pill-group,
+.monitoring-overview-row,
+.json-collapse,
+details,
+fieldset {
+  border-color: var(--line);
+  background: var(--panel-raised);
+  color: var(--ink);
+}
+
+input,
+select,
+textarea {
+  border-color: var(--line);
+  background: #111622;
+  color: var(--ink);
+}
+
+.machine-list,
+.machine-list option {
+  border-color: var(--line);
+  background: #111622;
+  color: var(--ink);
+}
+
+.machine-list option:checked {
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #626b82;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid rgba(50, 201, 154, 0.2);
+}
+
+table,
+thead,
+tbody,
+tr,
+th,
+td {
+  border-color: var(--line);
+}
+
+th,
+.kiloview-summary-table th {
+  background: var(--band);
+  color: var(--muted);
+}
+
+td,
+.field,
+.metric,
+.notice.neutral {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.secondary-button,
+.ghost-button {
+  border: 1px solid var(--line);
+  background: var(--band);
+  color: var(--ink);
+}
+
+.status-pill {
+  border-color: rgba(50, 201, 154, 0.45);
+  background: rgba(50, 201, 154, 0.1);
+  color: var(--accent);
+}
+
+.monitoring-card,
+.monitoring-header,
+.configuration-options,
+.dialog {
+  box-shadow: var(--shadow);
+}
+
+.monitoring-card.ok,
+.netgear-port.ok,
+.kiloview-status-item.ok,
+.kiloview-video-summary.ok,
+.kiloview-system-summary.ok {
+  border-color: rgba(50, 201, 154, 0.58);
+  background: linear-gradient(145deg, #18242a, var(--panel));
+}
+
+.monitoring-card.warning,
+.netgear-port.warning,
+.kiloview-status-item.warning,
+.kiloview-video-summary.warning,
+.kiloview-system-summary.warning {
+  border-color: rgba(228, 183, 76, 0.65);
+  background: #272419;
+}
+
+.monitoring-card.error,
+.monitoring-card.offline,
+.netgear-port.error,
+.kiloview-status-item.error,
+.kiloview-video-summary.error,
+.kiloview-system-summary.error {
+  border-color: rgba(239, 107, 100, 0.68);
+  background: #2a1d24;
+}
+
+.dialog-backdrop {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
 }

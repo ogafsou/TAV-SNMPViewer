@@ -29,6 +29,8 @@ var monitoringCards = document.getElementById("monitoringCards");
 var refreshMonitoringButton = document.getElementById("refreshMonitoring");
 var autoRefreshHint = document.getElementById("autoRefreshHint");
 var monitoringReferenceMode = document.getElementById("monitoringReferenceMode");
+var referenceContextMenu = document.getElementById("referenceContextMenu");
+var setReferenceMenuItem = document.getElementById("setReferenceMenuItem");
 
 document.querySelectorAll(".tab").forEach(function(tabButton) {
   tabButton.addEventListener("click", function() {
@@ -278,14 +280,53 @@ monitoringReferenceMode.addEventListener("change", async function() {
   }
 });
 
-monitoringCards.addEventListener("click", function(event) {
-  var button = event.target.closest(".set-reference-button");
-  if (button) {
-    setMachineReference(button.dataset.machineId);
+monitoringCards.addEventListener("pointerdown", function(event) {
+  var button = event.target.closest(".reference-button");
+  var machine = button && getMachineById(button.dataset.machineId);
+  if (!button || event.button !== 0 || !machine || !machine.monitoringReference) return;
+  referencePreviewMachineId = machine.id;
+  renderMonitoringCards();
+});
+
+document.addEventListener("pointerup", function() {
+  if (!referencePreviewMachineId) return;
+  referencePreviewMachineId = "";
+  renderMonitoringCards();
+});
+
+document.addEventListener("pointermove", function(event) {
+  if (!referencePreviewMachineId) return;
+  var hoveredButton = document.elementFromPoint(event.clientX, event.clientY);
+  hoveredButton = hoveredButton && hoveredButton.closest(".reference-button");
+  if (hoveredButton && hoveredButton.dataset.machineId === referencePreviewMachineId) return;
+  referencePreviewMachineId = "";
+  renderMonitoringCards();
+});
+
+monitoringCards.addEventListener("contextmenu", function(event) {
+  var button = event.target.closest(".reference-button");
+  if (!button) return;
+  event.preventDefault();
+  referenceContextMachineId = button.dataset.machineId;
+  referenceContextMenu.style.left = Math.min(event.clientX, window.innerWidth - 170) + "px";
+  referenceContextMenu.style.top = Math.min(event.clientY, window.innerHeight - 60) + "px";
+  referenceContextMenu.hidden = false;
+});
+
+setReferenceMenuItem.addEventListener("click", function() {
+  var machine = getMachineById(referenceContextMachineId);
+  referenceContextMenu.hidden = true;
+  if (!machine) return;
+  if (!window.confirm("Remplacer la reference de " + machine.name + " par le dernier etat scanne ?")) return;
+  setMachineReference(machine.id);
+});
+
+document.addEventListener("click", function(event) {
+  if (!referenceContextMenu.hidden && !referenceContextMenu.contains(event.target)) {
+    referenceContextMenu.hidden = true;
   }
 });
 
 initializeApplication();
 setupRestRefresh();
 setupWebSocket();
-
