@@ -2,7 +2,7 @@ const logger = require("../classes/Logger");
 
 const COLLECTIONS = [
   "controller", "inputSlots", "outputSlots", "screens", "systemHealth",
-  "mvrCards", "usbPorts", "fans", "powerSupplies", "receivingCards", "kiloview"
+  "mvrCards", "usbPorts", "fans", "powerSupplies", "receivingCards", "netgearPorts", "kiloview"
 ];
 
 class AlertService {
@@ -133,7 +133,7 @@ function itemLabel(collection, item) {
   const names = {
     controller: "Controleur", inputSlots: "Entree", outputSlots: "Sortie", screens: "Ecran",
     systemHealth: "Systeme", mvrCards: "MVR", usbPorts: "USB", fans: "Ventilateur",
-    powerSupplies: "Alimentation", receivingCards: "Carte de reception"
+    powerSupplies: "Alimentation", receivingCards: "Carte de reception", netgearPorts: "Port NETGEAR"
   };
   return `${names[collection] || collection} ${item.label || ""}`.trim();
 }

@@ -1,0 +1,141 @@
+    <div id="dialogBackdrop" class="dialog-backdrop" hidden>
+      <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+        <div class="section-title">
+          <h2 id="dialogTitle">Ajouter une machine</h2>
+          <button id="closeAddDialog" class="ghost-button" type="button">Fermer</button>
+        </div>
+
+        <form id="machineForm" class="machine-form">
+          <div class="machine-form-row identity-row">
+            <label>
+              <span>Type</span>
+              <select name="type">
+                <option value="novastar-h">NovaStar H</option>
+                <option value="kiloview">Kiloview</option>
+                <option value="netgear-m4300">NETGEAR M4300</option>
+                <option value="other">Autres</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Nom</span>
+              <input name="name" type="text" placeholder="H9 Regie principale" autocomplete="off" required />
+            </label>
+
+            <label>
+              <span>Adresse IP</span>
+              <input name="host" type="text" value="192.168.1.10" autocomplete="off" required />
+            </label>
+          </div>
+
+          <div class="machine-form-row credentials-row api-field" hidden>
+            <label class="novastar-api-protocol">
+              <span>Protocole API</span>
+              <select name="apiProtocol">
+                <option value="openapi">OpenAPI officielle</option>
+                <option value="legacy">API Web legacy</option>
+              </select>
+            </label>
+
+            <label class="credential-field legacy-api-field">
+              <span>Utilisateur API</span>
+              <input name="apiUsername" type="text" value="admin" autocomplete="off" />
+            </label>
+
+            <label class="credential-field legacy-api-field">
+              <span>Mot de passe API</span>
+              <input name="apiPassword" type="password" value="admin" autocomplete="new-password" />
+            </label>
+
+            <label class="openapi-api-field">
+              <span>Project ID (pId)</span>
+              <input name="apiProjectId" type="text" placeholder="NDAz" autocomplete="off" />
+            </label>
+
+            <label class="openapi-api-field">
+              <span>Secret Key</span>
+              <input name="apiSecretKey" type="password" autocomplete="new-password" />
+            </label>
+          </div>
+
+          <fieldset class="access-mode-field novastar-only">
+            <legend>Source des infos</legend>
+            <label class="toggle-row">
+              <input name="accessMethod" type="radio" value="snmp" checked />
+              <span>SNMP</span>
+            </label>
+            <label class="toggle-row">
+              <input name="accessMethod" type="radio" value="api" />
+              <span>API NovaStar H</span>
+            </label>
+            <label class="toggle-row">
+              <input name="accessMethod" type="radio" value="snmp+api" />
+              <span>SNMP + API</span>
+            </label>
+          </fieldset>
+
+          <details class="advanced-settings snmp-device-settings">
+            <summary>Parametres avances</summary>
+            <div class="advanced-settings-grid">
+              <label class="snmp-field">
+                <span>Lecture</span>
+                <input name="readCommunity" type="text" value="public" autocomplete="off" />
+              </label>
+              <label class="snmp-field novastar-only">
+                <span>Ecriture</span>
+                <input name="writeCommunity" type="text" value="private" autocomplete="off" />
+              </label>
+              <label class="shared-field">
+                <span>Timeout ms</span>
+                <input name="timeout" type="number" min="500" max="10000" step="100" value="2000" />
+              </label>
+              <label class="snmp-field">
+                <span>Retries</span>
+                <input name="retries" type="number" min="0" max="5" step="1" value="1" />
+              </label>
+              <label class="api-field" hidden>
+                <span>URL API</span>
+                <input name="apiBaseUrl" type="text" placeholder="Automatique depuis l'adresse IP" autocomplete="off" />
+              </label>
+              <label class="api-field" hidden>
+                <span>Device ID</span>
+                <input name="apiDeviceId" type="number" min="0" max="999" step="1" value="0" />
+              </label>
+              <label class="toggle-row openapi-api-field" hidden>
+                <input name="apiEncryption" type="checkbox" />
+                <span>Chiffrement OpenAPI</span>
+              </label>
+              <label class="snmp-field novastar-only">
+                <span>Slots d'entree max</span>
+                <input name="maxInputSlots" type="number" min="1" max="32" placeholder="auto" />
+              </label>
+              <label class="snmp-field novastar-only">
+                <span>Ecrans max</span>
+                <input name="maxScreens" type="number" min="1" max="16" placeholder="auto" />
+              </label>
+              <label class="snmp-field novastar-only">
+                <span>Receiving cards / port</span>
+                <input name="recvCardsPerPort" type="number" min="1" max="12" value="1" />
+              </label>
+              <label class="toggle-row snmp-field novastar-only">
+                <input name="includeReceivingCards" type="checkbox" />
+                <span>Lire les receiving cards</span>
+              </label>
+              <label class="toggle-row netgear-only" hidden>
+                <input name="includePoe" type="checkbox" />
+                <span>Superviser le PoE</span>
+              </label>
+              <label class="netgear-only" hidden>
+                <span>Port SNMP</span>
+                <input name="snmpPort" type="number" min="1" max="65535" value="161" />
+              </label>
+            </div>
+          </details>
+
+          <div class="dialog-actions">
+            <button class="secondary-button" id="cancelAddDialog" type="button">Annuler</button>
+            <button type="submit">OK</button>
+          </div>
+        </form>
+      </section>
+    </div>

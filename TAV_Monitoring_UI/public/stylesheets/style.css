@@ -99,8 +99,12 @@ h2 {
   color: #fff;
 }
 
-.tab-panel[hidden] {
+.tab-panel {
   display: none;
+}
+
+.tab-panel.active {
+  display: block;
 }
 
 .configuration-options {
@@ -406,9 +410,66 @@ button:disabled {
 
 .kiloview-monitoring {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
+
+.netgear-port-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 5px;
+}
+
+.netgear-port {
+  display: grid;
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-top: 4px solid #aeb8c0;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .78);
+  font-size: 10px;
+  text-align: center;
+}
+
+.netgear-port.ok { border-top-color: #1f9d55; }
+.netgear-port.warning { border-top-color: #e8a600; background: #fff7dd; }
+.netgear-port.error { border-top-color: #d92d20; background: #ffe9e7; }
+.netgear-port.inactive { opacity: .68; }
+.netgear-port strong,
+.netgear-port span,
+.netgear-port small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.netgear-port small { color: var(--muted); font-size: 9px; }
+
+.kiloview-summary-table-wrap {
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.kiloview-summary-table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  table-layout: auto;
+  border-collapse: collapse;
+  font-size: 11px;
+  text-align: center;
+}
+
+.kiloview-summary-table th,
+.kiloview-summary-table td {
+  min-width: 34px;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+}
+
+.kiloview-summary-table th { color: var(--muted); background: #f4f6f8; }
+.kiloview-summary-table td { color: #fff; font-weight: 800; }
+.kiloview-summary-table td.ok { background: #1f9d55; }
+.kiloview-summary-table td.warning { background: #e8a600; }
+.kiloview-summary-table td.error,
+.kiloview-summary-table td.inactive { background: #d92d20; }
 
 .kiloview-status-group {
   min-width: 0;
@@ -416,14 +477,6 @@ button:disabled {
   border: 1px solid var(--line);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.72);
-}
-
-.kiloview-status-group h4 {
-  margin: 0;
-  padding: 7px 9px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  font-size: 12px;
 }
 
 .kiloview-status-group > div {
@@ -448,6 +501,39 @@ button:disabled {
 .kiloview-status-item.error { border-left-color: #d92d20; background: #ffe9e7; }
 .kiloview-status-item span { color: var(--muted); font-weight: 700; }
 .kiloview-status-item strong { overflow: hidden; color: var(--ink); text-overflow: ellipsis; white-space: nowrap; }
+
+.kiloview-video-summary {
+  min-height: 29px;
+  padding: 6px 8px;
+  border-left: 4px solid #aeb8c0;
+  color: var(--ink);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.kiloview-video-summary.ok { border-left-color: #1f9d55; }
+.kiloview-video-summary.warning { border-left-color: #e8a600; background: #fff7dd; }
+.kiloview-video-summary.error { border-left-color: #d92d20; background: #ffe9e7; }
+.kiloview-video-summary strong { overflow: hidden; text-overflow: ellipsis; }
+
+.kiloview-system-summary {
+  display: grid;
+  border-left: 4px solid #aeb8c0;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.kiloview-system-summary strong {
+  overflow: hidden;
+  padding: 6px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kiloview-system-summary strong + strong { border-top: 1px solid #e6ebef; }
+.kiloview-system-summary.ok { border-left-color: #1f9d55; }
+.kiloview-system-summary.warning { border-left-color: #e8a600; background: #fff7dd; }
+.kiloview-system-summary.error { border-left-color: #d92d20; background: #ffe9e7; }
 
 @media (max-width: 560px) {
   .kiloview-monitoring { grid-template-columns: 1fr; }

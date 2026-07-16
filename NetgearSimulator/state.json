@@ -1,0 +1,58 @@
+{
+  "config": {
+    "systemName": "M4300-SIM",
+    "model": "NETGEAR M4300 Simulator",
+    "location": "Regie",
+    "uptimeTicks": 8640000
+  },
+  "ports": [
+    {
+      "index": 1,
+      "name": "1/0/1",
+      "description": "Gigabit Ethernet 1/0/1",
+      "media": "copper",
+      "speedMbps": 1000,
+      "adminUp": true,
+      "linkUp": true,
+      "poeSupported": true,
+      "poeEnabled": true,
+      "poeDelivering": true
+    },
+    {
+      "index": 25,
+      "name": "SFP+ 1/0/25",
+      "description": "10G SFP+ optical 1/0/25",
+      "media": "fiber",
+      "speedMbps": 10000,
+      "adminUp": true,
+      "linkUp": true,
+      "poeSupported": false,
+      "poeEnabled": false,
+      "poeDelivering": false
+    },
+    {
+      "index": 26,
+      "name": "Nouveau port1",
+      "description": "Nouveau port1",
+      "media": "copper",
+      "speedMbps": 1000,
+      "adminUp": true,
+      "linkUp": true,
+      "poeSupported": false,
+      "poeEnabled": false,
+      "poeDelivering": false
+    },
+    {
+      "index": 27,
+      "name": "Nouveau port",
+      "description": "Nouveau port",
+      "media": "copper",
+      "speedMbps": 1000,
+      "adminUp": true,
+      "linkUp": false,
+      "poeSupported": true,
+      "poeEnabled": false,
+      "poeDelivering": true
+    }
+  ]
+}

@@ -2,6 +2,7 @@ function buildMonitoringView(data) {
   const controllerState = fieldsVisualState(data.controller);
   const controllerOk = stateHealth(controllerState);
   const kiloviewGroups = normalizeMachineType(data.type) === "kiloview" ? buildKiloviewGroups(data.controller || {}) : [];
+  const netgearPorts = normalizeMachineType(data.type) === "netgear-m4300" ? buildNetgearPorts(data.netgearPorts || []) : [];
   const primarySlots = data.inputSlots || data.outputSlots || { slots: [] };
   const inputTables = [];
   const inputSlots = (primarySlots.slots || []).reduce((items, slot) => {
@@ -78,7 +79,7 @@ function buildMonitoringView(data) {
   const usbPorts = (data.usbPorts || []).map((item) => iconStatusItem(String(item.usbId), item.status, "usb", "usb:" + item.usbId));
   const fans = (data.fans || []).map((item) => iconStatusItem(String(item.fanId), item.status, "fan", "fan:" + item.fanId));
   const powerSupplies = (data.powerSupplies || []).map((item) => iconStatusItem(String(item.powerId), item.status, "psu", "power:" + item.powerId));
-  const all = [{ state: controllerState }].concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies, receivingCards);
+  const all = [{ state: controllerState }].concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies, receivingCards, netgearPorts);
   const hasError = all.some((item) => item.state === "error");
   const hasWarning = all.some((item) => item.ok === false);
   const overall = hasError ? "error" : hasWarning ? "warning" : "ok";
@@ -90,7 +91,7 @@ function buildMonitoringView(data) {
     message: "Dernier scan: " + formatDate(data.timestamp),
     controller: [referenceItem("C", controllerState, "", "controller", controllerState)],
     inputSlots, outputSlots, inputTables, outputTables, screens, outputPorts, systemHealth,
-    mvrCards, usbPorts, fans, powerSupplies, receivingCards, kiloviewGroups
+    mvrCards, usbPorts, fans, powerSupplies, receivingCards, kiloviewGroups, netgearPorts
   };
 }
 
@@ -103,7 +104,7 @@ function buildOfflineView(machine, error, timestamp) {
     timestamp: timestamp || new Date().toISOString(),
     controller: [{ label: "C", ok: false, state: "error", referenceKey: "controller", referenceValue: "offline" }],
     inputSlots: [], outputSlots: [], inputTables: [], outputTables: [], screens: [], outputPorts: [],
-    systemHealth: [], mvrCards: [], usbPorts: [], fans: [], powerSupplies: [], receivingCards: [], kiloviewGroups: []
+    systemHealth: [], mvrCards: [], usbPorts: [], fans: [], powerSupplies: [], receivingCards: [], kiloviewGroups: [], netgearPorts: []
   };
 }
 
@@ -137,7 +138,7 @@ function buildReferenceSnapshot(view) {
 function collectReferenceItems(view) {
   return [].concat(view.controller || [], view.inputSlots || [], view.outputSlots || [], view.systemHealth || [],
     view.mvrCards || [], view.screens || [], view.receivingCards || [], view.usbPorts || [], view.fans || [], view.powerSupplies || [],
-    ...(view.kiloviewGroups || []).map((group) => group.items || []));
+    view.netgearPorts || [], ...(view.kiloviewGroups || []).map((group) => group.items || []));
 }
 
 function referenceSnapshotsEqual(a, b) {
@@ -212,6 +213,29 @@ function buildKiloviewGroups(controller) {
     items: fields.filter(([key]) => controller[key] !== undefined).map(([key, label]) => kiloviewItem(key, label, controller[key]))
   })).filter((group) => group.items.length);
 }
+function buildNetgearPorts(ports) {
+  return ports.map((port) => {
+    const state = !port.adminUp ? "inactive" : port.linkUp ? "ok" : "warning";
+    const speed = formatPortSpeed(port.speedMbps);
+    const poe = port.poe && port.poe.supported
+      ? port.poe.delivering ? "PoE On" : port.poe.enabled ? "PoE attente" : "PoE Off"
+      : "";
+    return Object.assign(referenceItem(port.name || String(port.index), state, port.media === "fiber" ? "fiber" : "rj45",
+      "netgear:port:" + port.index, { state, speedMbps: port.speedMbps, media: port.media, poe }), {
+      index: port.index,
+      name: port.name || "Port " + port.index,
+      media: port.media || "",
+      speed,
+      poe,
+      title: [port.description, port.linkUp ? "Lien actif" : "Lien inactif", speed, poe].filter(Boolean).join(" - ")
+    });
+  });
+}
+function formatPortSpeed(value) {
+  const speed = Number(value || 0);
+  if (speed >= 1000) return (speed / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " Gb/s";
+  return speed ? speed + " Mb/s" : "-";
+}
 function kiloviewItem(key, label, field) {
   const state = fieldVisualState(field);
   const value = fieldValue(field) || "-";
@@ -252,7 +276,7 @@ function interfaceIcon(fields) {
   if (type.includes("ethernet") || type.includes("rj45") || /(^|\s)2(\s|$)/.test(type)) return "rj45";
   return "";
 }
-function normalizeMachineType(value) { const type = String(value || "novastar-h").toLowerCase(); return ["novastar-h", "kiloview", "other"].includes(type) ? type : "novastar-h"; }
+function normalizeMachineType(value) { const type = String(value || "novastar-h").toLowerCase(); return ["novastar-h", "kiloview", "netgear-m4300", "other"].includes(type) ? type : "novastar-h"; }
 function stateTitle(state) { return state === "ok" ? "OK" : state === "warning" ? "Avertissement" : state === "error" ? "Erreur" : "Inactif / Inconnu / Aucun signal"; }
 function formatDate(value) { return new Date(value).toLocaleString("fr-FR"); }
 function stableFingerprint(value) {

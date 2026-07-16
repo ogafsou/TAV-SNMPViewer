@@ -32,7 +32,16 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   const html = await page.text();
   assert.equal(page.status, 200);
   assert.equal(html.includes("TAV Monitoring"), true);
-  assert.equal(html.includes("var AUTOREFRESH_S = Number(45)"), true);
+  assert.equal(html.includes('data-rest-refresh-s="45"'), true);
+  assert.equal(html.includes('/javascripts/application.js'), true);
+  assert.equal((html.match(/<main class="app-shell">/g) || []).length, 1);
+  assert.equal((html.match(/id="monitoringTab"/g) || []).length, 1);
+  const configurationMarkup = html.slice(html.indexOf('id="configurationTab"'), html.indexOf('id="monitoringTab"'));
+  assert.equal((configurationMarkup.match(/<section\b/g) || []).length, (configurationMarkup.match(/<\/section>/g) || []).length);
+
+  const applicationScript = await fetch("http://127.0.0.1:" + frontendPort + "/javascripts/application.js");
+  assert.equal(applicationScript.status, 200);
+  assert.equal((await applicationScript.text()).includes("document.body.dataset.restRefreshS"), true);
 
   const bncIcon = await fetch("http://127.0.0.1:" + frontendPort + "/images/BNC-white.png");
   assert.equal(bncIcon.status, 200);

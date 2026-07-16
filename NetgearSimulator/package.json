@@ -1,0 +1,15 @@
+{
+  "name": "netgear-m4300-simulator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simulateur SNMP v2c NETGEAR M4300 pour TAV Monitoring",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js && node --check test/integration.js",
+    "test": "node test/integration.js"
+  },
+  "dependencies": {
+    "net-snmp": "3.26.3"
+  },
+  "engines": { "node": ">=18" }
+}

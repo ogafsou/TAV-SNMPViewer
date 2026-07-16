@@ -30,49 +30,15 @@
     "type": "novastar-h"
   },
   {
-    "id": "1784047288336",
-    "type": "kiloview",
-    "name": "simu",
-    "host": "http://127.0.0.1:8081",
+    "id": "1784150076768",
+    "type": "netgear-m4300",
+    "name": "test",
+    "host": "127.0.0.1",
+    "accessMethod": "snmp",
+    "readCommunity": "public",
     "timeout": "2000",
-    "apiUsername": "admin",
-    "apiPassword": "admin",
-    "monitoringReference": {
-      "version": 1,
-      "setAt": "2026-07-14T16:48:57.452Z",
-      "snapshot": {
-        "connected": true,
-        "controls": {
-          "controller": "\"ok\"",
-          "kiloview:workingStatus": "{\"state\":\"ok\",\"value\":\"warning\"}",
-          "kiloview:kiloviewMode": "{\"state\":\"ok\",\"value\":\"decoder\"}",
-          "kiloview:cpuLoad": "{\"state\":\"ok\",\"value\":\"18%\"}",
-          "kiloview:memoryUsed": "{\"state\":\"ok\",\"value\":\"128 Mo\"}",
-          "kiloview:workingTime": "{\"state\":\"ok\",\"value\":\"1 day\"}",
-          "kiloview:networkState": "{\"state\":\"ok\",\"value\":\"eth0: up\"}",
-          "kiloview:networkInterfaces": "{\"state\":\"ok\",\"value\":\"eth0\"}",
-          "kiloview:deviceAddress": "{\"state\":\"ok\",\"value\":\"127.0.0.1\"}",
-          "kiloview:videoSignal": "{\"state\":\"ok\",\"value\":\"NDI\"}",
-          "kiloview:videoResolution": "{\"state\":\"ok\",\"value\":\"1920x1080p50\"}",
-          "kiloview:instantFrameRate": "{\"state\":\"ok\",\"value\":\"50 fps\"}",
-          "kiloview:videoBitrate": "{\"state\":\"ok\",\"value\":\"12000 Kbit/s\"}",
-          "kiloview:audioPresence": "{\"state\":\"ok\",\"value\":\"present\"}",
-          "kiloview:audioFormat": "{\"state\":\"ok\",\"value\":\"PCM\"}",
-          "kiloview:audioSampling": "{\"state\":\"ok\",\"value\":\"48000 Hz\"}",
-          "kiloview:audioChannels": "{\"state\":\"ok\",\"value\":\"2\"}",
-          "kiloview:ndiSourceOnline": "{\"state\":\"ok\",\"value\":\"online\"}",
-          "kiloview:ndiSourceActive": "{\"state\":\"ok\",\"value\":\"oui\"}",
-          "kiloview:ndiSourceName": "{\"state\":\"ok\",\"value\":\"Studio (Camera 1)\"}",
-          "kiloview:ndiSourceIp": "{\"state\":\"ok\",\"value\":\"192.168.1.20\"}",
-          "kiloview:decoderWarning": "{\"state\":\"inactive\",\"value\":\"-\"}",
-          "kiloview:outputResolution": "{\"state\":\"ok\",\"value\":\"1920x1080p50\"}",
-          "kiloview:outputFrameRate": "{\"state\":\"ok\",\"value\":\"50 fps\"}",
-          "kiloview:errorNoVideo": "{\"state\":\"ok\",\"value\":\"aucun\"}",
-          "kiloview:errorNoAudio": "{\"state\":\"ok\",\"value\":\"aucun\"}",
-          "kiloview:warningMatch": "{\"state\":\"ok\",\"value\":\"aucun\"}",
-          "kiloview:warningUnsupportedResolution": "{\"state\":\"ok\",\"value\":\"aucun\"}"
-        }
-      }
-    }
+    "retries": "1",
+    "includePoe": false,
+    "snmpPort": "1161"
   }
 ]

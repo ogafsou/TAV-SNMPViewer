@@ -35,13 +35,15 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
 
   let response = await fetch(base + "/api/machines", {
     method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id: "m1", type: "novastar-h", name: "Main", host: "192.0.2.10", readCommunity: "secret-read", writeCommunity: "secret-write", apiPassword: "secret-api" })
+    body: JSON.stringify({ id: "m1", type: "novastar-h", name: "Main", host: "192.0.2.10", readCommunity: "secret-read", writeCommunity: "secret-write", apiPassword: "secret-api", apiProjectId: "NDAz", apiSecretKey: "secret-openapi" })
   });
   assert.equal(response.status, 201);
   let created = await response.json();
   assert.equal(created.machine.readCommunity, undefined);
   assert.equal(created.machine.readCommunityConfigured, true);
   assert.equal(created.machine.apiPasswordConfigured, true);
+  assert.equal(created.machine.apiSecretKey, undefined);
+  assert.equal(created.machine.apiSecretKeyConfigured, true);
   assert.equal(created.monitoring.view.label, "Reference non definie");
 
   response = await fetch(base + "/api/machines/m1/scan", { method: "POST" });
@@ -57,6 +59,7 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   });
   assert.equal(response.status, 200);
   assert.equal(store.find("m1").readCommunity, "secret-read");
+  assert.equal(store.find("m1").apiSecretKey, "secret-openapi");
 
   response = await fetch(base + "/api/machines/m1/reference", { method: "PUT" });
   const referenced = await response.json();

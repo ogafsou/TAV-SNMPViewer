@@ -31,6 +31,9 @@ n'est pas versionne. Le bouton **Reinitialiser** restaure le profil H9 par defau
 - `POST /api/device/readGenLockWorkStatus`
 - `POST /api/main/readVideoServerInfo`
 - `POST /api/main/initStatus`
+- `POST /open/api/device/readDetail` (`pId`: `simulator`)
+- `POST /open/api/main/readVideoServerInfo` (`pId`: `simulator`)
+- `POST /open/api/main/initStatus` (`pId`: `simulator`)
 - `GET /simulator/api/state`
 - `PUT /simulator/api/config`
 - `PATCH /simulator/api/component`

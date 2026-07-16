@@ -70,18 +70,23 @@ function normalizeMachine(value) {
   machine.type = normalizeMachineType(machine.type);
   machine.name = String(machine.name || "").trim();
   machine.host = String(machine.host || "").trim();
+  if (machine.apiProtocol !== undefined) {
+    machine.apiProtocol = String(machine.apiProtocol).toLowerCase() === "legacy" ? "legacy" : "openapi";
+  }
+  if (machine.apiProjectId !== undefined) machine.apiProjectId = String(machine.apiProjectId || "").trim();
+  if (machine.apiEncryption !== undefined) machine.apiEncryption = machine.apiEncryption === true;
   delete machine.model;
   return machine;
 }
 
 function normalizeMachineType(value) {
   const type = String(value || "novastar-h").toLowerCase();
-  return ["novastar-h", "kiloview", "other"].includes(type) ? type : "novastar-h";
+  return ["novastar-h", "kiloview", "netgear-m4300", "other"].includes(type) ? type : "novastar-h";
 }
 
 function sanitizeMachine(machine) {
   const safe = Object.assign({}, machine);
-  ["apiPassword", "readCommunity", "writeCommunity"].forEach((key) => {
+  ["apiPassword", "apiSecretKey", "readCommunity", "writeCommunity"].forEach((key) => {
     safe[key + "Configured"] = !!safe[key];
     delete safe[key];
   });
@@ -96,7 +101,7 @@ function sanitizeMachine(machine) {
 
 function preserveSecrets(current, patch) {
   const merged = Object.assign({}, current, patch);
-  ["apiPassword", "readCommunity", "writeCommunity"].forEach((key) => {
+  ["apiPassword", "apiSecretKey", "readCommunity", "writeCommunity"].forEach((key) => {
     if (!Object.prototype.hasOwnProperty.call(patch, key) || patch[key] === "") merged[key] = current[key];
   });
   return merged;

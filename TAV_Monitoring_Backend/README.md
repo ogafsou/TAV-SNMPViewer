@@ -29,3 +29,20 @@ connexion depuis le backend, utiliser `POST /api/alerts/test`. Les alertes sont
 agregees par machine et ne sont pas repetees tant que l'etat ne change pas.
 
 Le WebSocket standard est disponible sur `/ws`.
+
+## API NovaStar H
+
+Le connecteur par defaut utilise l'OpenAPI officielle sous `/open/api`. Pour une
+machine NovaStar configuree en API, les champs principaux sont :
+
+- `apiProtocol` : `openapi` (recommande) ou `legacy` ;
+- `apiProjectId` : Project ID (`pId`) cree dans OpenAPI Management ;
+- `apiSecretKey` : cle requise uniquement lorsque le chiffrement est actif ;
+- `apiEncryption` : active le corps DES et la signature avec Secret Key ;
+- `apiDeviceId` : identifiant du device, `0` par defaut ;
+- `apiBaseUrl` : surcharge optionnelle. Par defaut, le backend utilise
+  `http://<host>:8000/open/api` en OpenAPI et `http://<host>` en legacy.
+
+Les machines existantes sans `apiProtocol` et sans `apiProjectId` restent en
+legacy afin de ne pas casser leur configuration. Le connecteur web historique
+est sauvegarde dans `classes/NovaStarApiLib-backup.js`.

@@ -50,6 +50,18 @@ const server = http.createServer(async (req, res) => {
       tokens.add(token);
       return novaJson(res, { token, userName: "admin", deviceId: 0 });
     }
+    if (req.method === "POST" && url.pathname.startsWith("/open/api/")) {
+      const request = await readJson(req);
+      const projectId = "simulator";
+      if (request.pId !== projectId) return openApiJson(res, null, 15, "Open_Id_Illegal_Err");
+      const expectedSign = base64Md5Hex(String(request.timeStamp || "") + projectId);
+      if (request.sign !== expectedSign) return openApiJson(res, null, 18, "Open_Signature_Err");
+      if (!request.body || Number(request.body.deviceId) !== 0) return openApiJson(res, null, 1, "Params_Error");
+      if (url.pathname === "/open/api/device/readDetail") return openApiJson(res, buildDetail());
+      if (url.pathname === "/open/api/main/readVideoServerInfo") return openApiJson(res, buildVideoServerInfo());
+      if (url.pathname === "/open/api/main/initStatus") return openApiJson(res, buildInitStatus());
+      return openApiJson(res, null, 84, "Illegal command");
+    }
     if (req.method === "POST" && url.pathname.startsWith("/api/")) {
       await readJson(req);
       if (!tokens.has(String(req.headers.token || ""))) {
@@ -67,10 +79,12 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`NovaStar Simulator: http://localhost:${PORT}`);
-  console.log(`API NovaStar:       http://127.0.0.1:${PORT}`);
-});
+if (require.main === module) {
+  server.listen(PORT, HOST, () => {
+    console.log(`NovaStar Simulator: http://localhost:${PORT}`);
+    console.log(`API NovaStar:       http://127.0.0.1:${PORT}`);
+  });
+}
 
 function defaultState() {
   const config = normalizeConfig({
@@ -167,11 +181,11 @@ function buildDetail() {
     status: componentStatus("controller") === "error" ? 0 : 1,
     temp: rawNormal(componentStatus("temperature")),
     volt: rawNormal(componentStatus("voltage")), cpuStatus: 0, memStatus: 0,
-    ethernetStatus: 1, extSignal: rawNormal(componentStatus("genlock")), memory: 8192,
+    ethernetStatus: 1, extSignal: componentStatus("genlock") === "ok" ? 1 : 0, memory: 8192,
     protoVersion: "1.0.0.0", sn: "SIMH90000000001", MAC: "02-00-00-00-00-01",
     network: { ip: ipObject(c.ip), dhcp: 0 },
     deviceSpecs: { inputCardNumMax: 16, outputCardNumMax: 8 },
-    genlock: { deviceId: 0, enable: 1, type: 1, status: rawNormal(componentStatus("genlock")) },
+    genlock: { deviceId: 0, enable: 1, type: 1, status: rawNormal(componentStatus("genlock")), extSignal: componentStatus("genlock") === "ok" ? 1 : 0 },
     fanList: Array.from({ length: c.fans }, (_, i) => ({ fanId: i, status: rawNormal(componentStatus(`fan-${i}`)) })),
     powerList: Array.from({ length: c.powerSupplies }, (_, i) => ({ powerId: i, iSignal: rawPower(componentStatus(`power-${i}`)) })),
     usbStatus: [{ usbId: 0, status: 0 }, { usbId: 1, status: 0 }], slotList: slots
@@ -231,6 +245,10 @@ function loadAppConfig() {
 }
 function saveState() { fs.writeFileSync(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`, "utf8"); }
 function publicState() { return { config: state.config, components: Object.values(state.components), apiBaseUrl: `http://127.0.0.1:${PORT}` }; }
+function base64Md5Hex(value) { const hex = crypto.createHash("md5").update(value, "utf8").digest("hex"); return Buffer.from(hex, "ascii").toString("base64"); }
+function openApiJson(res, body, status = 0, msg = "Success") { return json(res, 200, { body: body || {}, msg, sign: "", status }); }
+
+module.exports = { server };
 
 function serveStatic(requestPath, res) {
   const relative = requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");

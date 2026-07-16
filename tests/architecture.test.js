@@ -17,22 +17,26 @@ test("frontend and backend are independent runnable projects", () => {
 });
 
 test("device connectors exist only in the new backend", () => {
-  ["SnmpLib.js", "NovaStarApiLib.js", "KiloviewApiLib.js", "PingLib.js"].forEach((file) => {
+  ["SnmpLib.js", "NetgearM4300SnmpLib.js", "NovaStarApiLib.js", "KiloviewApiLib.js", "PingLib.js"].forEach((file) => {
     assert.equal(fs.existsSync(path.join(root, "TAV_Monitoring_Backend", "classes", file)), true);
     assert.equal(fs.existsSync(path.join(root, "TAV_Monitoring_UI", "classes", file)), false);
   });
 });
 
 test("frontend contains no direct device monitor endpoint", () => {
-  const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.equal(view.includes('fetch("/api/monitor"'), false);
-  assert.equal(view.includes("readCommunity: machine.readCommunity"), false);
-  assert.equal(view.includes("setupWebSocket()"), true);
+  const javascriptFolder = path.join(root, "TAV_Monitoring_UI", "public", "javascripts");
+  const javascript = fs.readdirSync(javascriptFolder)
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => fs.readFileSync(path.join(javascriptFolder, file), "utf8"))
+    .join("\n");
+  assert.equal(javascript.includes('fetch("/api/monitor"'), false);
+  assert.equal(javascript.includes("readCommunity: machine.readCommunity"), false);
+  assert.equal(javascript.includes("setupWebSocket()"), true);
 });
 
 test("a reference difference colors the control red without replacing the icon status color", () => {
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
-  const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
+  const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
 
   assert.match(css, /\.monitor-pill\.icon-pill\.reference-changed\s*\{/);
   assert.match(css, /background:\s*#d92d20;/);
@@ -41,5 +45,5 @@ test("a reference difference colors the control red without replacing the icon s
   assert.match(css, /\.state-icon\.state-warning\s*\{[^}]*filter:\s*url\("#icon-orange"\)/s);
   assert.match(css, /\.state-icon\.state-error\s*\{[^}]*filter:\s*url\("#icon-red"\)/s);
   assert.doesNotMatch(css, /\.reference-changed\s+\.state-icon\s*\{[^}]*filter:/s);
-  assert.match(view, /statusIcon\(item\.icon, className, item\.label\)/);
+  assert.match(renderer, /statusIcon\(item\.icon, className, item\.label\)/);
 });

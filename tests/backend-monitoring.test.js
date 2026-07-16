@@ -7,6 +7,7 @@ const { MachineStore } = require("../TAV_Monitoring_Backend/classes/MachineStore
 const MonitoringService = require("../TAV_Monitoring_Backend/services/MonitoringService");
 const SNMPConnector = require("../TAV_Monitoring_Backend/classes/SnmpLib");
 const { buildMonitoringView } = require("../TAV_Monitoring_Backend/services/MonitoringState");
+const { createDeviceMonitor } = require("../TAV_Monitoring_Backend/services/DeviceMonitor");
 
 function data(frame, uptime) {
   return {
@@ -50,6 +51,44 @@ test("Kiloview monitoring exposes system, network, video, audio and NDI groups",
   });
   assert.deepEqual(view.kiloviewGroups.map((group) => group.title), ["Systeme", "Reseau", "Video", "Audio", "Encodeur NDI"]);
   assert.equal(view.kiloviewGroups.find((group) => group.title === "Video").items[0].value, "HDMI");
+});
+
+test("NETGEAR M4300 monitoring maps link, optical speed and optional PoE", () => {
+  const field = (value) => ({ value, ok: true });
+  const view = buildMonitoringView({
+    type: "netgear-m4300", timestamp: new Date().toISOString(),
+    controller: { workingStatus: field("Online"), model: field("NETGEAR M4300") },
+    netgearPorts: [
+      { index: 1, name: "1/0/1", media: "copper", speedMbps: 1000, adminUp: true, linkUp: false },
+      { index: 25, name: "SFP+ 1/0/25", media: "fiber", speedMbps: 10000, adminUp: true, linkUp: true,
+        poe: { supported: true, enabled: true, delivering: true } }
+    ],
+    inputSlots: { slots: [] }, outputSlots: { slots: [] }, screens: { screens: [] }, receivingCards: []
+  });
+  assert.equal(view.netgearPorts[0].state, "warning");
+  assert.equal(view.netgearPorts[1].state, "ok");
+  assert.equal(view.netgearPorts[1].speed, "10 Gb/s");
+  assert.equal(view.netgearPorts[1].poe, "PoE On");
+});
+
+test("NETGEAR M4300 uses its SNMP v2c connector and forwards the PoE option", async () => {
+  let connectorOptions;
+  let monitorOptions;
+  class FakeNetgearConnector {
+    constructor(options) { connectorOptions = options; }
+    async monitor(options) {
+      monitorOptions = options;
+      return {
+        controller: { workingStatus: { value: "Online", ok: true } }, netgearPorts: [],
+        inputSlots: { slots: [] }, outputSlots: { slots: [] }, screens: { screens: [] }, receivingCards: []
+      };
+    }
+  }
+  const monitor = createDeviceMonitor({ NetgearM4300SnmpConnector: FakeNetgearConnector });
+  const result = await monitor.monitor({ id: "sw1", type: "netgear-m4300", host: "192.0.2.20", readCommunity: "monitor", includePoe: true });
+  assert.equal(connectorOptions.readCommunity, "monitor");
+  assert.deepEqual(monitorOptions, { includePoe: true });
+  assert.equal(result.type, "netgear-m4300");
 });
 
 test("monitoring emits initialization, light telemetry and significant changes", async (t) => {

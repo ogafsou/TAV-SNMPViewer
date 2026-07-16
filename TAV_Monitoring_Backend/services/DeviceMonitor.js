@@ -1,6 +1,8 @@
 const DefaultSNMPConnector = require("../classes/SnmpLib");
 const DefaultNovaStarApiConnector = require("../classes/NovaStarApiLib");
+const DefaultNovaStarLegacyApiConnector = require("../classes/NovaStarApiLib-backup");
 const DefaultKiloviewApiConnector = require("../classes/KiloviewApiLib");
+const DefaultNetgearM4300SnmpConnector = require("../classes/NetgearM4300SnmpLib");
 const DefaultPingConnector = require("../classes/PingLib");
 const modelProfiles = require("../classes/ModelProfiles");
 const logger = require("../classes/Logger");
@@ -10,7 +12,9 @@ function createDeviceMonitor(overrides) {
   const dependencies = Object.assign({
     SNMPConnector: DefaultSNMPConnector,
     NovaStarApiConnector: DefaultNovaStarApiConnector,
+    NovaStarLegacyApiConnector: DefaultNovaStarLegacyApiConnector,
     KiloviewApiConnector: DefaultKiloviewApiConnector,
+    NetgearM4300SnmpConnector: DefaultNetgearM4300SnmpConnector,
     PingConnector: DefaultPingConnector
   }, overrides || {});
 
@@ -23,6 +27,7 @@ function createDeviceMonitor(overrides) {
 
     let data;
     if (type === "kiloview") data = await collectKiloview(params, host);
+    else if (type === "netgear-m4300") data = await collectNetgearM4300(params, host);
     else if (type === "other") data = await collectPing(params, host, type);
     else if (method === "api") data = await collectApi(params, host);
     else if (method === "snmp+api") data = await collectHybrid(params, host);
@@ -40,6 +45,17 @@ function createDeviceMonitor(overrides) {
       timeout: clampNumber(params.timeout, 500, 15000, 5000)
     });
     return connector.monitor();
+  }
+
+  async function collectNetgearM4300(params, host) {
+    const connector = new dependencies.NetgearM4300SnmpConnector({
+      host,
+      readCommunity: String(params.readCommunity || "public"),
+      timeout: clampNumber(params.timeout, 500, 10000, 2000),
+      retries: clampNumber(params.retries, 0, 5, 1),
+      port: clampNumber(params.snmpPort, 1, 65535, 161)
+    });
+    return connector.monitor({ includePoe: params.includePoe === true });
   }
 
   async function collectPing(params, host, type) {
@@ -86,11 +102,16 @@ function createDeviceMonitor(overrides) {
 
   async function collectApi(params, host) {
     const configuredModel = params.model ? modelProfiles.normalizeModel(params.model) : "";
-    const connector = new dependencies.NovaStarApiConnector({
-      baseUrl: String(params.apiBaseUrl || params.baseUrl || host).trim(),
+    const protocol = normalizeApiProtocol(params);
+    const Connector = protocol === "legacy" ? dependencies.NovaStarLegacyApiConnector : dependencies.NovaStarApiConnector;
+    const connector = new Connector({
+      baseUrl: apiBaseUrl(params, host, protocol),
       host,
       username: String(params.apiUsername || params.username || "admin"),
       password: String(params.apiPassword || params.password || "admin"),
+      projectId: String(params.apiProjectId || params.projectId || ""),
+      secretKey: String(params.apiSecretKey || params.secretKey || ""),
+      encryption: params.apiEncryption === true,
       deviceId: clampNumber(params.apiDeviceId || params.deviceId, 0, 999, 0),
       timeout: clampNumber(params.timeout, 500, 15000, 5000)
     });
@@ -120,6 +141,20 @@ function createDeviceMonitor(overrides) {
   }
 
   return { monitor };
+}
+
+function normalizeApiProtocol(params) {
+  const value = String(params.apiProtocol || "").toLowerCase();
+  if (value === "openapi" || value === "legacy") return value;
+  // Compatibilite des machines existantes: sans pId, conserver l'API web.
+  return params.apiProjectId ? "openapi" : "legacy";
+}
+
+function apiBaseUrl(params, host, protocol) {
+  const configured = String(params.apiBaseUrl || params.baseUrl || "").trim();
+  if (configured) return configured;
+  const cleanHost = String(host).replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  return protocol === "openapi" ? `http://${cleanHost}:8000/open/api` : `http://${cleanHost}`;
 }
 
 function buildHybridMonitor(snmpData, apiData) {
@@ -209,4 +244,4 @@ function isPresent(value) { return value !== undefined && value !== null && valu
 function clampNumber(value, min, max, fallback) { const n = Number(value); return Number.isFinite(n) ? Math.min(Math.max(Math.floor(n), min), max) : fallback; }
 function optionalClampedNumber(value, min, max) { return value === undefined || value === null || value === "" ? null : clampNumber(value, min, max, null); }
 
-module.exports = { createDeviceMonitor, buildHybridMonitor, mergePreferred };
+module.exports = { createDeviceMonitor, buildHybridMonitor, mergePreferred, normalizeApiProtocol, apiBaseUrl };
