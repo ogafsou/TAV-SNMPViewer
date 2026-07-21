@@ -22,6 +22,7 @@ function openAddDialog() {
   machineForm.apiEncryption.checked = false;
   machineForm.recvCardsPerPort.value = "1";
   machineForm.includePoe.checked = false;
+  machineForm.kiloviewBitrateThresholdMbps.value = "1";
   machineForm.snmpPort.value = "161";
   setAccessMethod("snmp");
   updateMachineFormFields();
@@ -58,6 +59,7 @@ function openEditDialog(machine) {
   machineForm.recvCardsPerPort.value = machine.recvCardsPerPort || "1";
   machineForm.includeReceivingCards.checked = !!machine.includeReceivingCards;
   machineForm.includePoe.checked = machine.includePoe === true;
+  machineForm.kiloviewBitrateThresholdMbps.value = machine.kiloviewBitrateThresholdMbps === undefined ? "1" : String(machine.kiloviewBitrateThresholdMbps);
   machineForm.snmpPort.value = machine.snmpPort || "161";
   updateMachineFormFields();
   dialogBackdrop.hidden = false;
@@ -140,7 +142,7 @@ function renderSelectedMachine() {
   } else if (type === "netgear-m4300") {
     selectedMachineDetails.textContent = "NETGEAR M4300 | " + machine.host + ":" + (machine.snmpPort || 161) + " | SNMP v2c" + (machine.includePoe ? " | PoE" : "");
   } else if (type === "other") {
-    selectedMachineDetails.textContent = "Autres | " + machine.host + " | verification par ping";
+    selectedMachineDetails.textContent = "Ping | " + machine.host + " | verification par ping";
   } else if (normalizeAccessMethod(machine.accessMethod) === "api") {
     selectedMachineDetails.textContent = machine.host +
       " | API: " + apiProtocolLabel(machine) +
@@ -218,6 +220,7 @@ function updateMachineFormFields() {
   });
   document.querySelectorAll(".snmp-device-settings").forEach(function(node) { node.hidden = !isSnmpDevice; });
   document.querySelectorAll(".netgear-only").forEach(function(node) { node.hidden = !isNetgear; });
+  document.querySelectorAll(".kiloview-only").forEach(function(node) { node.hidden = !isKiloview; });
   document.querySelectorAll(".api-field").forEach(function(node) {
     node.hidden = isNovaStar ? method === "snmp" : !isKiloview;
   });
@@ -249,4 +252,3 @@ function resetScanResults() {
   document.getElementById("portsTable").innerHTML = '<tr><td colspan="6" class="empty">Aucun port de sortie retourne.</td></tr>';
   document.getElementById("cardsTable").innerHTML = '<tr><td colspan="8" class="empty">Activez la lecture receiving cards dans la configuration machine.</td></tr>';
 }
-

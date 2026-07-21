@@ -8,6 +8,8 @@ const modelProfiles = require("../classes/ModelProfiles");
 const logger = require("../classes/Logger");
 const { normalizeMachineType } = require("../classes/MachineStore");
 
+const kiloviewScanLocks = new Map();
+
 function createDeviceMonitor(overrides) {
   const dependencies = Object.assign({
     SNMPConnector: DefaultSNMPConnector,
@@ -38,13 +40,15 @@ function createDeviceMonitor(overrides) {
   }
 
   async function collectKiloview(params, host) {
-    const connector = new dependencies.KiloviewApiConnector({
-      host: String(params.apiBaseUrl || host),
-      username: String(params.apiUsername || params.username || ""),
-      password: String(params.apiPassword || params.password || ""),
-      timeout: clampNumber(params.timeout, 500, 15000, 5000)
+    return withKiloviewScanLock(host, async () => {
+      const connector = new dependencies.KiloviewApiConnector({
+        host: String(params.apiBaseUrl || host),
+        username: String(params.apiUsername || params.username || ""),
+        password: String(params.apiPassword || params.password || ""),
+        timeout: clampNumber(params.timeout, 500, 15000, 5000)
+      });
+      return connector.monitor();
     });
-    return connector.monitor();
   }
 
   async function collectNetgearM4300(params, host) {
@@ -141,6 +145,21 @@ function createDeviceMonitor(overrides) {
   }
 
   return { monitor };
+}
+
+async function withKiloviewScanLock(host, scan) {
+  const key = String(host || "").toLowerCase();
+  const previous = kiloviewScanLocks.get(key) || Promise.resolve();
+  let release;
+  const current = new Promise((resolve) => { release = resolve; });
+  kiloviewScanLocks.set(key, current);
+  await previous.catch(() => {});
+  try {
+    return await scan();
+  } finally {
+    release();
+    if (kiloviewScanLocks.get(key) === current) kiloviewScanLocks.delete(key);
+  }
 }
 
 function normalizeApiProtocol(params) {

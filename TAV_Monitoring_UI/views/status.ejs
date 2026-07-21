@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title><%= title %></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <link rel="stylesheet" href="/stylesheets/status.css?v=20260721-2" />
+  </head>
+  <body>
+    <main class="status-shell">
+      <header>
+        <p class="eyebrow">TAV Monitoring</p>
+        <h1>État général</h1>
+        <p id="updatedAt" class="muted">Chargement de la situation…</p>
+      </header>
+
+      <section id="statusSummary" class="summary state-unknown" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <div><span class="muted">Situation</span><strong id="statusLabel">Chargement…</strong></div>
+      </section>
+
+      <section id="counts" class="counts" hidden>
+        <div><strong id="okCount">0</strong><span>Opérationnels</span></div>
+        <div><strong id="warningCount">0</strong><span>Avertissements</span></div>
+        <div><strong id="errorCount">0</strong><span>Incidents</span></div>
+      </section>
+
+      <section>
+        <h2>Équipements</h2>
+        <div id="machines" class="machine-list"></div>
+      </section>
+
+      <p id="statusError" class="error" hidden></p>
+      <footer>Cette vue est strictement informative. <a href="/monitoring">Se connecter pour accéder aux détails</a>.</footer>
+    </main>
+    <script src="/javascripts/status.js?v=20260721-2"></script>
+  </body>
+</html>

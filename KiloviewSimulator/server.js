@@ -28,6 +28,18 @@ const server = http.createServer(async (req, res) => {
       state = defaults(); save(); return json(res, 200, state);
     }
 
+    if (req.method === "GET" && url.pathname === "/api/users/login.json") {
+      if (state.config.apiProtocol === "v1") return json(res, 404, { result: "error", msg: "V2 disabled" });
+      if (state.components.api === "error") return json(res, 503, { result: "error", msg: "Device unavailable" });
+      return json(res, 200, { result: "ok", data: { changed: true, alias: "Admin", software: 1, session: "", token: "kiloview-simulator-token" } });
+    }
+    if (req.method === "GET" && url.pathname.startsWith("/api/") && url.pathname.endsWith(".json")) {
+      if (state.config.apiProtocol === "v1") return json(res, 404, { result: "error", msg: "V2 disabled" });
+      if (!String(req.headers.cookie || "").split(/;\s*/).includes("token=kiloview-simulator-token")) {
+        return json(res, 200, { result: "error", msg: "Invalid token" });
+      }
+      return kiloviewV2(url.pathname, url, res);
+    }
     if (req.method === "POST" && url.pathname === "/api/v1/user/authorize") {
       if (state.components.api === "error") return json(res, 503, { result: "error", msg: "Device unavailable" });
       return json(res, 200, { result: "ok", data: { session: "kiloview-simulator-session", token: "kiloview-simulator-token" } });
@@ -39,6 +51,37 @@ const server = http.createServer(async (req, res) => {
     json(res, 404, { error: "Route inconnue" });
   } catch (error) { json(res, 500, { error: error.message }); }
 });
+
+function kiloviewV2(route, url, res) {
+  const c = state.config;
+  const s = state.components;
+  if (route === "/api/mode/get.json") return ok(res, { mode: c.mode });
+  if (route === "/api/users/session.json") return ok(res);
+  if (route === "/api/device/status.json") return component(res, "system", {
+    audio_sampling: c.audioSampling, audio_format: c.audioFormat, yRes: 1080, xRes: 1920,
+    interlaced: c.interlaced, serial_number: c.serialNumber, frame_rate: c.frameRate,
+    bitrate: c.videoBitrate, audio_channels: c.audioChannels,
+    audio_signal: s.audio === "error" ? "none" : c.audioSource,
+    resolution: s.video === "error" ? "No signal" : c.inputResolution,
+    video_signal: s.video !== "error"
+  });
+  if (route === "/api/device/get.json") return component(res, "encoder", {
+    device_group: c.deviceGroup, device_name: c.deviceName, channel_name: c.channelName,
+    quality: c.quality, ndi_connection: c.ndiConnection
+  });
+  if (route === "/api/audio/get.json") return component(res, "audio", {
+    level: c.audioLevel, channels: c.audioChannels, volume: c.audioVolume, signal: c.audioSource,
+    mapping: Array.from({ length: Math.min(c.audioChannels, 8) }, (_, index) => ({ input_channel: index + 1, encoding_channel: index + 1 }))
+  });
+  if (route === "/api/network/get.json") {
+    if (s.network === "error") return failure(res, "Network API error");
+    return json(res, 200, { result: "ok", data: [{ device: c.networkInterface, state: s.network === "ok" ? "up" : "down", ip: c.deviceAddress, mask: "255.255.255.0", mac: c.networkMac }], data_size: 1 });
+  }
+  if (route === "/api/network/getProtocol.json") return ok(res, { http: true, https: true, httpPort: 80, httpsPort: 443 });
+  if (route === "/api/firmware/get.json") return ok(res, { ndiVersion: c.ndiVersion, hardwareVersion: c.hardwareVersion, softwareVersion: c.softwareVersion, firmwareVersion: c.firmwareVersion });
+  if (route === "/api/users/software_status.json") return ok(res, { user: url.searchParams.get("user") || "admin", software: 1 });
+  return json(res, 404, { result: "error", msg: "Unknown Kiloview V2 route" });
+}
 
 function kiloview(route, res) {
   const c = state.config;
@@ -94,14 +137,16 @@ function authorized(req) { return req.headers["api-session"] === "kiloview-simul
 function defaults() {
   return normalize({
     config: {
-      model: "E2", mode: "encoder", deviceName: "Kiloview Simulator", channelName: "Camera 1",
+      model: "E2", mode: "encoder", apiProtocol: "v2", deviceName: "Kiloview Simulator", channelName: "Camera 1",
       deviceGroup: "public", ndiConnection: "multicast", quality: 80, deviceAddress: "127.0.0.1",
       networkInterface: "eth0", uptime: "1 day", startTime: new Date().toISOString(), cpuLoad: 18,
       memoryUsed: 128, memoryTotal: 512, videoInput: "HDMI", inputResolution: "1920x1080p50",
       outputResolution: "1920x1080p50", frameRate: 50, interlaced: false, deinterlaced: false,
       videoBitrate: 12000, audioSource: "embedded", audioFormat: "PCM", audioSampling: 48000,
       audioChannels: 2, audioVolume: 80, sourceName: "Studio (Camera 1)",
-      sourceUrl: "ndi://studio/camera1", sourceIp: "192.168.1.20"
+      sourceUrl: "ndi://studio/camera1", sourceIp: "192.168.1.20", serialNumber: "3103103002067",
+      ndiVersion: "5.0.11", hardwareVersion: "2.0", softwareVersion: "2.02.0246",
+      firmwareVersion: "2015.4", networkMac: "18:C3:F4:20:20:67", audioLevel: "smpte"
     },
     components: { api: "ok", system: "ok", network: "ok", encoder: "ok", video: "ok", audio: "ok", source: "ok", output: "ok" }
   });
@@ -116,7 +161,7 @@ function normalize(value) {
   return result;
 }
 function defaultsRaw() { return {
-  config: { model: "E2", mode: "encoder", deviceName: "Kiloview Simulator", channelName: "Camera 1", deviceGroup: "public", ndiConnection: "multicast", quality: 80, deviceAddress: "127.0.0.1", networkInterface: "eth0", uptime: "1 day", startTime: "", cpuLoad: 18, memoryUsed: 128, memoryTotal: 512, videoInput: "HDMI", inputResolution: "1920x1080p50", outputResolution: "1920x1080p50", frameRate: 50, interlaced: false, deinterlaced: false, videoBitrate: 12000, audioSource: "embedded", audioFormat: "PCM", audioSampling: 48000, audioChannels: 2, audioVolume: 80, sourceName: "Studio (Camera 1)", sourceUrl: "ndi://studio/camera1", sourceIp: "192.168.1.20" },
+  config: { model: "E2", mode: "encoder", apiProtocol: "v2", deviceName: "Kiloview Simulator", channelName: "Camera 1", deviceGroup: "public", ndiConnection: "multicast", quality: 80, deviceAddress: "127.0.0.1", networkInterface: "eth0", uptime: "1 day", startTime: "", cpuLoad: 18, memoryUsed: 128, memoryTotal: 512, videoInput: "HDMI", inputResolution: "1920x1080p50", outputResolution: "1920x1080p50", frameRate: 50, interlaced: false, deinterlaced: false, videoBitrate: 12000, audioSource: "embedded", audioFormat: "PCM", audioSampling: 48000, audioChannels: 2, audioVolume: 80, sourceName: "Studio (Camera 1)", sourceUrl: "ndi://studio/camera1", sourceIp: "192.168.1.20", serialNumber: "3103103002067", ndiVersion: "5.0.11", hardwareVersion: "2.0", softwareVersion: "2.02.0246", firmwareVersion: "2015.4", networkMac: "18:C3:F4:20:20:67", audioLevel: "smpte" },
   components: { api: "ok", system: "ok", network: "ok", encoder: "ok", video: "ok", audio: "ok", source: "ok", output: "ok" }
 }; }
 function readJson(name, fallback) { try { return JSON.parse(fs.readFileSync(path.join(ROOT, name), "utf8")); } catch (_) { return fallback; } }

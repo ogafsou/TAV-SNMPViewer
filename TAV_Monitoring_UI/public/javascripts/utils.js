@@ -85,7 +85,7 @@ function machineTypeLabel(value) {
   var type = normalizeMachineType(value);
   if (type === "kiloview") return "Kiloview";
   if (type === "netgear-m4300") return "NETGEAR M4300";
-  if (type === "other") return "Autres";
+  if (type === "other") return "Ping";
   return "NovaStar H";
 }
 

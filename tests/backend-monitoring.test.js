@@ -6,7 +6,7 @@ const path = require("path");
 const { MachineStore } = require("../TAV_Monitoring_Backend/classes/MachineStore");
 const MonitoringService = require("../TAV_Monitoring_Backend/services/MonitoringService");
 const SNMPConnector = require("../TAV_Monitoring_Backend/classes/SnmpLib");
-const { buildMonitoringView } = require("../TAV_Monitoring_Backend/services/MonitoringState");
+const { buildMonitoringView, applyReferenceMode, buildReferenceSnapshot } = require("../TAV_Monitoring_Backend/services/MonitoringState");
 const { createDeviceMonitor } = require("../TAV_Monitoring_Backend/services/DeviceMonitor");
 
 function data(frame, uptime) {
@@ -51,6 +51,30 @@ test("Kiloview monitoring exposes system, network, video, audio and NDI groups",
   });
   assert.deepEqual(view.kiloviewGroups.map((group) => group.title), ["Systeme", "Reseau", "Video", "Audio", "Encodeur NDI"]);
   assert.equal(view.kiloviewGroups.find((group) => group.title === "Video").items[0].value, "HDMI");
+});
+
+test("Kiloview bitrate reference comparison uses the configured Mbps threshold", () => {
+  const kiloviewData = (bitrate) => ({
+    type: "kiloview", timestamp: new Date().toISOString(),
+    controller: {
+      workingStatus: { value: "ready", ok: true },
+      kiloviewMode: { value: "encoder", ok: true },
+      videoBitrate: { value: bitrate + " Kbit/s", ok: true }
+    },
+    inputSlots: { slots: [] }, outputSlots: { slots: [] }, screens: { screens: [] }, receivingCards: []
+  });
+  const referenceView = buildMonitoringView(kiloviewData(12000));
+  const machine = {
+    type: "kiloview",
+    kiloviewBitrateThresholdMbps: 1,
+    monitoringReference: { setAt: new Date().toISOString(), snapshot: buildReferenceSnapshot(referenceView) }
+  };
+
+  assert.equal(applyReferenceMode(machine, buildMonitoringView(kiloviewData(12999)), true).state, "ok");
+  assert.equal(applyReferenceMode(machine, buildMonitoringView(kiloviewData(13000)), true).state, "ok");
+  const overThreshold = applyReferenceMode(machine, buildMonitoringView(kiloviewData(13001)), true);
+  assert.equal(overThreshold.state, "warning");
+  assert.equal(overThreshold.kiloviewGroups.find((group) => group.title === "Video").items.find((item) => item.referenceKey === "kiloview:videoBitrate").changed, true);
 });
 
 test("NETGEAR M4300 monitoring maps link, optical speed and optional PoE", () => {

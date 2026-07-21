@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title><%= title %></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/stylesheets/style.css?v=20260719-1" />
+  </head>
+  <body class="login-page">
+    <main class="login-card">
+      <p class="eyebrow">TAV Monitoring</p>
+      <h1>Connexion</h1>
+      <form id="loginForm" class="login-form">
+        <label>Login<input name="login" type="text" autocomplete="username" required autofocus /></label>
+        <label>Mot de passe<input name="password" type="password" autocomplete="current-password" required /></label>
+        <p id="loginError" class="form-error" hidden></p>
+        <button type="submit">Se connecter</button>
+      </form>
+    </main>
+    <script src="/javascripts/login.js?v=20260718-2"></script>
+  </body>
+</html>

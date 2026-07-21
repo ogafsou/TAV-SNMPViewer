@@ -56,7 +56,7 @@ test("alert service confirms incidents, avoids duplicates and notifies recovery"
 
 test("offline machines produce a critical issue", () => {
   assert.deepEqual(AlertService.collectIssues({ connected: false }), [
-    { key: "machine:offline", label: "Machine", state: "offline" }
+    { key: "machine:offline", label: "Machine", state: "offline", referenceState: "online" }
   ]);
 });
 

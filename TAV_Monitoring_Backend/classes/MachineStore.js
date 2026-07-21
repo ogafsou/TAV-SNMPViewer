@@ -23,7 +23,23 @@ class MachineStore {
   save(machines) {
     fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
     const normalized = (Array.isArray(machines) ? machines : []).map(normalizeMachine);
-    fs.writeFileSync(this.filePath, JSON.stringify(normalized, null, 2) + "\n", "utf8");
+    const temporaryPath = this.filePath + "." + process.pid + ".tmp";
+    const backupPath = this.filePath + ".bak";
+    const content = JSON.stringify(normalized, null, 2) + "\n";
+    let descriptor;
+    try {
+      descriptor = fs.openSync(temporaryPath, "w", 0o600);
+      fs.writeFileSync(descriptor, content, "utf8");
+      fs.fsyncSync(descriptor);
+      fs.closeSync(descriptor);
+      descriptor = undefined;
+      if (fs.existsSync(this.filePath)) fs.copyFileSync(this.filePath, backupPath);
+      fs.renameSync(temporaryPath, this.filePath);
+    } catch (error) {
+      if (descriptor !== undefined) fs.closeSync(descriptor);
+      try { if (fs.existsSync(temporaryPath)) fs.unlinkSync(temporaryPath); } catch (_) {}
+      throw error;
+    }
     return normalized;
   }
 
@@ -70,6 +86,12 @@ function normalizeMachine(value) {
   machine.type = normalizeMachineType(machine.type);
   machine.name = String(machine.name || "").trim();
   machine.host = String(machine.host || "").trim();
+  if (machine.type === "kiloview") {
+    const threshold = Number(machine.kiloviewBitrateThresholdMbps);
+    machine.kiloviewBitrateThresholdMbps = Number.isFinite(threshold) && threshold >= 0 && threshold <= 1000 ? threshold : 1;
+  } else {
+    delete machine.kiloviewBitrateThresholdMbps;
+  }
   if (machine.apiProtocol !== undefined) {
     machine.apiProtocol = String(machine.apiProtocol).toLowerCase() === "legacy" ? "legacy" : "openapi";
   }

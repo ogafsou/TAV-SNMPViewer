@@ -9,6 +9,7 @@ class AlertService {
   constructor(options) {
     this.config = options.config;
     this.notifier = options.notifier;
+    this.publicStatus = options.publicStatus || null;
     this.states = new Map();
     this.queue = Promise.resolve();
   }
@@ -37,7 +38,8 @@ class AlertService {
       title: "TAV Monitoring - Test",
       message: "Notification ntfy de test. Le backend peut joindre le service.",
       priority: 3,
-      tags: ["test_tube", "white_check_mark"]
+      tags: ["test_tube", "white_check_mark"],
+      click: this.statusLink()
     });
     logger.info("ntfy test notification sent");
     return response;
@@ -77,7 +79,8 @@ class AlertService {
       title: `${severity === "error" ? "ALERTE" : "WARNING"} - ${machineName}`,
       message: [`Machine : ${machineName}`, ...shown].join("\n"),
       priority: severity === "error" ? 5 : 4,
-      tags: severity === "error" ? ["rotating_light", "red_circle"] : ["warning", "yellow_circle"]
+      tags: severity === "error" ? ["rotating_light", "red_circle"] : ["warning", "yellow_circle"],
+      click: this.statusLink()
     });
     logger.info("ntfy problem notification sent", { machineId: machine.id, severity, issues: issues.length });
   }
@@ -87,14 +90,21 @@ class AlertService {
       title: `RETABLI - ${machine.name || machine.host}`,
       message: `Retour a la normale apres ${previousIssues.length} probleme(s).`,
       priority: 3,
-      tags: ["white_check_mark", "green_circle"]
+      tags: ["white_check_mark", "green_circle"],
+      click: this.statusLink()
     });
     logger.info("ntfy recovery notification sent", { machineId: machine.id });
+  }
+
+  statusLink() {
+    return this.publicStatus && this.publicStatus.createLink ? this.publicStatus.createLink() : undefined;
   }
 }
 
 function collectIssues(view) {
-  if (view.connected === false) return [{ key: "machine:offline", label: "Machine", state: "offline" }];
+  if (view.connected === false) return [{
+    key: "machine:offline", label: "Machine", state: "offline", referenceState: "online"
+  }];
   const found = new Map();
   const collections = Object.assign({}, view, {
     kiloview: (view.kiloviewGroups || []).flatMap((group) => (group.items || []).map((item) => Object.assign({ groupTitle: group.title }, item)))
@@ -105,7 +115,12 @@ function collectIssues(view) {
       // Un warning deja present dans la reference ne doit pas etre notifie.
       if (!item || item.changed !== true || !["warning", "error"].includes(item.state)) return;
       const key = item.referenceKey || `${name}:${item.label}`;
-      found.set(key, { key, label: itemLabel(name, item), state: item.state });
+      found.set(key, {
+        key,
+        label: itemLabel(name, item),
+        state: item.state,
+        referenceState: item.referenceState
+      });
     });
   });
   return Array.from(found.values()).sort((a, b) => a.key.localeCompare(b.key));

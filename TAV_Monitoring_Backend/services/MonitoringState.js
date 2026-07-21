@@ -143,8 +143,8 @@ function applyReferenceMode(machine, baseView, enabled) {
     return view;
   }
   const current = buildReferenceSnapshot(view);
-  const same = referenceSnapshotsEqual(reference, current);
-  markReferenceChanges(view, reference, current);
+  const same = referenceSnapshotsEqual(reference, current, machine);
+  markReferenceChanges(view, reference, current, machine);
   view.state = same ? "ok" : "warning";
   view.label = same ? "OK" : "Probleme";
   view.message = baseView.message + " - Reference: " + formatDate(machine.monitoringReference.setAt);
@@ -165,14 +165,19 @@ function collectReferenceItems(view) {
     view.netgearPorts || [], ...(view.kiloviewGroups || []).map((group) => group.items || []));
 }
 
-function referenceSnapshotsEqual(a, b) {
-  return a.connected === b.connected && stableFingerprint(a.controls) === stableFingerprint(b.controls);
+function referenceSnapshotsEqual(a, b, machine) {
+  if (a.connected !== b.connected) return false;
+  const keys = Object.keys(Object.assign({}, a.controls, b.controls));
+  return keys.every((key) => Object.prototype.hasOwnProperty.call(a.controls, key) &&
+    Object.prototype.hasOwnProperty.call(b.controls, key) && referenceValuesEqual(key, a.controls[key], b.controls[key], machine));
 }
 
-function markReferenceChanges(view, reference, current) {
+function markReferenceChanges(view, reference, current, machine) {
   const mark = (item) => {
     if (!item || !item.referenceKey) return;
-    item.changed = !Object.prototype.hasOwnProperty.call(reference.controls, item.referenceKey) || reference.controls[item.referenceKey] !== current.controls[item.referenceKey];
+    item.changed = !Object.prototype.hasOwnProperty.call(reference.controls, item.referenceKey) ||
+      !Object.prototype.hasOwnProperty.call(current.controls, item.referenceKey) ||
+      !referenceValuesEqual(item.referenceKey, reference.controls[item.referenceKey], current.controls[item.referenceKey], machine);
     if (Object.prototype.hasOwnProperty.call(reference.controls, item.referenceKey)) {
       let expected = reference.controls[item.referenceKey];
       try { expected = JSON.parse(expected); } catch (_) {}
@@ -183,6 +188,30 @@ function markReferenceChanges(view, reference, current) {
   (view.inputTables || []).forEach((group) => (group.ports || []).forEach(mark));
   (view.outputTables || []).forEach((group) => (group.ports || []).forEach(mark));
   if (reference.connected !== current.connected && view.controller && view.controller[0]) view.controller[0].changed = true;
+}
+
+function referenceValuesEqual(key, expectedFingerprint, currentFingerprint, machine) {
+  if (expectedFingerprint === currentFingerprint) return true;
+  if (key !== "kiloview:videoBitrate") return false;
+  let expected;
+  let current;
+  try { expected = JSON.parse(expectedFingerprint); } catch (_) { return false; }
+  try { current = JSON.parse(currentFingerprint); } catch (_) { return false; }
+  if (!expected || !current || expected.state !== current.state) return false;
+  const expectedMbps = bitrateMbps(expected.value);
+  const currentMbps = bitrateMbps(current.value);
+  if (expectedMbps === null || currentMbps === null) return false;
+  const configured = Number(machine && machine.kiloviewBitrateThresholdMbps);
+  const thresholdMbps = Number.isFinite(configured) && configured >= 0 ? configured : 1;
+  return Math.abs(currentMbps - expectedMbps) <= thresholdMbps;
+}
+
+function bitrateMbps(value) {
+  const match = String(value || "").trim().match(/(-?\d+(?:[.,]\d+)?)\s*(kbit\/s|kbps|mbit\/s|mbps|mbs)?/i);
+  if (!match) return null;
+  const amount = Number(match[1].replace(",", "."));
+  if (!Number.isFinite(amount)) return null;
+  return /^k/i.test(match[2] || "") ? amount / 1000 : amount;
 }
 
 function diffTelemetry(previousRaw, nextRaw) {
@@ -228,12 +257,12 @@ function referenceItem(label, state, icon, referenceKey, referenceValue) {
 function buildKiloviewGroups(controller) {
   const mode = fieldValue(controller.kiloviewMode).toLowerCase();
   const definitions = [
-    ["Systeme", [["workingStatus", "Statut"], ["kiloviewMode", "Mode"], ["cpuLoad", "CPU"], ["memoryUsed", "Memoire"], ["workingTime", "Uptime"]]],
-    ["Reseau", [["networkState", "Etat"], ["networkInterfaces", "Interfaces"], ["deviceAddress", "Adresse"]]],
+    ["Systeme", [["workingStatus", "Statut"], ["kiloviewMode", "Mode"], ["serialNumber", "Serie"], ["softwareVersion", "Logiciel"], ["hardwareVersion", "Materiel"], ["firmwareVersion", "Firmware"], ["ndiVersion", "NDI"], ["apiSessionStatus", "Session"], ["cpuLoad", "CPU"], ["memoryUsed", "Memoire"], ["workingTime", "Uptime"]]],
+    ["Reseau", [["networkState", "Etat"], ["networkInterfaces", "Interfaces"], ["deviceAddress", "Adresse"], ["networkMac", "MAC"], ["networkProtocols", "Protocoles"]]],
     ["Video", [["videoSignal", "Signal"], ["videoInputType", "Entree"], ["videoResolution", "Resolution"], ["instantFrameRate", "Frequence"], ["videoBitrate", "Debit"]]],
-    ["Audio", [["audioPresence", "Signal"], ["audioSource", "Source"], ["audioFormat", "Format"], ["audioSampling", "Echantillonnage"], ["audioChannels", "Canaux"]]],
+    ["Audio", [["audioPresence", "Signal"], ["audioSource", "Source"], ["audioFormat", "Format"], ["audioSampling", "Echantillonnage"], ["audioChannels", "Canaux"], ["audioVolume", "Volume"], ["audioLevel", "Niveau"], ["audioMapping", "Mapping"]]],
     mode === "decoder"
-      ? ["Source NDI", [["ndiSourceOnline", "En ligne"], ["ndiSourceActive", "Active"], ["ndiSourceName", "Nom"], ["ndiSourceIp", "IP"], ["decoderWarning", "Avertissement"]]]
+      ? ["Source NDI", [["decoderProtocolStatus", "Protocole"], ["ndiSourceOnline", "En ligne"], ["ndiSourceActive", "Active"], ["ndiSourceName", "Nom"], ["ndiSourceIp", "IP"], ["decoderWarning", "Avertissement"]]]
       : ["Encodeur NDI", [["ndiDeviceName", "Equipement"], ["ndiChannelName", "Canal"], ["ndiGroup", "Groupe"], ["ndiConnection", "Connexion"], ["encodingQuality", "Qualite"]]],
     ["Sortie", [["outputResolution", "Resolution"], ["outputFrameRate", "Frequence"], ["errorNoVideo", "Video"], ["errorNoAudio", "Audio"], ["warningMatch", "Format"], ["warningUnsupportedResolution", "Resolution supportee"]]]
   ];

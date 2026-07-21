@@ -37,11 +37,34 @@
       <header class="topbar">
         <div>
           <nav class="tabs" aria-label="Sections">
-            <button class="tab active" type="button" data-tab="configurationTab">Configuration</button>
-            <button class="tab" type="button" data-tab="monitoringTab">Monitoring</button>
+            <a class="tab<%= page === 'configuration' ? ' active' : '' %>" href="/configuration">Configuration</a>
+            <a class="tab<%= page === 'monitoring' ? ' active' : '' %>" href="/monitoring">Monitoring</a>
           </nav>
         </div>
-        <div class="status-pill" id="connectionStatus">Pret</div>
+        <div class="topbar-actions" style="display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:8px;width:auto;">
+          <div class="status-pill" id="connectionStatus" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;">Pret</div>
+          <button id="toggleMonitoringView" type="button" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;"<% if (page !== 'monitoring') { %> hidden<% } %>>Minimize All</button>
+          <button id="refreshMonitoring" type="button" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;"<% if (page !== 'monitoring') { %> hidden<% } %>>Refresh</button>
+          <div class="user-menu-control" style="flex:0 0 38px;width:38px;height:38px;">
+            <button id="userMenuButton" class="user-menu-button" type="button" style="width:38px;height:38px;min-width:38px;min-height:38px;" aria-label="Menu utilisateur" aria-expanded="false"><img src="/images/User.png?v=20260718-2" width="20" height="20" alt="" /></button>
+            <div id="userMenu" class="user-menu" hidden>
+              <strong id="currentUserName"></strong>
+              <button id="changePasswordButton" type="button">Change password</button>
+              <a id="manageUsersLink" href="/users" hidden>Manage User</a>
+              <button id="logoutButton" type="button">Logout</button>
+            </div>
+          </div>
+        </div>
       </header>
+
+      <dialog id="passwordDialog" class="password-dialog">
+        <form id="passwordForm" method="dialog">
+          <h2>Changer le mot de passe</h2>
+          <label>Mot de passe actuel<input name="currentPassword" type="password" autocomplete="current-password" required /></label>
+          <label>Nouveau mot de passe<input name="newPassword" type="password" minlength="8" autocomplete="new-password" required /></label>
+          <p id="passwordError" class="form-error" hidden></p>
+          <div class="dialog-actions"><button id="cancelPasswordButton" class="secondary-button" type="button">Annuler</button><button type="submit">Enregistrer</button></div>
+        </form>
+      </dialog>
 
    

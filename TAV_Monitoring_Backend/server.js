@@ -5,7 +5,11 @@ const logger = require("./classes/Logger");
 
 const backend = createBackend();
 const server = http.createServer(backend.app);
-const webSocket = new WebSocketServer({ path: "/ws", snapshot: () => backend.monitoring.snapshot() }).attach(server);
+const webSocket = new WebSocketServer({
+  path: "/ws",
+  snapshot: () => backend.monitoring.snapshot(),
+  authorize: (request) => !backend.auth || backend.auth.authenticateRequest(request)
+}).attach(server);
 backend.monitoring.on("message", (message) => webSocket.broadcast(message));
 
 server.listen(backend.config.port, () => {

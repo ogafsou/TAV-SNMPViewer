@@ -4,22 +4,32 @@
     <title><%= title %></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="/stylesheets/style.css" />
+    <link rel="stylesheet" href="/stylesheets/style.css?v=20260721-5" />
   </head>
   <body data-rest-refresh-s="<%= rest_refresh_s || 0 %>">
     <main class="app-shell">
       <%- include("partials/shared/header") %>
       <%- include("Configuration") %>
       <%- include("Monitoring") %>
+      <%- include("Users") %>
     </main>
+
+    <dialog id="monitoringCardDialog" class="monitoring-card-dialog">
+      <div class="monitoring-card-dialog-head">
+        <strong>Detail de la machine</strong>
+        <button id="closeMonitoringCardDialog" class="ghost-button" type="button">Fermer</button>
+      </div>
+      <div id="monitoringCardDialogContent"></div>
+    </dialog>
 
     <%- include("partials/configuration/machine-actions") %>
 
+    <script src="/javascripts/auth.js?v=20260718-2"></script>
     <script src="/javascripts/utils.js"></script>
-    <script src="/javascripts/monitoring-renderers.js"></script>
+    <script src="/javascripts/monitoring-renderers.js?v=20260721-5"></script>
     <script src="/javascripts/machine-details.js"></script>
-    <script src="/javascripts/monitoring.js"></script>
-    <script src="/javascripts/configuration.js"></script>
-    <script src="/javascripts/application.js"></script>
+    <script src="/javascripts/monitoring.js?v=20260718-2"></script>
+    <script src="/javascripts/configuration.js?v=20260719-2"></script>
+    <script src="/javascripts/application.js?v=20260721-5"></script>
   </body>
 </html>

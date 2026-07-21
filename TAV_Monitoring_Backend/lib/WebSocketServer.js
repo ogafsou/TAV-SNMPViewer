@@ -4,6 +4,7 @@ class WebSocketServer {
   constructor(options) {
     this.path = options.path || "/ws";
     this.snapshot = options.snapshot;
+    this.authorize = options.authorize;
     this.clients = new Set();
   }
 
@@ -16,6 +17,11 @@ class WebSocketServer {
     const pathname = new URL(request.url, "http://localhost").pathname;
     if (pathname !== this.path || String(request.headers.upgrade || "").toLowerCase() !== "websocket") {
       socket.write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
+      socket.destroy();
+      return;
+    }
+    if (this.authorize && !this.authorize(request)) {
+      socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
       socket.destroy();
       return;
     }
@@ -35,8 +41,8 @@ class WebSocketServer {
     const client = { socket, buffer: Buffer.alloc(0) };
     this.clients.add(client);
     socket.on("data", (chunk) => this.handleData(client, chunk));
-    socket.on("close", () => this.clients.delete(client));
-    socket.on("error", () => this.clients.delete(client));
+    socket.on("close", () => this.removeClient(client));
+    socket.on("error", () => this.removeClient(client));
     if (head && head.length) this.handleData(client, head);
     this.send(client, { type: "monitoring.snapshot", ...this.snapshot() });
   }
@@ -67,6 +73,10 @@ class WebSocketServer {
     }
   }
 
+  removeClient(client) {
+    this.clients.delete(client);
+  }
+
   send(client, message) {
     if (!client || client.socket.destroyed) return;
     client.socket.write(encodeFrame(Buffer.from(JSON.stringify(message), "utf8"), 0x1));
@@ -77,7 +87,9 @@ class WebSocketServer {
   }
 
   close() {
-    this.clients.forEach((client) => client.socket.destroy());
+    this.clients.forEach((client) => {
+      client.socket.destroy();
+    });
     this.clients.clear();
   }
 }

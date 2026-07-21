@@ -1,0 +1,15 @@
+<section id="usersTab" class="tab-panel<%= page === 'users' ? ' active' : '' %>"<% if (page !== 'users') { %> hidden<% } %>>
+  <div class="monitoring-header">
+    <div><p class="eyebrow">Administration</p><h2>Gestion des utilisateurs</h2></div>
+  </div>
+  <section class="data-section users-section">
+    <form id="createUserForm" class="user-create-form">
+      <label>Login<input name="login" type="text" minlength="3" maxlength="40" required /></label>
+      <label>Mot de passe<input name="password" type="password" minlength="8" required /></label>
+      <label>Rôle<select name="role"><option value="user">User</option><option value="editor">Editor</option><option value="administrator">Administrator</option></select></label>
+      <button type="submit">Ajouter</button>
+    </form>
+    <p id="usersError" class="form-error" hidden></p>
+    <div class="table-wrap"><table class="users-table"><thead><tr><th>Login</th><th>Rôle</th><th>Nouveau mot de passe</th><th>Actions</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+  </section>
+</section>

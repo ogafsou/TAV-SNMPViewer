@@ -149,7 +149,10 @@ function setupWebSocket() {
   var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   var socket = new WebSocket(protocol + "//" + window.location.host + "/ws");
   socket.addEventListener("message", function(event) {
-    try { handleWebSocketMessage(JSON.parse(event.data)); } catch (error) { setStatus("Message WebSocket invalide", "error"); }
+    try {
+      var message = JSON.parse(event.data);
+      handleWebSocketMessage(message);
+    } catch (error) { setStatus("Message WebSocket invalide", "error"); }
   });
   socket.addEventListener("open", function() { setStatus("Temps reel connecte", "ok"); });
   socket.addEventListener("close", function() {

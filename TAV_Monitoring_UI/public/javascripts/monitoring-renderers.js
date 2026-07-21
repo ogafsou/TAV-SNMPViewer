@@ -7,19 +7,109 @@ function renderMonitoringCards() {
     return;
   }
 
-  monitoringCards.innerHTML = machines.map(function(machine) {
+  monitoringCards.classList.toggle("minimized", monitoringMinimized);
+  monitoringViewToggleButton.textContent = monitoringMinimized ? "Maximize All" : "Minimize All";
+  var pingMachines = machines.filter(function(machine) { return machine.type === "other"; });
+  var machineById = machines.filter(function(machine) { return machine.type !== "other"; }).reduce(function(result, machine) {
+    result[machine.id] = machine;
+    return result;
+  }, {});
+  var miniCards = [];
+  var cards = [];
+  monitoringCardKeys().forEach(function(cardId) {
+    if (cardId === "__ping__") {
+      if (monitoringMinimized || minimizedMonitoringCards.__ping__) miniCards.push(renderPingMonitoringMiniCard(pingMachines));
+      else cards.push(renderPingMonitoringCard(pingMachines));
+      return;
+    }
+    var machine = machineById[cardId];
+    if (!machine) return;
     var baseState = monitoringState[machine.id] || buildUnknownState(machine);
+    if (monitoringMinimized || minimizedMonitoringCards[machine.id]) {
+      miniCards.push(renderMonitoringMiniCard(machine, baseState));
+      return;
+    }
     var previewingReference = referencePreviewMachineId === machine.id;
     var state = previewingReference ? buildReferencePreviewState(machine, baseState) : baseState;
+    cards.push(renderFullMonitoringCard(machine, state, previewingReference));
+  });
+  monitoringCards.innerHTML = renderMiniCardStacks(miniCards) + cards.join("");
+}
+
+function monitoringCardKeys() {
+  var available = machines.filter(function(machine) { return machine.type !== "other"; }).map(function(machine) { return machine.id; });
+  if (machines.some(function(machine) { return machine.type === "other"; })) available.push("__ping__");
+  var ordered = monitoringCardOrder.filter(function(id, index) {
+    return available.indexOf(id) !== -1 && monitoringCardOrder.indexOf(id) === index;
+  });
+  available.forEach(function(id) { if (ordered.indexOf(id) === -1) ordered.push(id); });
+  return ordered;
+}
+
+function renderMiniCardStacks(miniCards) {
+  var stacks = [];
+  for (var index = 0; index < miniCards.length; index += 4) {
+    stacks.push('<div class="monitoring-mini-stack">' + miniCards.slice(index, index + 4).join("") + '</div>');
+  }
+  return stacks.join("");
+}
+
+function renderPingMonitoringCard(pingMachines) {
+  var rows = pingMachines.map(function(machine) {
+    var state = monitoringState[machine.id] || buildUnknownState(machine);
+    var isOk = state.connected === true && state.state === "ok";
+    return '<tr>' +
+      '<td>' + escapeHtml(machine.name) + '</td>' +
+      '<td>' + escapeHtml(machine.host) + '</td>' +
+      '<td class="ping-status ' + (isOk ? 'ok' : 'error') + '">' + (isOk ? 'OK' : 'Not OK') + '</td>' +
+    '</tr>';
+  }).join("");
+  var allOk = pingMachines.every(function(machine) {
+    var state = monitoringState[machine.id] || buildUnknownState(machine);
+    return state.connected === true && state.state === "ok";
+  });
+
+  return '<article class="monitoring-card ping-monitoring-card ' + (allOk ? 'ok' : 'error') + '" data-monitoring-card-id="__ping__">' +
+    '<div class="card-head"><div><h3 class="monitoring-drag-handle" draggable="true">Ping</h3><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span></div>' +
+      '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="__ping__">Minimize</button></div></div>' +
+    '<div class="ping-table-wrap"><table class="ping-monitoring-table">' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table></div>' +
+  '</article>';
+}
+
+function renderMonitoringMiniCard(machine, state) {
+  return '<article class="monitoring-mini-card ' + escapeHtml(state.state || "unknown") + '" data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
+      '<button class="mini-maximize-button" type="button" data-monitoring-maximize="' + escapeHtml(machine.id) + '">Max</button>' +
+      '<strong class="monitoring-drag-handle" draggable="true">' + escapeHtml(machine.name) + '</strong>' +
+      '<span>' + escapeHtml(machine.host) + '</span>' +
+      '<small>' + escapeHtml(state.label || state.state || "Inconnu") + '</small>' +
+    '</article>';
+}
+
+function renderPingMonitoringMiniCard(pingMachines) {
+  var okCount = pingMachines.filter(function(machine) {
+    var state = monitoringState[machine.id] || buildUnknownState(machine);
+    return state.connected === true && state.state === "ok";
+  }).length;
+  var stateClass = okCount === pingMachines.length ? "ok" : "error";
+  return '<article class="monitoring-mini-card ' + stateClass + '" data-monitoring-card-id="__ping__">' +
+    '<button class="mini-maximize-button" type="button" data-monitoring-maximize="__ping__">Max</button>' +
+    '<strong class="monitoring-drag-handle" draggable="true">Ping</strong><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span>' +
+    '<small>' + okCount + ' OK / ' + (pingMachines.length - okCount) + ' Not OK</small></article>';
+}
+
+function renderFullMonitoringCard(machine, state, previewingReference) {
+    var referenceButtonLabel = machine.monitoringReference ? "Reference" : "Set Reference";
     var referenceButton = REFERENCE_MODE_ENABLED
       ? '<button class="reference-button" type="button" data-machine-id="' + escapeHtml(machine.id) + '"' +
-          ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">Reference</button>'
+          ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">' + referenceButtonLabel + '</button>'
       : '';
 
-    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + '" data-machine-id="' + escapeHtml(machine.id) + '">' +
+    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + '" data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
       '<div class="card-head">' +
-        '<div><h3>' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
-        (referenceButton ? '<div class="card-head-actions">' + referenceButton + '</div>' : '') +
+        '<div><h3 class="monitoring-drag-handle" draggable="true">' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
+        '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="' + escapeHtml(machine.id) + '">Minimize</button>' + referenceButton + '</div>' +
       '</div>' +
       '<div class="pill-section">' +
         (machine.type === "kiloview" ? kiloviewMonitoring(state) :
@@ -31,7 +121,20 @@ function renderMonitoringCards() {
       '</div>' +
       '<p class="card-message">' + escapeHtml(state.message) + '</p>' +
     '</article>';
-  }).join("");
+}
+
+function renderMonitoringCardDialog(machineId, previewingReference) {
+  var machine = getMachineById(machineId);
+  if (!machine) return;
+  var baseState = monitoringState[machine.id] || buildUnknownState(machine);
+  var state = previewingReference ? buildReferencePreviewState(machine, baseState) : baseState;
+  monitoringCardDialog.dataset.machineId = machine.id;
+  monitoringCardDialogContent.innerHTML = renderFullMonitoringCard(machine, state, !!previewingReference);
+}
+
+function openMonitoringCardDialog(machineId) {
+  renderMonitoringCardDialog(machineId, false);
+  monitoringCardDialog.showModal();
 }
 
 function buildReferencePreviewState(machine, baseState) {
@@ -67,6 +170,7 @@ async function setMachineReference(machineId) {
   var state = monitoringState[machineId];
 
   if (!REFERENCE_MODE_ENABLED || !machine || !state || !state.connected) {
+    setStatus("Un scan connecte est necessaire avant de definir la reference", "error");
     return;
   }
 
@@ -77,6 +181,9 @@ async function setMachineReference(machineId) {
     machines = machines.map(function(item) { return item.id === machineId ? result.machine : item; });
     applyMonitoringRecord(result.monitoring);
     renderMonitoringCards();
+    if (monitoringCardDialog.open && monitoringCardDialog.dataset.machineId === machineId) {
+      renderMonitoringCardDialog(machineId, false);
+    }
     setStatus("Reference enregistree", "ok");
   } catch (error) {
     setStatus(error.message || "Sauvegarde impossible", "error");
@@ -87,7 +194,7 @@ function referenceButtonTitle(machine) {
   var setAt = machine.monitoringReference && machine.monitoringReference.setAt;
   return setAt
     ? "Maintenir pour afficher la reference du " + formatDate(setAt) + " - Clic droit pour la modifier"
-    : "Aucune reference definie - Clic droit pour en definir une";
+    : "Aucune reference definie - Cliquer pour utiliser le dernier etat scanne";
 }
 
 function stableFingerprint(value) {
@@ -588,7 +695,10 @@ function netgearMonitoring(state) {
 function kiloviewMonitoring(state) {
   var groups = state.kiloviewGroups || [];
   if (!groups.length) return '<div class="notice neutral">Aucune information Kiloview retournee.</div>';
-  return kiloviewStatusSummary(groups) + '<div class="kiloview-monitoring">' + groups.map(function(group) {
+  var networkGroup = groups.find(function(group) { return group.title === "Reseau"; });
+  var networkSummary = networkGroup ? kiloviewNetworkGroup(networkGroup) : "";
+  return networkSummary + kiloviewStatusSummary(groups) + '<div class="kiloview-monitoring">' + groups.map(function(group) {
+    if (group.title === "Reseau") return "";
     if (group.title === "Systeme") return kiloviewSystemGroup(group);
     if (group.title === "Video") return kiloviewVideoGroup(group);
     if (group.title === "Audio") return kiloviewAudioGroup(group);
@@ -597,6 +707,16 @@ function kiloviewMonitoring(state) {
     return '<section class="kiloview-status-group"><div>' +
       (group.items || []).map(kiloviewStatusItem).join("") + '</div></section>';
   }).join("") + '</div>';
+}
+
+function kiloviewNetworkGroup(group) {
+  var visibleItems = (group.items || []).filter(function(item) {
+    return item.label !== "Interfaces" && item.label !== "Protocoles";
+  });
+  if (!visibleItems.length) return "";
+  return '<section class="kiloview-status-group kiloview-network-group"><div>' +
+    visibleItems.map(kiloviewStatusItem).join("") +
+  '</div></section>';
 }
 
 function kiloviewStatusSummary(groups) {
@@ -614,27 +734,33 @@ function kiloviewStatusSummary(groups) {
     var group = findGroup(titles);
     return group ? group.items || [] : [];
   }
-  function cell(state) {
+  function cell(items) {
+    var state = itemState(items);
     var label = state === "ok" ? "OK" : state === "warning" ? "Warn." : "Err.";
-    return '<td class="' + escapeHtml(state) + '">' + label + '</td>';
+    var changed = (items || []).some(function(item) { return item.changed === true; });
+    return '<td class="' + escapeHtml(state) + (changed ? ' reference-changed' : '') + '">' + label + '</td>';
   }
 
+  var systemItems = groupItems(["Systeme"]);
+  var networkItems = groupItems(["Reseau"]);
   var ndiItems = groupItems(["Source NDI", "Encodeur NDI"]);
+  var signalItems = groupItems(["Video"]).concat(groupItems(["Audio"]));
+  var outputItems = groupItems(["Sortie"]);
   var sourceItems = ndiItems.filter(function(item) {
     return item.label === "En ligne" || item.label === "Active";
   });
-  var states = [
-    itemState(groupItems(["Systeme"])),
-    itemState(groupItems(["Reseau"])),
-    itemState(ndiItems),
-    itemState(groupItems(["Video"]).concat(groupItems(["Audio"]))),
-    itemState(sourceItems.length ? sourceItems : ndiItems),
-    itemState(groupItems(["Sortie"]))
+  var cells = [
+    systemItems,
+    networkItems,
+    ndiItems,
+    signalItems,
+    sourceItems.length ? sourceItems : ndiItems,
+    outputItems
   ];
 
   return '<div class="kiloview-summary-table-wrap"><table class="kiloview-summary-table">' +
     '<thead><tr><th>Sys.</th><th>Net.</th><th>NDI.</th><th>Signal</th><th>In.</th><th>Out.</th></tr></thead>' +
-    '<tbody><tr>' + states.map(cell).join("") + '</tr></tbody>' +
+    '<tbody><tr>' + cells.map(cell).join("") + '</tr></tbody>' +
   '</table></div>';
 }
 
@@ -777,7 +903,7 @@ function kiloviewStatusItem(item) {
 function ioStatusCell(item) {
   var className = item.state || (item.ok === true ? "ok" : item.ok === false ? "warning" : "inactive");
   var title = monitoringItemTooltip(item, className);
-  return '<td class="' + className + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(title) + '">' +
+  return '<td class="' + className + referenceComparisonClass(item) + '" title="' + escapeHtml(title) + '">' +
     (item.icon ? statusIcon(item.icon, className, item.label) : "") +
     '<span>' + escapeHtml(item.label) + '</span></td>';
 }
@@ -787,10 +913,16 @@ function statusPill(item) {
   var className = state === "error" ? "bad" : state === "inactive" ? "unknown" : state;
   var title = monitoringItemTooltip(item, state);
 
-  return '<span class="monitor-pill ' + className + (item.icon ? ' icon-pill' : '') + (item.changed ? ' reference-changed' : '') + '" title="' + escapeHtml(title) + '">' +
+  return '<span class="monitor-pill ' + className + (item.icon ? ' icon-pill' : '') + referenceComparisonClass(item) + '" title="' + escapeHtml(title) + '">' +
     (item.icon ? statusIcon(item.icon, state, item.label) : "") +
     '<span>' + escapeHtml(item.label) + '</span>' +
   '</span>';
+}
+
+function referenceComparisonClass(item) {
+  if (item && item.changed === true) return ' reference-changed';
+  if (item && item.changed === false && item.referenceState !== undefined) return ' reference-matched';
+  return '';
 }
 
 function stateTitle(state) {

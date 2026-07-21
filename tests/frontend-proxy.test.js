@@ -8,6 +8,11 @@ const { listen, close, readWebSocketMessage } = require("./helpers");
 
 test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) => {
   const backendServer = http.createServer((req, res) => {
+    if (req.url === "/api/auth/me") {
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ user: { id: "admin", login: "admin", role: "administrator" } }));
+      return;
+    }
     if (req.url === "/api/health") {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true, service: "fake-backend" }));
@@ -28,7 +33,11 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   const frontendPort = await listen(frontendServer);
   t.after(async () => { backendWs.close(); await close(frontendServer); await close(backendServer); });
 
-  const page = await fetch("http://127.0.0.1:" + frontendPort + "/");
+  const root = await fetch("http://127.0.0.1:" + frontendPort + "/", { redirect: "manual" });
+  assert.equal(root.status, 302);
+  assert.equal(root.headers.get("location"), "/monitoring");
+
+  const page = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring");
   const html = await page.text();
   assert.equal(page.status, 200);
   assert.equal(html.includes("TAV Monitoring"), true);
@@ -36,8 +45,18 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(html.includes('/javascripts/application.js'), true);
   assert.equal((html.match(/<main class="app-shell">/g) || []).length, 1);
   assert.equal((html.match(/id="monitoringTab"/g) || []).length, 1);
+  assert.equal(html.includes('href="/monitoring"'), true);
+  assert.equal(html.includes('href="/configuration"'), true);
+  assert.match(html, /id="monitoringTab" class="tab-panel active"/);
+  assert.match(html, /id="configurationTab" class="tab-panel" hidden/);
   const configurationMarkup = html.slice(html.indexOf('id="configurationTab"'), html.indexOf('id="monitoringTab"'));
   assert.equal((configurationMarkup.match(/<section\b/g) || []).length, (configurationMarkup.match(/<\/section>/g) || []).length);
+
+  const configurationPage = await fetch("http://127.0.0.1:" + frontendPort + "/configuration");
+  const configurationHtml = await configurationPage.text();
+  assert.equal(configurationPage.status, 200);
+  assert.match(configurationHtml, /id="configurationTab" class="tab-panel active"/);
+  assert.match(configurationHtml, /id="monitoringTab" class="tab-panel" hidden/);
 
   const applicationScript = await fetch("http://127.0.0.1:" + frontendPort + "/javascripts/application.js");
   assert.equal(applicationScript.status, 200);

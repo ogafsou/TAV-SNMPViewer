@@ -48,6 +48,45 @@ test("a reference difference colors the control red without replacing the icon s
   assert.match(renderer, /statusIcon\(item\.icon, className, item\.label\)/);
 });
 
+test("a NovaStar item matching the reference keeps its status icon inside a transparent control", () => {
+  const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
+  const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
+
+  assert.match(renderer, /item\.changed === false && item\.referenceState !== undefined/);
+  assert.match(renderer, /return ' reference-matched'/);
+  assert.match(css, /\.io-status-table td\.reference-matched[\s\S]*?background:\s*transparent;/);
+  assert.match(css, /\.monitor-pill\.icon-pill\.reference-matched/);
+  assert.match(css, /\.state-icon\.state-warning\s*\{[^}]*filter:\s*url\("#icon-orange"\)/s);
+  assert.doesNotMatch(css, /\.reference-matched\s+\.state-icon\s*\{[^}]*filter:/s);
+});
+
+test("monitoring assets use the current cache-busting version", () => {
+  const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
+  assert.match(view, /style\.css\?v=20260721-5/);
+  assert.match(view, /monitoring-renderers\.js\?v=20260721-5/);
+  assert.match(view, /application\.js\?v=20260721-5/);
+});
+
+test("Kiloview summary separates actual status text from reference comparison background", () => {
+  const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
+  const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
+
+  assert.match(renderer, /\(items \|\| \[\]\)\.some\(function\(item\) \{ return item\.changed === true; \}\)/);
+  assert.match(renderer, /changed \? ' reference-changed' : ''/);
+  assert.match(css, /\.kiloview-summary-table td\.ok\s*\{[^}]*color:\s*#1f9d55;[^}]*background:\s*transparent;/s);
+  assert.match(css, /\.kiloview-summary-table td\.warning\s*\{[^}]*color:\s*#e8a600;[^}]*background:\s*transparent;/s);
+  assert.match(css, /\.kiloview-summary-table td\.error,[^}]*color:\s*#d92d20;[^}]*background:\s*transparent;/s);
+  assert.match(css, /\.kiloview-summary-table td\.reference-changed\s*\{[^}]*background:\s*rgba\(217, 45, 32, 0\.28\);/s);
+});
+
+test("Kiloview network details precede the status summary and hide interfaces and protocols", () => {
+  const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
+  assert.match(renderer, /return networkSummary \+ kiloviewStatusSummary\(groups\)/);
+  assert.match(renderer, /if \(group\.title === "Reseau"\) return "";/);
+  assert.match(renderer, /item\.label !== "Interfaces" && item\.label !== "Protocoles"/);
+  assert.match(renderer, /visibleItems\.map\(kiloviewStatusItem\)/);
+});
+
 test("monitoring cards group system health in one compact section", () => {
   const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
@@ -76,9 +115,10 @@ test("reference button previews expected state and uses a confirmed context-menu
   const application = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "application.js"), "utf8");
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "partials", "monitoring", "machine-cards.ejs"), "utf8");
 
-  assert.match(renderer, />Reference<\/button>/);
+  assert.match(renderer, /machine\.monitoringReference \? "Reference" : "Set Reference"/);
   assert.match(renderer, /function buildReferencePreviewState\(machine, baseState\)/);
   assert.match(renderer, /reference-preview/);
+  assert.match(application, /if \(!button \|\| !machine \|\| machine\.monitoringReference\) return;\s*setMachineReference\(machine\.id\);/);
   assert.match(application, /addEventListener\("contextmenu"/);
   assert.match(application, /window\.confirm\(/);
   assert.match(view, />Set reference<\/button>/);

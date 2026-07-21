@@ -8,9 +8,41 @@ var contextMachineId = "";
 var editingMachineId = "";
 var monitoringState = {};
 var monitoringRecords = {};
-var activeTabId = "configurationTab";
+var activeTabId = document.getElementById("monitoringTab").classList.contains("active") ? "monitoringTab" : "configurationTab";
 var monitoringRefreshInProgress = false;
 var autoRefreshTimer = null;
+var monitoringMinimized = localStorage.getItem("tavMonitoringMinimized") === "true";
+var minimizedMonitoringCards = loadMinimizedMonitoringCards();
+var monitoringCardOrder = loadMonitoringCardOrder();
+var draggedMonitoringCardId = "";
+
+function loadMinimizedMonitoringCards() {
+  try {
+    return JSON.parse(localStorage.getItem("tavMinimizedMonitoringCards") || "[]").reduce(function(result, id) {
+      result[String(id)] = true;
+      return result;
+    }, {});
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveMinimizedMonitoringCards() {
+  localStorage.setItem("tavMinimizedMonitoringCards", JSON.stringify(Object.keys(minimizedMonitoringCards)));
+}
+
+function loadMonitoringCardOrder() {
+  try {
+    var value = JSON.parse(localStorage.getItem("tavMonitoringCardOrder") || "[]");
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveMonitoringCardOrder() {
+  localStorage.setItem("tavMonitoringCardOrder", JSON.stringify(monitoringCardOrder));
+}
 
 var machineList = document.getElementById("machineList");
 var machineCount = document.getElementById("machineCount");
@@ -31,16 +63,49 @@ var autoRefreshHint = document.getElementById("autoRefreshHint");
 var monitoringReferenceMode = document.getElementById("monitoringReferenceMode");
 var referenceContextMenu = document.getElementById("referenceContextMenu");
 var setReferenceMenuItem = document.getElementById("setReferenceMenuItem");
-
-document.querySelectorAll(".tab").forEach(function(tabButton) {
-  tabButton.addEventListener("click", function() {
-    activateTab(tabButton.dataset.tab);
-  });
-});
+var monitoringViewToggleButton = document.getElementById("toggleMonitoringView");
+var monitoringCardDialog = document.getElementById("monitoringCardDialog");
+var monitoringCardDialogContent = document.getElementById("monitoringCardDialogContent");
 
 document.getElementById("openAddDialog").addEventListener("click", openAddDialog);
 document.getElementById("closeAddDialog").addEventListener("click", closeDialog);
 document.getElementById("cancelAddDialog").addEventListener("click", closeDialog);
+monitoringViewToggleButton.addEventListener("click", function() {
+  if (monitoringMinimized) {
+    monitoringMinimized = false;
+    minimizedMonitoringCards = {};
+    saveMinimizedMonitoringCards();
+  } else {
+    monitoringMinimized = true;
+  }
+  localStorage.setItem("tavMonitoringMinimized", String(monitoringMinimized));
+  if (monitoringCardDialog.open) monitoringCardDialog.close();
+  renderMonitoringCards();
+});
+document.getElementById("closeMonitoringCardDialog").addEventListener("click", function() { monitoringCardDialog.close(); });
+monitoringCardDialog.addEventListener("close", function() { delete monitoringCardDialog.dataset.machineId; });
+monitoringCardDialog.addEventListener("click", function(event) { if (event.target === monitoringCardDialog) monitoringCardDialog.close(); });
+monitoringCardDialogContent.addEventListener("pointerdown", function(event) {
+  var button = event.target.closest(".reference-button");
+  var machine = button && getMachineById(button.dataset.machineId);
+  if (!button || event.button !== 0 || !machine || !machine.monitoringReference) return;
+  referencePreviewMachineId = machine.id;
+  renderMonitoringCardDialog(machine.id, true);
+});
+monitoringCardDialogContent.addEventListener("click", function(event) {
+  var button = event.target.closest(".reference-button");
+  var machine = button && getMachineById(button.dataset.machineId);
+  if (!button || !machine || machine.monitoringReference) return;
+  setMachineReference(machine.id);
+});
+monitoringCardDialogContent.addEventListener("contextmenu", function(event) {
+  var button = event.target.closest(".reference-button");
+  var machine = button && getMachineById(button.dataset.machineId);
+  if (!button || !machine) return;
+  event.preventDefault();
+  if (!window.confirm("Remplacer la reference de " + machine.name + " par le dernier etat scanne ?")) return;
+  setMachineReference(machine.id);
+});
 machineForm.elements.type.addEventListener("change", updateMachineFormFields);
 machineForm.host.addEventListener("input", function() {
   if (getSelectedAccessMethod() !== "snmp") machineForm.apiBaseUrl.value = "";
@@ -137,6 +202,7 @@ machineForm.addEventListener("submit", async function(event) {
     recvCardsPerPort: String(formData.get("recvCardsPerPort") || "1"),
     includeReceivingCards: machineForm.includeReceivingCards.checked,
     includePoe: machineForm.includePoe.checked,
+    kiloviewBitrateThresholdMbps: String(formData.get("kiloviewBitrateThresholdMbps") || "1"),
     snmpPort: String(formData.get("snmpPort") || "161")
   };
 
@@ -160,10 +226,12 @@ machineForm.addEventListener("submit", async function(event) {
     machine.accessMethod = "snmp";
     ["writeCommunity", "apiProtocol", "apiBaseUrl", "apiUsername", "apiPassword", "apiProjectId",
       "apiSecretKey", "apiEncryption", "apiDeviceId", "maxOutputSlots", "maxScreens", "maxInputSlots",
-      "recvCardsPerPort", "includeReceivingCards"].forEach(function(key) { delete machine[key]; });
+      "recvCardsPerPort", "includeReceivingCards", "kiloviewBitrateThresholdMbps"].forEach(function(key) { delete machine[key]; });
   } else if (machine.type === "other") {
     machine = { id: machine.id, type: machine.type, name: machine.name, host: machine.host, timeout: machine.timeout };
   }
+
+  if (machine.type === "novastar-h") delete machine.kiloviewBitrateThresholdMbps;
 
   if (editedMachine && editedMachine.monitoringReference) {
     machine.monitoringReference = editedMachine.monitoringReference;
@@ -205,7 +273,7 @@ machineForm.addEventListener("submit", async function(event) {
     renderMonitoringCards();
     resetScanResults();
     closeDialog();
-    setStatus(wasEditing ? "Machine modifiee" : "Machine ajoutee", "ok");
+    setStatus(wasEditing ? "Machine modifiee et enregistree" : "Machine ajoutee et enregistree", "ok");
   } catch (error) {
     setStatus(error.message || "Sauvegarde impossible", "error");
   }
@@ -288,10 +356,92 @@ monitoringCards.addEventListener("pointerdown", function(event) {
   renderMonitoringCards();
 });
 
+monitoringCards.addEventListener("dragstart", function(event) {
+  var handle = event.target.closest(".monitoring-drag-handle");
+  var card = handle && handle.closest("[data-monitoring-card-id]");
+  if (!handle || !card) {
+    event.preventDefault();
+    return;
+  }
+  draggedMonitoringCardId = card.dataset.monitoringCardId;
+  card.classList.add("dragging");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedMonitoringCardId);
+});
+
+monitoringCards.addEventListener("dragover", function(event) {
+  var target = event.target.closest("[data-monitoring-card-id]");
+  if (!draggedMonitoringCardId || !target || target.dataset.monitoringCardId === draggedMonitoringCardId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  monitoringCards.querySelectorAll(".drag-target").forEach(function(card) { card.classList.remove("drag-target"); });
+  target.classList.add("drag-target");
+});
+
+monitoringCards.addEventListener("drop", function(event) {
+  var target = event.target.closest("[data-monitoring-card-id]");
+  if (!draggedMonitoringCardId || !target || target.dataset.monitoringCardId === draggedMonitoringCardId) return;
+  event.preventDefault();
+  var targetId = target.dataset.monitoringCardId;
+  var currentIds = monitoringCardKeys();
+  var fromIndex = currentIds.indexOf(draggedMonitoringCardId);
+  var targetIndex = currentIds.indexOf(targetId);
+  if (fromIndex === -1 || targetIndex === -1) return;
+  var bounds = target.getBoundingClientRect();
+  var insertAfter = event.clientY > bounds.top + bounds.height / 2 ||
+    (Math.abs(event.clientY - (bounds.top + bounds.height / 2)) < bounds.height / 4 && event.clientX > bounds.left + bounds.width / 2);
+  currentIds.splice(fromIndex, 1);
+  targetIndex = currentIds.indexOf(targetId) + (insertAfter ? 1 : 0);
+  currentIds.splice(targetIndex, 0, draggedMonitoringCardId);
+  monitoringCardOrder = currentIds;
+  saveMonitoringCardOrder();
+  renderMonitoringCards();
+});
+
+monitoringCards.addEventListener("dragend", function() {
+  draggedMonitoringCardId = "";
+  monitoringCards.querySelectorAll(".dragging, .drag-target").forEach(function(card) {
+    card.classList.remove("dragging", "drag-target");
+  });
+});
+
+monitoringCards.addEventListener("click", function(event) {
+  var minimizeButton = event.target.closest("[data-monitoring-minimize]");
+  if (minimizeButton) {
+    minimizedMonitoringCards[minimizeButton.dataset.monitoringMinimize] = true;
+    saveMinimizedMonitoringCards();
+    renderMonitoringCards();
+    return;
+  }
+  var maximizeButton = event.target.closest("[data-monitoring-maximize]");
+  if (maximizeButton) {
+    if (monitoringMinimized) {
+      machines.filter(function(machine) { return machine.type !== "other"; }).forEach(function(machine) {
+        minimizedMonitoringCards[machine.id] = true;
+      });
+      if (machines.some(function(machine) { return machine.type === "other"; })) minimizedMonitoringCards.__ping__ = true;
+      monitoringMinimized = false;
+      localStorage.setItem("tavMonitoringMinimized", "false");
+    }
+    delete minimizedMonitoringCards[maximizeButton.dataset.monitoringMaximize];
+    saveMinimizedMonitoringCards();
+    renderMonitoringCards();
+    return;
+  }
+  var miniCard = event.target.closest(".monitoring-mini-card");
+  if (miniCard) { openMonitoringCardDialog(miniCard.dataset.machineId); return; }
+  var button = event.target.closest(".reference-button");
+  var machine = button && getMachineById(button.dataset.machineId);
+  if (!button || !machine || machine.monitoringReference) return;
+  setMachineReference(machine.id);
+});
+
 document.addEventListener("pointerup", function() {
   if (!referencePreviewMachineId) return;
+  var previewedMachineId = referencePreviewMachineId;
   referencePreviewMachineId = "";
   renderMonitoringCards();
+  if (monitoringCardDialog.open && monitoringCardDialog.dataset.machineId === previewedMachineId) renderMonitoringCardDialog(previewedMachineId, false);
 });
 
 document.addEventListener("pointermove", function(event) {
@@ -299,8 +449,10 @@ document.addEventListener("pointermove", function(event) {
   var hoveredButton = document.elementFromPoint(event.clientX, event.clientY);
   hoveredButton = hoveredButton && hoveredButton.closest(".reference-button");
   if (hoveredButton && hoveredButton.dataset.machineId === referencePreviewMachineId) return;
+  var previewedMachineId = referencePreviewMachineId;
   referencePreviewMachineId = "";
   renderMonitoringCards();
+  if (monitoringCardDialog.open && monitoringCardDialog.dataset.machineId === previewedMachineId) renderMonitoringCardDialog(previewedMachineId, false);
 });
 
 monitoringCards.addEventListener("contextmenu", function(event) {
@@ -327,6 +479,9 @@ document.addEventListener("click", function(event) {
   }
 });
 
-initializeApplication();
-setupRestRefresh();
-setupWebSocket();
+initializeAuthentication().then(function(authenticated) {
+  if (!authenticated) return;
+  initializeApplication();
+  setupRestRefresh();
+  setupWebSocket();
+}).catch(function() { window.location.replace("/login"); });

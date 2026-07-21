@@ -4,4 +4,6 @@ require("./backend-monitoring.test");
 require("./backend-openapi.test");
 require("./backend-alerts.test");
 require("./backend-websocket.test");
+require("./auth.test");
 require("./frontend-proxy.test");
+require("./public-status.test");

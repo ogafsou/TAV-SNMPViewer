@@ -10,25 +10,44 @@ class KiloviewApiConnector {
     this.baseUrl = "";
     this.session = "";
     this.token = "";
+    this.protocol = "";
   }
 
   async init() {
     const candidates = /^https?:\/\//i.test(this.host)
       ? [this.host]
-      : [`https://${this.host}`, `http://${this.host}`];
+      : [`http://${this.host}`, `https://${this.host}`];
     let lastError;
 
+    // Firmware 2.02.x (BSP 2015.4): API web observee sur le materiel reel.
+    for (const candidate of candidates) {
+      try {
+        const query = new URLSearchParams({ user: this.username, password: this.password });
+        const response = await requestJson(candidate, `/api/users/login.json?${query}`, null, browserHeaders(candidate, "/login"), this.timeout, "GET");
+        ensureSuccess(response, "Autorisation Kiloview refusee");
+        this.baseUrl = candidate.replace(/\/$/, "");
+        this.session = String(response.data && response.data.session || "");
+        this.token = String(response.data && response.data.token || "");
+        this.protocol = "v2";
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    // Compatibilite avec le protocole initial et les autres firmwares Kiloview.
     for (const candidate of candidates) {
       try {
         const response = await requestJson(candidate, "/api/v1/user/authorize", {
           username: this.username,
           password: this.password
-        }, {}, this.timeout);
+        }, {}, this.timeout, "POST");
         ensureSuccess(response, "Autorisation Kiloview refusee");
         this.baseUrl = candidate.replace(/\/$/, "");
         this.session = String(response.data && response.data.session || "");
         this.token = String(response.data && response.data.token || "");
         if (!this.session || !this.token) throw new Error("Session ou token Kiloview absent");
+        this.protocol = "v1";
         return;
       } catch (error) {
         lastError = error;
@@ -39,16 +58,26 @@ class KiloviewApiConnector {
   }
 
   async api(path, options = {}) {
-    if (!this.session || !this.token) await this.init();
-    const response = await requestJson(this.baseUrl, path, {}, {
+    if (!this.protocol) await this.init();
+    const isV2 = this.protocol === "v2";
+    const v2Headers = isV2 ? Object.assign(browserHeaders(this.baseUrl, v2Referer(path)), {
+      "Cookie": `token=${this.token}`
+    }) : null;
+    const response = await requestJson(this.baseUrl, path, isV2 ? null : {}, isV2 ? v2Headers : {
       "API-Session": this.session,
       "API-Token": this.token
-    }, this.timeout);
-    if (!options.allowResultError) ensureSuccess(response, `API Kiloview ${path} en erreur`);
+    }, this.timeout, isV2 ? "GET" : "POST");
+    if (!options.allowResultError && (!response || response.result !== "ok")) {
+      const detail = response && (response.msg || response.reason || response.error) || "erreur inconnue";
+      throw new Error(`API Kiloview ${path}: ${detail}`);
+    }
     return response;
   }
 
   async monitor() {
+    if (!this.protocol) await this.init();
+    if (this.protocol === "v2") return this.monitorV2();
+
     const modeResponse = await this.api("/api/v1/mode/get");
     const mode = String(modeResponse.data && modeResponse.data.mode || "").toLowerCase();
     if (mode !== "encoder" && mode !== "decoder") {
@@ -65,7 +94,38 @@ class KiloviewApiConnector {
       ? await this.readEncoder()
       : await this.readDecoder();
 
-    return normalizeMonitor(this.host.replace(/^https?:\/\//i, ""), mode, common, specific);
+    const result = normalizeMonitor(this.host.replace(/^https?:\/\//i, ""), mode, common, specific);
+    result.kiloviewProtocol = "v1";
+    return result;
+  }
+
+  async monitorV2() {
+    const modeResponse = await this.api("/api/mode/get.json");
+    const mode = String(modeResponse.data && modeResponse.data.mode || "").toLowerCase();
+    if (mode !== "encoder" && mode !== "decoder") {
+      throw new Error(`Mode Kiloview inconnu: ${mode || "non retourne"}`);
+    }
+
+    // L'interface officielle valide la session juste apres la detection du mode.
+    await this.api("/api/users/session.json");
+
+    const [status, device, audio, network, networkProtocol, firmware, softwareStatus] = await Promise.all([
+      this.api("/api/device/status.json").catch(asErrorResponse),
+      this.api("/api/device/get.json").catch(asErrorResponse),
+      this.api("/api/audio/get.json").catch(asErrorResponse),
+      this.api("/api/network/get.json").catch(asErrorResponse),
+      this.api("/api/network/getProtocol.json").catch(asErrorResponse),
+      this.api("/api/firmware/get.json").catch(asErrorResponse),
+      this.api(`/api/users/software_status.json?user=${encodeURIComponent(this.username)}`).catch(asErrorResponse)
+    ]);
+    const common = normalizeV2Common(mode, status, network, networkProtocol, firmware, softwareStatus);
+    const specific = mode === "encoder"
+      ? normalizeV2Encoder(status, device, audio)
+      : normalizeV2DecoderPlaceholder();
+    const result = normalizeMonitor(this.host.replace(/^https?:\/\//i, ""), mode, common, specific);
+    result.source = "kiloview-api-v2";
+    result.kiloviewProtocol = "v2";
+    return result;
   }
 
   async readEncoder() {
@@ -118,6 +178,97 @@ function normalizeCommon(mode, statusResponse, serverResponse, networkResponse) 
     memoryTotal: field(numberWithUnit(server.mem_total, " Mo")),
     networkInterfaces: field(networks.map((item) => item.device).filter(Boolean).join(", ") || networkError, !networkError),
     networkState: field(networks.map((item) => `${item.device || "interface"}: ${item.state || "inconnu"}`).join(", ") || networkError, !networkError && networks.every((item) => item.state === "up"))
+  };
+}
+
+function normalizeV2Common(mode, statusResponse, networkResponse, protocolResponse, firmwareResponse, softwareResponse) {
+  const status = dataOf(statusResponse);
+  const networks = Array.isArray(networkResponse && networkResponse.data) ? networkResponse.data : [];
+  const protocols = dataOf(protocolResponse);
+  const firmware = dataOf(firmwareResponse);
+  const software = dataOf(softwareResponse);
+  const statusError = responseError(statusResponse);
+  const networkError = responseError(networkResponse);
+  const firmwareError = responseError(firmwareResponse);
+  const activeNetworks = networks.filter((item) => item && item.state === "up");
+  return {
+    workingStatus: field(statusError || "ready", !statusError),
+    kiloviewMode: field(mode),
+    deviceAddress: field(activeNetworks.map((item) => item.ip).filter(Boolean).join(", ") || networkError, !networkError),
+    networkInterfaces: field(networks.map((item) => item.device).filter(Boolean).join(", ") || networkError, !networkError),
+    networkState: field(networks.map((item) => `${item.device || "interface"}: ${item.state || "inconnu"}`).join(", ") || networkError, !networkError && networks.every((item) => item.state === "up")),
+    networkMac: field(networks.map((item) => item.mac).filter(Boolean).join(", ") || ""),
+    networkProtocols: field(protocolLabels(protocols)),
+    serialNumber: field(status.serial_number || ""),
+    ndiVersion: field(firmware.ndiVersion || firmwareError, !firmwareError),
+    hardwareVersion: field(firmware.hardwareVersion || firmwareError, !firmwareError),
+    softwareVersion: field(firmware.softwareVersion || firmwareError, !firmwareError),
+    firmwareVersion: field(firmware.firmwareVersion || firmwareError, !firmwareError),
+    apiUser: field(software.user || ""),
+    apiSessionStatus: field(software.software === 1 ? "active" : "inconnu", software.software === 1)
+  };
+}
+
+function normalizeV2Encoder(statusResponse, deviceResponse, audioResponse) {
+  const status = dataOf(statusResponse);
+  const device = dataOf(deviceResponse);
+  const audio = dataOf(audioResponse);
+  const statusError = responseError(statusResponse);
+  const deviceError = responseError(deviceResponse);
+  const audioError = responseError(audioResponse);
+  const hasVideo = status.video_signal === true;
+  const resolution = String(status.resolution || resolutionFromDimensions(status.xRes, status.yRes));
+  return {
+    ndiDeviceName: field(device.device_name || deviceError, !deviceError),
+    ndiChannelName: field(device.channel_name || ""),
+    ndiGroup: field(device.device_group || "public"),
+    ndiConnection: field(device.ndi_connection || ""),
+    encodingQuality: field(numberWithUnit(device.quality, "%")),
+    videoSignal: field(hasVideo ? "present" : "absent", hasVideo && !statusError),
+    videoInputType: field(hasVideo ? "present" : "aucun", hasVideo && !statusError),
+    videoResolution: field(resolution || statusError, hasVideo && !statusError && !/no signal/i.test(resolution)),
+    instantFrameRate: field(numberWithUnit(status.frame_rate, " fps"), !statusError),
+    interlaced: booleanField(status.interlaced),
+    videoBitrate: field(numberWithUnit(status.bitrate, " Kbit/s"), !statusError),
+    audioPresence: field(audioPresence(status.audio_signal), !!status.audio_signal && status.audio_signal !== "none" && !statusError),
+    audioSource: field(audio.signal || status.audio_signal || audioError, !audioError),
+    audioFormat: field(status.audio_format || statusError, !statusError),
+    audioSampling: field(numberWithUnit(status.audio_sampling, " Hz"), !statusError),
+    audioChannels: field(status.audio_channels, !statusError),
+    audioVolume: field(audio.volume, !audioError),
+    audioLevel: field(audio.level || "", !audioError),
+    audioMapping: field(Array.isArray(audio.mapping) ? audio.mapping.length + " canaux" : "", !audioError)
+  };
+}
+
+function normalizeV2DecoderPlaceholder() {
+  return {
+    decoderProtocolStatus: field("En attente du HAR decodeur")
+  };
+}
+
+function protocolLabels(protocols) {
+  const labels = [];
+  if (protocols.http) labels.push(`HTTP${protocols.httpPort ? `:${protocols.httpPort}` : ""}`);
+  if (protocols.https) labels.push(`HTTPS${protocols.httpsPort ? `:${protocols.httpsPort}` : ""}`);
+  return labels.join(", ");
+}
+
+function resolutionFromDimensions(width, height) {
+  return width && height ? `${width}x${height}` : "";
+}
+
+function v2Referer(path) {
+  return path === "/api/mode/get.json" ? "/login" : "/encoder";
+}
+
+function browserHeaders(baseUrl, refererPath) {
+  return {
+    "Accept": "application/json, text/plain, */*",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+    "Referer": new URL(refererPath, baseUrl).toString(),
+    "User-Agent": "Mozilla/5.0 TAV-Monitoring/Kiloview-V2"
   };
 }
 
@@ -184,17 +335,16 @@ function normalizeDecoder(statusResponse, outputResponse) {
   };
 }
 
-function requestJson(baseUrl, path, payload, headers, timeout) {
+function requestJson(baseUrl, path, payload, headers, timeout, method = "POST") {
   return new Promise((resolve, reject) => {
     const url = new URL(path, baseUrl);
-    const body = JSON.stringify(payload || {});
+    const body = method === "GET" ? "" : JSON.stringify(payload || {});
     const transport = url.protocol === "https:" ? https : http;
     const request = transport.request(url, {
-      method: "POST",
+      method,
       rejectUnauthorized: false,
-      headers: Object.assign({
-        "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(body)
+      headers: Object.assign(method === "GET" ? { "Accept": "application/json" } : {
+        "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body)
       }, headers)
     }, (response) => {
       let text = "";
@@ -234,3 +384,5 @@ module.exports = KiloviewApiConnector;
 module.exports.normalizeCommon = normalizeCommon;
 module.exports.normalizeEncoder = normalizeEncoder;
 module.exports.normalizeDecoder = normalizeDecoder;
+module.exports.normalizeV2Common = normalizeV2Common;
+module.exports.normalizeV2Encoder = normalizeV2Encoder;

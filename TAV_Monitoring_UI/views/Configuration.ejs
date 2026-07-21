@@ -1,4 +1,4 @@
-<section id="configurationTab" class="tab-panel active">
+<section id="configurationTab" class="tab-panel<%= page === 'configuration' ? ' active' : '' %>"<% if (page !== 'configuration') { %> hidden<% } %>>
   <%- include("partials/configuration/options") %>
   <section class="configuration-layout">
     <%- include("partials/configuration/machine-list") %>

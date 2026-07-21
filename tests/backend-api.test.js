@@ -27,7 +27,7 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   };
   fs.writeFileSync(config.configPath, JSON.stringify({ port: 0, monitor_interval_s: 0, machines_file: "./machines.json", monitoring_reference_mode: true }), "utf8");
   const store = new MachineStore(config.machinesFile);
-  const backend = createBackend({ config, store, deviceMonitor: { monitor: async (machine) => successfulData(machine) } });
+  const backend = createBackend({ config, store, auth: false, deviceMonitor: { monitor: async (machine) => successfulData(machine) } });
   const server = http.createServer(backend.app);
   const port = await listen(server);
   t.after(async () => { backend.monitoring.stop(); await close(server); fs.rmSync(folder, { recursive: true, force: true }); });
@@ -44,7 +44,8 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   assert.equal(created.machine.apiPasswordConfigured, true);
   assert.equal(created.machine.apiSecretKey, undefined);
   assert.equal(created.machine.apiSecretKeyConfigured, true);
-  assert.equal(created.monitoring.view.label, "Reference non definie");
+  assert.equal(created.saved, true);
+  assert.equal(created.monitoring, null);
 
   response = await fetch(base + "/api/machines/m1/scan", { method: "POST" });
   assert.equal(response.status, 200);
@@ -81,4 +82,54 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   response = await fetch(base + "/api/machines/m1", { method: "DELETE" });
   assert.equal(response.status, 204);
   assert.equal(store.load().length, 0);
+});
+
+test("machine creation stays persisted when the initial scan fails", async (t) => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-backend-persistence-"));
+  const machinesFile = path.join(folder, "machines.json");
+  const config = {
+    port: 0, monitor_interval_s: 0, machinesFile, machines_file: machinesFile,
+    monitoring_reference_mode: false, loglevel: "error", max_parallel_scans: 1,
+    configPath: path.join(folder, "config.json")
+  };
+  const backend = createBackend({
+    auth: false,
+    config,
+    store: new MachineStore(machinesFile),
+    deviceMonitor: { monitor: async () => { throw new Error("SNMP unavailable"); } }
+  });
+  const server = http.createServer(backend.app);
+  const port = await listen(server);
+  t.after(async () => { backend.monitoring.stop(); await close(server); fs.rmSync(folder, { recursive: true, force: true }); });
+
+  const response = await fetch("http://127.0.0.1:" + port + "/api/machines", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ id: "persistent-1", type: "netgear-m4300", name: "NETGEAR", host: "192.168.69.201", readCommunity: "secret" })
+  });
+  assert.equal(response.status, 201);
+  const result = await response.json();
+  assert.equal(result.saved, true);
+  assert.equal(result.monitoring, null);
+
+  const restartedStore = new MachineStore(machinesFile);
+  assert.equal(restartedStore.load().length, 1);
+  assert.equal(restartedStore.find("persistent-1").host, "192.168.69.201");
+});
+
+test("machine store keeps an atomic backup of the previous valid state", () => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-machine-store-"));
+  try {
+    const machinesFile = path.join(folder, "machines.json");
+    const store = new MachineStore(machinesFile);
+    store.create({ id: "m1", type: "other", name: "First", host: "192.0.2.1" });
+    store.create({ id: "m2", type: "other", name: "Second", host: "192.0.2.2" });
+
+    const current = JSON.parse(fs.readFileSync(machinesFile, "utf8"));
+    const backup = JSON.parse(fs.readFileSync(machinesFile + ".bak", "utf8"));
+    assert.equal(current.length, 2);
+    assert.equal(backup.length, 1);
+    assert.equal(backup[0].id, "m1");
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
 });
