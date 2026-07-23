@@ -9,6 +9,13 @@
               <span id="machineCount">0</span>
             </div>
             <select id="machineList" class="machine-list" size="12" aria-label="Liste des machines H"></select>
+            <form id="monitorIntervalForm" class="monitor-interval-form">
+              <label for="monitorIntervalSeconds">Secondes entre deux scans</label>
+              <div>
+                <input id="monitorIntervalSeconds" name="seconds" type="number" min="1" max="86400" step="1" required />
+                <button type="submit">Enregistrer</button>
+              </div>
+            </form>
             <p class="sidebar-help" id="selectedMachineHint">Ajoutez une machine pour commencer.</p>
           </div>
         </aside>

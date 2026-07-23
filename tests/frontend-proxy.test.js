@@ -18,6 +18,10 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
       res.end(JSON.stringify({ ok: true, service: "fake-backend" }));
       return;
     }
+    if (req.url === "/api/reset") {
+      req.socket.destroy();
+      return;
+    }
     res.statusCode = 404; res.end();
   });
   const backendWs = new WebSocketServer({ path: "/ws", snapshot: () => ({ revision: 7, machines: [] }) }).attach(backendServer);
@@ -26,7 +30,8 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
     port: 0,
     backend_rest_url: "http://127.0.0.1:" + backendPort,
     backend_ws_url: "ws://127.0.0.1:" + backendPort + "/ws",
-    rest_refresh_s: 45
+    rest_refresh_s: 45,
+    bkgnd_opacity: 0.6
   } });
   const frontendServer = http.createServer(frontend.app);
   attachWebSocketProxy(frontendServer, frontend.config.backend_ws_url, "/ws");
@@ -42,6 +47,7 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(page.status, 200);
   assert.equal(html.includes("TAV Monitoring"), true);
   assert.equal(html.includes('data-rest-refresh-s="45"'), true);
+  assert.equal(html.includes('--map-background-opacity:0.6'), true);
   assert.equal(html.includes('/javascripts/application.js'), true);
   assert.equal((html.match(/<main class="app-shell">/g) || []).length, 1);
   assert.equal((html.match(/id="monitoringTab"/g) || []).length, 1);
@@ -68,6 +74,12 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
 
   const health = await fetch("http://127.0.0.1:" + frontendPort + "/api/health");
   assert.deepEqual(await health.json(), { ok: true, service: "fake-backend" });
+
+  const resetResponse = await fetch("http://127.0.0.1:" + frontendPort + "/api/reset");
+  assert.equal(resetResponse.status, 502);
+  assert.match((await resetResponse.json()).error, /Backend unavailable/);
+  const healthAfterReset = await fetch("http://127.0.0.1:" + frontendPort + "/api/health");
+  assert.equal(healthAfterReset.status, 200);
 
   const message = await readWebSocketMessage(frontendPort, "/ws");
   assert.equal(message.type, "monitoring.snapshot");

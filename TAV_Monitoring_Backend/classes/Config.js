@@ -5,8 +5,10 @@ const DEFAULTS = {
   port: 3001,
   monitor_interval_s: 30,
   machines_file: "./machines.json",
+  maps_file: "./maps.json",
   users_file: "./users.json",
   monitoring_reference_mode: false,
+  ping_monitoring_reference: null,
   loglevel: "info",
   max_parallel_scans: 8,
   alerts: {
@@ -37,19 +39,32 @@ function loadConfig(configPath) {
   const merged = Object.assign({}, DEFAULTS, stored);
   const configuredMachinesFile = process.env.TAV_MACHINES_FILE || merged.machines_file || DEFAULTS.machines_file;
   const configuredUsersFile = process.env.TAV_USERS_FILE || merged.users_file || DEFAULTS.users_file;
+  const configuredMapsFile = process.env.TAV_MAPS_FILE || merged.maps_file || DEFAULTS.maps_file;
   return {
     configPath: filePath,
     port: numberInRange(merged.port, 0, 65535, DEFAULTS.port),
     monitor_interval_s: numberInRange(merged.monitor_interval_s, 0, 86400, DEFAULTS.monitor_interval_s),
     machinesFile: path.resolve(path.dirname(filePath), String(configuredMachinesFile)),
     machines_file: String(configuredMachinesFile),
+    mapsFile: path.resolve(path.dirname(filePath), String(configuredMapsFile)),
+    maps_file: String(configuredMapsFile),
     usersFile: path.resolve(path.dirname(filePath), String(configuredUsersFile)),
     users_file: String(configuredUsersFile),
     monitoring_reference_mode: merged.monitoring_reference_mode === true,
+    ping_monitoring_reference: normalizePingReference(merged.ping_monitoring_reference),
     loglevel: ["debug", "info", "warning", "error"].includes(String(merged.loglevel).toLowerCase())
       ? String(merged.loglevel).toLowerCase() : DEFAULTS.loglevel,
     max_parallel_scans: numberInRange(merged.max_parallel_scans, 1, 32, DEFAULTS.max_parallel_scans),
     alerts: normalizeAlerts(merged.alerts)
+  };
+}
+
+function normalizePingReference(value) {
+  if (!value || typeof value !== "object" || !Array.isArray(value.respondingMachineIds)) return null;
+  return {
+    version: 1,
+    setAt: String(value.setAt || ""),
+    respondingMachineIds: Array.from(new Set(value.respondingMachineIds.map(String))).sort()
   };
 }
 

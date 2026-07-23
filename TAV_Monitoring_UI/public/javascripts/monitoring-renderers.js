@@ -55,13 +55,24 @@ function renderMiniCardStacks(miniCards) {
 }
 
 function renderPingMonitoringCard(pingMachines) {
+  var previewingReference = referencePreviewMachineId === "__ping__" && !!PING_MONITORING_REFERENCE;
+  var pingReferenceState = buildPingReferenceState(pingMachines, previewingReference);
+  var expectedIds = PING_MONITORING_REFERENCE && PING_MONITORING_REFERENCE.respondingMachineIds || [];
   var rows = pingMachines.map(function(machine) {
     var state = monitoringState[machine.id] || buildUnknownState(machine);
-    var isOk = state.connected === true && state.state === "ok";
+    var record = monitoringRecords[machine.id];
+    var isOk = previewingReference
+      ? expectedIds.map(String).indexOf(String(machine.id)) !== -1
+      : state.connected === true && state.state === "ok";
+    var lastSuccessfulAt = record && (record.lastSuccessfulAt || (isOk && record.timestamp));
+    var statusText = isOk ? "OK" : !previewingReference && lastSuccessfulAt ? pingSuccessfulTime(lastSuccessfulAt) : "Not OK";
+    var statusTitle = lastSuccessfulAt
+      ? "Dernier ping : " + formatDate(lastSuccessfulAt)
+      : "Aucun ping reussi depuis le demarrage du monitoring";
     return '<tr>' +
       '<td>' + escapeHtml(machine.name) + '</td>' +
       '<td>' + escapeHtml(machine.host) + '</td>' +
-      '<td class="ping-status ' + (isOk ? 'ok' : 'error') + '">' + (isOk ? 'OK' : 'Not OK') + '</td>' +
+      '<td class="ping-status ' + (isOk ? 'ok' : 'error') + '" title="' + escapeHtml(statusTitle) + '">' + escapeHtml(statusText) + '</td>' +
     '</tr>';
   }).join("");
   var allOk = pingMachines.every(function(machine) {
@@ -69,13 +80,76 @@ function renderPingMonitoringCard(pingMachines) {
     return state.connected === true && state.state === "ok";
   });
 
-  return '<article class="monitoring-card ping-monitoring-card ' + (allOk ? 'ok' : 'error') + '" data-monitoring-card-id="__ping__">' +
+  var cardState = REFERENCE_MODE_ENABLED ? pingReferenceState.state : (allOk ? "ok" : "error");
+  var referenceButton = REFERENCE_MODE_ENABLED
+    ? '<button class="reference-button" type="button" data-ping-reference data-machine-id="__ping__" title="' + escapeHtml(pingReferenceState.title) + '">' + (PING_MONITORING_REFERENCE ? 'Reference' : 'Set Reference') + '</button>'
+    : '';
+  return '<article class="monitoring-card ping-monitoring-card ' + cardState + (previewingReference ? ' reference-preview' : '') + '" data-monitoring-card-id="__ping__">' +
     '<div class="card-head"><div><h3 class="monitoring-drag-handle" draggable="true">Ping</h3><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span></div>' +
-      '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="__ping__">Minimize</button></div></div>' +
+      '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="__ping__">Minimize</button>' + referenceButton + '</div></div>' +
     '<div class="ping-table-wrap"><table class="ping-monitoring-table">' +
       '<tbody>' + rows + '</tbody>' +
-    '</table></div>' +
+    '</table></div><p class="card-message">' + cardMessageHtml(pingReferenceState.message) + '</p>' +
   '</article>';
+}
+
+function pingSuccessfulTime(value) {
+  var date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not OK";
+  return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function buildPingReferenceState(pingMachines, previewingReference) {
+  var lastPing = latestPingDate(pingMachines);
+  var lastPingMessage = lastPing ? "Dernier ping : " + formatDate(lastPing) : "Aucun ping effectue";
+  if (!REFERENCE_MODE_ENABLED) return { state: "ok", message: lastPingMessage, title: "" };
+  if (!PING_MONITORING_REFERENCE) return {
+    state: "unknown",
+    message: lastPingMessage + "\nReference non definie - Utilisez Set Reference.",
+    title: "Aucune reference definie - Cliquer pour memoriser les machines qui repondent"
+  };
+  var current = pingMachines.filter(function(machine) {
+    var state = monitoringState[machine.id] || buildUnknownState(machine);
+    return state.connected === true && state.state === "ok";
+  }).map(function(machine) { return String(machine.id); }).sort();
+  var expected = (PING_MONITORING_REFERENCE.respondingMachineIds || []).map(String).sort();
+  var same = current.length === expected.length && current.every(function(id, index) { return id === expected[index]; });
+  var date = PING_MONITORING_REFERENCE.setAt ? formatDate(PING_MONITORING_REFERENCE.setAt) : "date inconnue";
+  if (previewingReference) return {
+    state: "ok",
+    message: "Etat de reference : " + date,
+    title: "Reference Ping du " + date + " - Clic droit pour la modifier"
+  };
+  return {
+    state: same ? "ok" : "warning",
+    message: lastPingMessage + "\nReference : " + date,
+    title: "Reference Ping du " + date + " - Clic droit pour la modifier"
+  };
+}
+
+function latestPingDate(pingMachines) {
+  var timestamps = pingMachines.map(function(machine) {
+    var record = monitoringRecords[machine.id];
+    var value = record && record.timestamp;
+    var timestamp = value ? new Date(value).getTime() : NaN;
+    return Number.isFinite(timestamp) ? timestamp : 0;
+  });
+  var latest = timestamps.length ? Math.max.apply(Math, timestamps) : 0;
+  return latest ? new Date(latest).toISOString() : "";
+}
+
+async function setPingReference() {
+  if (!REFERENCE_MODE_ENABLED) return;
+  try {
+    var response = await fetch("/api/monitoring/ping/reference", { method: "PUT" });
+    var result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Reference Ping impossible");
+    PING_MONITORING_REFERENCE = result.reference;
+    renderMonitoringCards();
+    setStatus("Reference Ping enregistree", "ok");
+  } catch (error) {
+    setStatus(error.message || "Sauvegarde impossible", "error");
+  }
 }
 
 function renderMonitoringMiniCard(machine, state) {
@@ -92,7 +166,7 @@ function renderPingMonitoringMiniCard(pingMachines) {
     var state = monitoringState[machine.id] || buildUnknownState(machine);
     return state.connected === true && state.state === "ok";
   }).length;
-  var stateClass = okCount === pingMachines.length ? "ok" : "error";
+  var stateClass = REFERENCE_MODE_ENABLED ? buildPingReferenceState(pingMachines).state : (okCount === pingMachines.length ? "ok" : "error");
   return '<article class="monitoring-mini-card ' + stateClass + '" data-monitoring-card-id="__ping__">' +
     '<button class="mini-maximize-button" type="button" data-monitoring-maximize="__ping__">Max</button>' +
     '<strong class="monitoring-drag-handle" draggable="true">Ping</strong><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span>' +
@@ -105,22 +179,37 @@ function renderFullMonitoringCard(machine, state, previewingReference) {
       ? '<button class="reference-button" type="button" data-machine-id="' + escapeHtml(machine.id) + '"' +
           ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">' + referenceButtonLabel + '</button>'
       : '';
+    var record = monitoringRecords[machine.id];
+    var neverConnected = !previewingReference && state.connected !== true && !(record && record.lastSuccessfulAt);
+    var content = neverConnected
+      ? '<div class="equipment-no-information"><strong>' + escapeHtml(machineTypeLabel(machine.type)) + '</strong>' +
+          '<p>Aucune information retournée par l’équipement.</p></div>'
+      : '<div class="pill-section">' +
+          (machine.type === "kiloview" ? kiloviewMonitoring(state) :
+            machine.type === "netgear-m4300" ? netgearMonitoring(state) :
+            ioStatusTable("Inputs", state.inputTables, state.inputSlots) +
+            ioStatusTable("Outputs", state.outputTables, state.outputSlots) +
+            hardwareStatusTable(state.usbPorts, state.fans, state.powerSupplies) +
+            statusOverviewRow(state)) +
+        '</div><p class="card-message">' + cardMessageHtml(state.message) + '</p>';
 
-    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + '" data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
+    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + (neverConnected ? ' never-connected' : '') + '" data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
       '<div class="card-head">' +
         '<div><h3 class="monitoring-drag-handle" draggable="true">' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
         '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="' + escapeHtml(machine.id) + '">Minimize</button>' + referenceButton + '</div>' +
       '</div>' +
-      '<div class="pill-section">' +
-        (machine.type === "kiloview" ? kiloviewMonitoring(state) :
-          machine.type === "netgear-m4300" ? netgearMonitoring(state) :
-          ioStatusTable("Inputs", state.inputTables, state.inputSlots) +
-          ioStatusTable("Outputs", state.outputTables, state.outputSlots) +
-          hardwareStatusTable(state.usbPorts, state.fans, state.powerSupplies) +
-          statusOverviewRow(state)) +
-      '</div>' +
-      '<p class="card-message">' + escapeHtml(state.message) + '</p>' +
+      content +
     '</article>';
+}
+
+function cardMessageHtml(message) {
+  var normalized = escapeHtml(message || "").replace(/\s+-\s+Reference:\s*/g, "\nReference : ");
+  return normalized.split("\n").map(function(line) {
+    var datedLine = line.match(/^(Dernier (?:scan|ping)|Reference)\s*:\s*(.*)$/);
+    if (!datedLine) return '<span class="card-message-text">' + line + '</span>';
+    return '<span class="card-message-row"><span class="card-message-label">' + datedLine[1] + ' :</span>' +
+      '<span class="card-message-date">' + datedLine[2] + '</span></span>';
+  }).join("");
 }
 
 function renderMonitoringCardDialog(machineId, previewingReference) {
@@ -150,6 +239,7 @@ function buildReferencePreviewState(machine, baseState) {
     if (expectedState) {
       item.state = expectedState;
       item.ok = stateHealth(expectedState);
+      item.referenceState = expectedState;
     }
     if (expected && typeof expected === "object" && expected.icon) item.icon = expected.icon;
     item.changed = false;

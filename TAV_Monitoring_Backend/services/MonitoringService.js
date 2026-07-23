@@ -25,13 +25,18 @@ class MonitoringService extends EventEmitter {
   start() {
     this.stop();
     const initialScan = this.scanAll().catch((error) => logger.error("Initial scan failed", { error: error.message }));
+    this.refreshInterval();
+    return initialScan;
+  }
+
+  refreshInterval() {
+    this.stop();
     if (this.config.monitor_interval_s > 0) {
       this.timer = setInterval(() => {
         this.scanAll().catch((error) => logger.error("Scheduled scan failed", { error: error.message }));
       }, this.config.monitor_interval_s * 1000);
       if (this.timer.unref) this.timer.unref();
     }
-    return initialScan;
   }
 
   stop() {
@@ -78,7 +83,7 @@ class MonitoringService extends EventEmitter {
       baseView = buildOfflineView(machine, error.message, raw.timestamp);
     }
     if (!this.store.find(id)) return null;
-    const view = applyReferenceMode(machine, baseView, this.config.monitoring_reference_mode);
+    const view = machine.type === "other" ? baseView : applyReferenceMode(machine, baseView, this.config.monitoring_reference_mode);
     const rawChanges = diffTelemetry(previous && previous.raw, raw);
     const significant = !previous || structuralFingerprint(previous.view) !== structuralFingerprint(view);
     const hasChanges = !previous || Object.keys(rawChanges).length > 0 || significant;
@@ -88,8 +93,12 @@ class MonitoringService extends EventEmitter {
       revision: this.revision,
       timestamp: raw.timestamp || new Date().toISOString(),
       raw,
-      view
+      view,
+      lastSuccessfulAt: baseView.connected === true
+        ? raw.timestamp || new Date().toISOString()
+        : previous && previous.lastSuccessfulAt || null
     };
+    if (baseView.connected === true) record.lastSuccessfulAt = record.timestamp;
     this.records.set(id, record);
     if (!previous) this.publish({ type: "monitoring.initialized", revision: record.revision, machineId: id, monitoring: record });
     else if (significant) this.publish({ type: "monitoring.changed", revision: record.revision, machineId: id, monitoring: record });
@@ -123,12 +132,34 @@ class MonitoringService extends EventEmitter {
     return record;
   }
 
+  buildPingReference() {
+    const pingMachines = this.store.load().filter((machine) => machine.type === "other");
+    if (!pingMachines.length) {
+      const error = new Error("No Ping machine is configured");
+      error.status = 409;
+      throw error;
+    }
+    if (pingMachines.some((machine) => !this.records.has(machine.id))) {
+      const error = new Error("A completed Ping scan is required before setting the reference");
+      error.status = 409;
+      throw error;
+    }
+    return {
+      version: 1,
+      setAt: new Date().toISOString(),
+      respondingMachineIds: pingMachines.filter((machine) => {
+        const record = this.records.get(machine.id);
+        return record && record.view && record.view.connected === true && record.view.state === "ok";
+      }).map((machine) => machine.id).sort()
+    };
+  }
+
   refreshReferenceMode() {
     this.store.load().forEach((machine) => {
       const record = this.records.get(machine.id);
       if (!record) return;
       const base = record.raw && record.raw.error ? buildOfflineView(machine, record.raw.error, record.raw.timestamp) : buildMonitoringView(record.raw);
-      record.view = applyReferenceMode(machine, base, this.config.monitoring_reference_mode);
+      record.view = machine.type === "other" ? base : applyReferenceMode(machine, base, this.config.monitoring_reference_mode);
       record.revision = ++this.revision;
       this.publish({ type: "monitoring.changed", revision: record.revision, machineId: machine.id, monitoring: record });
     });

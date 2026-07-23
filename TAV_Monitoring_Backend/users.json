@@ -1,0 +1,14 @@
+[
+  {
+    "id": "5924466d-b727-407d-a77e-999eafd66908",
+    "login": "administrator",
+    "role": "administrator",
+    "password": "scrypt$X5tnW3XPBZHefPn13T2sXw==$NvvfC1DIETfSyOTmNSrJcPLRMmJrirIq3sveEJz39beIF9Q+EYKMWdYI2znVNISzm38FSd5vytf63d7cL3PX+Q=="
+  },
+  {
+    "id": "6a925b03-6aa7-44ff-b942-0e3d10be24d5",
+    "login": "Olivier",
+    "role": "administrator",
+    "password": "scrypt$5V2QfRdyZhwtv6+1wxIXVA==$+hBMiv4uKr5J7EJ7c3++hWEKCT6CEIy5nGtqKtmdWovzeQSFPwcafkTKENyRn1Kp7g3kBfa2pv72ApZ3vcBUIA=="
+  }
+]

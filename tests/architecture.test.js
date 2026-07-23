@@ -16,6 +16,13 @@ test("frontend and backend are independent runnable projects", () => {
   });
 });
 
+test("frontend proxy handles reset HTTP and WebSocket connections", () => {
+  const proxy = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "proxy.js"), "utf8");
+  assert.match(proxy, /backendResponse\.on\("error", backendFailure\)/);
+  assert.match(proxy, /clientSocket\.on\("error", closeTunnel\)/);
+  assert.match(proxy, /backendSocket\.on\("error", closeTunnel\)/);
+});
+
 test("device connectors exist only in the new backend", () => {
   ["SnmpLib.js", "NetgearM4300SnmpLib.js", "NovaStarApiLib.js", "KiloviewApiLib.js", "PingLib.js"].forEach((file) => {
     assert.equal(fs.existsSync(path.join(root, "TAV_Monitoring_Backend", "classes", file)), true);
@@ -62,9 +69,11 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20260721-5/);
-  assert.match(view, /monitoring-renderers\.js\?v=20260721-5/);
-  assert.match(view, /application\.js\?v=20260721-5/);
+  assert.match(view, /style\.css\?v=20260723-4/);
+  assert.match(view, /monitoring-renderers\.js\?v=20260723-2/);
+  assert.match(view, /application\.js\?v=20260722-1/);
+  assert.match(view, /auth\.js\?v=20260721-4/);
+  assert.match(view, /monitoring-maps\.js\?v=20260723-6/);
 });
 
 test("Kiloview summary separates actual status text from reference comparison background", () => {
@@ -103,6 +112,10 @@ test("monitoring cards group system health in one compact section", () => {
   assert.match(css, /\.io-status-group\.dense \.io-status-table td\s*\{[^}]*font-size:\s*8px;/s);
   assert.match(renderer, /io-status-group' \+ \(dense \? ' dense' : ''\)/);
   assert.match(renderer, /function monitoringItemTooltip\(item, state\)/);
+  assert.match(renderer, /var neverConnected = !previewingReference && state\.connected !== true && !\(record && record\.lastSuccessfulAt\)/);
+  assert.match(renderer, /machineTypeLabel\(machine\.type\)/);
+  assert.match(renderer, /Aucune information retournée par l’équipement\./);
+  assert.match(css, /\.monitoring-card\.never-connected\s*\{[^}]*color:\s*var\(--ink\);[^}]*filter:\s*none;/s);
   assert.doesNotMatch(renderer, /"Nom : "/);
   assert.doesNotMatch(renderer, /"Statut : "/);
   assert.match(renderer, /Reference : " \+ stateTitle\(item\.referenceState\)/);
@@ -113,12 +126,31 @@ test("monitoring cards group system health in one compact section", () => {
 test("reference button previews expected state and uses a confirmed context-menu action", () => {
   const renderer = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-renderers.js"), "utf8");
   const application = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "application.js"), "utf8");
+  const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "partials", "monitoring", "machine-cards.ejs"), "utf8");
+  const machineStore = fs.readFileSync(path.join(root, "TAV_Monitoring_Backend", "classes", "MachineStore.js"), "utf8");
 
   assert.match(renderer, /machine\.monitoringReference \? "Reference" : "Set Reference"/);
   assert.match(renderer, /function buildReferencePreviewState\(machine, baseState\)/);
   assert.match(renderer, /reference-preview/);
+  assert.match(renderer, /item\.referenceState = expectedState/);
+  assert.match(machineStore, /snapshot:\s*safe\.monitoringReference\.snapshot/);
+  assert.match(css, /\.monitoring-card\.reference-preview \.io-status-table td\.reference-changed[\s\S]*?background:\s*transparent;/);
   assert.match(application, /if \(!button \|\| !machine \|\| machine\.monitoringReference\) return;\s*setMachineReference\(machine\.id\);/);
+  assert.match(renderer, /function buildPingReferenceState\(pingMachines, previewingReference\)/);
+  assert.match(renderer, /referencePreviewMachineId === "__ping__"/);
+  assert.match(renderer, /function latestPingDate\(pingMachines\)/);
+  assert.match(renderer, /function pingSuccessfulTime\(value\)/);
+  assert.match(renderer, /record\.lastSuccessfulAt \|\| \(isOk && record\.timestamp\)/);
+  assert.match(renderer, /Dernier ping : /);
+  assert.match(renderer, /function cardMessageHtml\(message\)/);
+  assert.match(renderer, /card-message-label/);
+  assert.match(css, /\.card-message\s*\{[^}]*grid-template-columns:\s*max-content minmax\(0, 1fr\)/s);
+  assert.match(css, /\.monitoring-card\s*\{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto;/s);
+  assert.match(css, /\.monitoring-card \.card-message\s*\{[^}]*align-self:\s*end;/s);
+  assert.match(application, /referenceContextMachineId = "__ping__"/);
+  assert.match(renderer, /current\.length === expected\.length/);
+  assert.match(renderer, /fetch\("\/api\/monitoring\/ping\/reference", \{ method: "PUT" \}\)/);
   assert.match(application, /addEventListener\("contextmenu"/);
   assert.match(application, /window\.confirm\(/);
   assert.match(view, />Set reference<\/button>/);

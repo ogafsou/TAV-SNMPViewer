@@ -115,7 +115,10 @@ function sanitizeMachine(machine) {
   if (safe.monitoringReference) {
     safe.monitoringReference = {
       version: safe.monitoringReference.version,
-      setAt: safe.monitoringReference.setAt
+      setAt: safe.monitoringReference.setAt,
+      snapshot: safe.monitoringReference.snapshot && typeof safe.monitoringReference.snapshot === "object"
+        ? JSON.parse(JSON.stringify(safe.monitoringReference.snapshot))
+        : undefined
     };
   }
   return safe;

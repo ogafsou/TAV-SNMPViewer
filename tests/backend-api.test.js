@@ -67,12 +67,58 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   assert.equal(response.status, 200);
   assert.equal(referenced.monitoring.view.state, "ok");
   assert.equal(!!store.find("m1").monitoringReference, true);
+  assert.deepEqual(
+    referenced.machine.monitoringReference.snapshot,
+    store.find("m1").monitoringReference.snapshot
+  );
+  assert.equal(referenced.machine.readCommunity, undefined);
 
   response = await fetch(base + "/api/config/monitoring-reference-mode", {
     method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled: false })
   });
   assert.equal((await response.json()).enabled, false);
   assert.equal(JSON.parse(fs.readFileSync(config.configPath, "utf8")).monitoring_reference_mode, false);
+
+  response = await fetch(base + "/api/config/monitor-interval", {
+    method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ seconds: 45 })
+  });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).monitor_interval_s, 45);
+  assert.equal(JSON.parse(fs.readFileSync(config.configPath, "utf8")).monitor_interval_s, 45);
+
+  response = await fetch(base + "/api/maps", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "Regie principale" })
+  });
+  assert.equal(response.status, 201);
+  const createdMap = (await response.json()).map;
+  response = await fetch(base + "/api/maps/" + createdMap.id, {
+    method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "Regie centrale" })
+  });
+  assert.equal((await response.json()).map.name, "Regie centrale");
+  response = await fetch(base + "/api/maps");
+  assert.equal((await response.json()).length, 1);
+  const pngBytes = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  response = await fetch(base + "/api/maps/" + createdMap.id + "/background", {
+    method: "PUT", headers: { "content-type": "image/png" }, body: pngBytes
+  });
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).map.backgroundUrl, /\/background$/);
+  response = await fetch(base + "/api/maps/" + createdMap.id + "/background");
+  assert.equal(response.headers.get("content-type"), "image/png");
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()), pngBytes);
+  response = await fetch(base + "/api/maps/" + createdMap.id + "/segments", {
+    method: "PUT", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ segments: [{
+      id: "s1", orientation: "horizontal", x: 0.1, y: 0.2, length: 0.5, cases: 8,
+      assignments: [{ machineId: "m1", machineName: "NovaStar 1", cardId: "2", outputId: "3" }]
+    }] })
+  });
+  const savedSegment = (await response.json()).map.segments[0];
+  assert.equal(savedSegment.cases, 8);
+  assert.deepEqual(savedSegment.assignments[0], { machineId: "m1", machineName: "NovaStar 1", cardId: "2", outputId: "3" });
+  assert.equal(savedSegment.assignments.length, 8);
+  response = await fetch(base + "/api/maps/" + createdMap.id, { method: "DELETE" });
+  assert.equal(response.status, 204);
 
   response = await fetch(base + "/api/monitoring");
   const snapshot = await response.json();

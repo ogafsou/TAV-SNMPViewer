@@ -1,6 +1,7 @@
 var LEGACY_STORAGE_KEY = "novastarMachines";
 var AUTOREFRESH_S = Number(document.body.dataset.restRefreshS || 0) || 0;
 var REFERENCE_MODE_ENABLED = false;
+var PING_MONITORING_REFERENCE = null;
 var BACKEND_MONITOR_INTERVAL_S = 0;
 var machines = [];
 var selectedMachineId = localStorage.getItem("novastarSelectedMachineId") || "";
@@ -46,6 +47,8 @@ function saveMonitoringCardOrder() {
 
 var machineList = document.getElementById("machineList");
 var machineCount = document.getElementById("machineCount");
+var monitorIntervalForm = document.getElementById("monitorIntervalForm");
+var monitorIntervalSeconds = document.getElementById("monitorIntervalSeconds");
 var selectedMachineName = document.getElementById("selectedMachineName");
 var selectedMachineDetails = document.getElementById("selectedMachineDetails");
 var selectedMachineHint = document.getElementById("selectedMachineHint");
@@ -70,6 +73,33 @@ var monitoringCardDialogContent = document.getElementById("monitoringCardDialogC
 document.getElementById("openAddDialog").addEventListener("click", openAddDialog);
 document.getElementById("closeAddDialog").addEventListener("click", closeDialog);
 document.getElementById("cancelAddDialog").addEventListener("click", closeDialog);
+monitorIntervalForm.addEventListener("submit", async function(event) {
+  event.preventDefault();
+  var seconds = Number(monitorIntervalSeconds.value);
+  if (!Number.isInteger(seconds) || seconds < 1 || seconds > 86400) {
+    setStatus("Intervalle invalide", "error");
+    return;
+  }
+  var submitButton = monitorIntervalForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  try {
+    var response = await fetch("/api/config/monitor-interval", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seconds: seconds })
+    });
+    var result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Sauvegarde impossible");
+    BACKEND_MONITOR_INTERVAL_S = result.monitor_interval_s;
+    monitorIntervalSeconds.value = String(BACKEND_MONITOR_INTERVAL_S);
+    updateAutoRefreshHint();
+    setStatus("Intervalle enregistre", "ok");
+  } catch (error) {
+    setStatus(error.message || "Sauvegarde impossible", "error");
+  } finally {
+    submitButton.disabled = false;
+  }
+});
 monitoringViewToggleButton.addEventListener("click", function() {
   if (monitoringMinimized) {
     monitoringMinimized = false;
@@ -350,6 +380,11 @@ monitoringReferenceMode.addEventListener("change", async function() {
 
 monitoringCards.addEventListener("pointerdown", function(event) {
   var button = event.target.closest(".reference-button");
+  if (button && button.hasAttribute("data-ping-reference") && event.button === 0 && PING_MONITORING_REFERENCE) {
+    referencePreviewMachineId = "__ping__";
+    renderMonitoringCards();
+    return;
+  }
   var machine = button && getMachineById(button.dataset.machineId);
   if (!button || event.button !== 0 || !machine || !machine.monitoringReference) return;
   referencePreviewMachineId = machine.id;
@@ -430,6 +465,11 @@ monitoringCards.addEventListener("click", function(event) {
   }
   var miniCard = event.target.closest(".monitoring-mini-card");
   if (miniCard) { openMonitoringCardDialog(miniCard.dataset.machineId); return; }
+  var pingReferenceButton = event.target.closest("[data-ping-reference]");
+  if (pingReferenceButton && !PING_MONITORING_REFERENCE) {
+    setPingReference();
+    return;
+  }
   var button = event.target.closest(".reference-button");
   var machine = button && getMachineById(button.dataset.machineId);
   if (!button || !machine || machine.monitoringReference) return;
@@ -456,6 +496,15 @@ document.addEventListener("pointermove", function(event) {
 });
 
 monitoringCards.addEventListener("contextmenu", function(event) {
+  var pingReferenceButton = event.target.closest("[data-ping-reference]");
+  if (pingReferenceButton) {
+    event.preventDefault();
+    referenceContextMachineId = "__ping__";
+    referenceContextMenu.style.left = Math.min(event.clientX, window.innerWidth - 170) + "px";
+    referenceContextMenu.style.top = Math.min(event.clientY, window.innerHeight - 60) + "px";
+    referenceContextMenu.hidden = false;
+    return;
+  }
   var button = event.target.closest(".reference-button");
   if (!button) return;
   event.preventDefault();
@@ -466,6 +515,12 @@ monitoringCards.addEventListener("contextmenu", function(event) {
 });
 
 setReferenceMenuItem.addEventListener("click", function() {
+  if (referenceContextMachineId === "__ping__") {
+    referenceContextMenu.hidden = true;
+    if (!window.confirm("Remplacer la reference Ping par la liste des machines qui repondent actuellement ?")) return;
+    setPingReference();
+    return;
+  }
   var machine = getMachineById(referenceContextMachineId);
   referenceContextMenu.hidden = true;
   if (!machine) return;

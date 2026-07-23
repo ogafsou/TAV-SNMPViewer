@@ -89,6 +89,7 @@ async function initializeApplication() {
   renderSelectedMachine();
   renderMonitoringCards();
   await syncMonitoringSnapshot();
+  await initializeMonitoringMaps();
 }
 
 async function loadBackendConfig() {
@@ -97,7 +98,9 @@ async function loadBackendConfig() {
     var backendConfig = await response.json();
     if (!response.ok) throw new Error(backendConfig.error || "Configuration backend indisponible");
     REFERENCE_MODE_ENABLED = backendConfig.monitoring_reference_mode === true;
+    PING_MONITORING_REFERENCE = backendConfig.ping_monitoring_reference || null;
     BACKEND_MONITOR_INTERVAL_S = Number(backendConfig.monitor_interval_s) || 0;
+    monitorIntervalSeconds.value = String(BACKEND_MONITOR_INTERVAL_S || 30);
     monitoringReferenceMode.checked = REFERENCE_MODE_ENABLED;
     updateAutoRefreshHint();
   } catch (error) {

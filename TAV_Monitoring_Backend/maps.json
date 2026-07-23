@@ -1,0 +1,116 @@
+[
+  {
+    "id": "1784794356983-d149401df1e87",
+    "name": "aaa",
+    "segments": [
+      {
+        "id": "1784794366199-3935e80b307cb8",
+        "orientation": "horizontal",
+        "x": 0.3072916666666667,
+        "y": 0.10512820512820513,
+        "length": 0.41059027777777773,
+        "cases": 25,
+        "assignments": [
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "12"
+          },
+          null,
+          null,
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "2"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "3"
+          },
+          null,
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "4"
+          },
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "5"
+          },
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "11"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "7"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "8"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "13"
+          },
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "10"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "9"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "14"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "15"
+          },
+          null,
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "16"
+          }
+        ]
+      }
+    ],
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps/1784794356983-d149401df1e87/background"
+  }
+]

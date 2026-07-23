@@ -40,5 +40,31 @@
     "retries": "1",
     "includePoe": false,
     "snmpPort": "1161"
+  },
+  {
+    "id": "1784794563290",
+    "type": "novastar-h",
+    "name": "test",
+    "host": "127.0.0.1:8080",
+    "accessMethod": "snmp+api",
+    "readCommunity": "public",
+    "writeCommunity": "private",
+    "timeout": "2000",
+    "retries": "1",
+    "apiProtocol": "legacy",
+    "apiBaseUrl": "",
+    "apiUsername": "admin",
+    "apiPassword": "admin",
+    "apiProjectId": "",
+    "apiSecretKey": "",
+    "apiEncryption": false,
+    "apiDeviceId": "0",
+    "maxOutputSlots": "",
+    "maxScreens": "",
+    "maxInputSlots": "",
+    "recvCardsPerPort": "1",
+    "includeReceivingCards": false,
+    "includePoe": false,
+    "snmpPort": "161"
   }
 ]

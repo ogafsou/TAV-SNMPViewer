@@ -18,9 +18,10 @@ function createFrontend(options) {
   app.use("/api", restProxy(config.backend_rest_url));
   function renderPage(page) {
     return (req, res) => res.render("index", {
-      title: page === "monitoring" ? "TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring"),
+      title: page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-maps" ? "Monitoring Maps - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring")),
       page,
-      rest_refresh_s: config.rest_refresh_s
+      rest_refresh_s: config.rest_refresh_s,
+      bkgnd_opacity: config.bkgnd_opacity === undefined ? 1 : config.bkgnd_opacity
     });
   }
 
@@ -34,6 +35,7 @@ function createFrontend(options) {
   });
   app.get("/monitoring", authorizePage(config, ["user", "editor", "administrator"]), renderPage("monitoring"));
   app.get("/configuration", authorizePage(config, ["editor", "administrator"]), renderPage("configuration"));
+  app.get("/monitoring-maps", authorizePage(config, ["administrator"], "Olivier"), renderPage("monitoring-maps"));
   app.get("/users", authorizePage(config, ["administrator"]), renderPage("users"));
   app.use((req, res) => res.status(404).render("error", { message: "Not found", error: {} }));
   return { app, config };
@@ -41,7 +43,7 @@ function createFrontend(options) {
 
 module.exports = { createFrontend };
 
-function authorizePage(config, roles) {
+function authorizePage(config, roles, requiredLogin) {
   return (req, res, next) => {
     const target = new URL(config.backend_rest_url);
     const transport = target.protocol === "https:" ? https : http;
@@ -60,7 +62,7 @@ function authorizePage(config, roles) {
         if (backendResponse.statusCode === 401) return res.redirect("/login");
         let result;
         try { result = JSON.parse(body); } catch (error) { return res.status(502).send("Backend authentication unavailable"); }
-        if (!result.user || !roles.includes(result.user.role)) return res.redirect("/monitoring");
+        if (!result.user || !roles.includes(result.user.role) || (requiredLogin && String(result.user.login || "").toLowerCase() !== requiredLogin.toLowerCase())) return res.redirect("/monitoring");
         next();
       });
     });

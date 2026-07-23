@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1783432154855",
+    "name": "H5-Main",
+    "host": "192.168.69.86",
+    "readCommunity": "public",
+    "writeCommunity": "private",
+    "timeout": "2000",
+    "retries": "1",
+    "maxOutputSlots": "",
+    "maxScreens": "",
+    "maxInputSlots": "",
+    "recvCardsPerPort": "1",
+    "includeReceivingCards": false,
+    "type": "novastar-h"
+  },
+  {
+    "id": "1783432208742",
+    "name": "H5-Backup",
+    "host": "192.168.69.85",
+    "readCommunity": "public",
+    "writeCommunity": "private",
+    "timeout": "2000",
+    "retries": "1",
+    "maxOutputSlots": "",
+    "maxScreens": "",
+    "maxInputSlots": "",
+    "recvCardsPerPort": "1",
+    "includeReceivingCards": false,
+    "type": "novastar-h"
+  },
+  {
+    "id": "1784150076768",
+    "type": "netgear-m4300",
+    "name": "test",
+    "host": "127.0.0.1",
+    "accessMethod": "snmp",
+    "readCommunity": "public",
+    "timeout": "2000",
+    "retries": "1",
+    "includePoe": false,
+    "snmpPort": "1161"
+  }
+]

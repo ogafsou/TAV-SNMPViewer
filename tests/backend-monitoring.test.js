@@ -149,6 +149,37 @@ test("start performs an immediate scan even when periodic monitoring is disabled
   assert.equal(service.snapshot().machines.length, 1);
 });
 
+test("Ping reference stores exactly the machines responding at snapshot time", async (t) => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-monitoring-ping-reference-"));
+  const store = new MachineStore(path.join(folder, "machines.json"));
+  store.save([
+    { id: "ping-up", type: "other", name: "Up", host: "192.0.2.1" },
+    { id: "ping-down", type: "other", name: "Down", host: "192.0.2.2" }
+  ]);
+  let pingUpResponds = true;
+  const service = new MonitoringService({
+    store,
+    config: { monitor_interval_s: 0, monitoring_reference_mode: true, max_parallel_scans: 2 },
+    deviceMonitor: { monitor: async (machine) => {
+      if (machine.id === "ping-down" || !pingUpResponds) throw new Error("Machine offline");
+      return { ...data("50 Hz", "1"), machineId: machine.id, type: "other", host: machine.host };
+    } }
+  });
+  t.after(() => { service.stop(); fs.rmSync(folder, { recursive: true, force: true }); });
+
+  assert.throws(() => service.buildPingReference(), /completed Ping scan/);
+  await service.scanAll();
+  assert.equal(service.records.get("ping-up").view.state, "ok");
+  assert.equal(service.records.get("ping-down").view.state, "offline");
+  assert.deepEqual(service.buildPingReference().respondingMachineIds, ["ping-up"]);
+  const lastSuccessfulAt = service.records.get("ping-up").lastSuccessfulAt;
+  assert.ok(lastSuccessfulAt);
+  pingUpResponds = false;
+  await service.scanMachine("ping-up");
+  assert.equal(service.records.get("ping-up").view.state, "offline");
+  assert.equal(service.records.get("ping-up").lastSuccessfulAt, lastSuccessfulAt);
+});
+
 test("scanAll scans machines concurrently up to max_parallel_scans", async (t) => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-monitoring-parallel-"));
   const store = new MachineStore(path.join(folder, "machines.json"));
