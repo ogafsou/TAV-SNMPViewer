@@ -8,7 +8,10 @@ function renderMonitoringCards() {
   }
 
   monitoringCards.classList.toggle("minimized", monitoringMinimized);
-  monitoringViewToggleButton.textContent = monitoringMinimized ? "Maximize All" : "Minimize All";
+  var toggleLabel = monitoringMinimized ? "Maximiser toutes les cartes" : "Minimiser toutes les cartes";
+  monitoringViewToggleButton.innerHTML = '<img src="/images/' + (monitoringMinimized ? 'Maximize.png' : 'Minimize.png') + '" alt="" />';
+  monitoringViewToggleButton.setAttribute("aria-label", toggleLabel);
+  monitoringViewToggleButton.title = toggleLabel;
   var pingMachines = machines.filter(function(machine) { return machine.type === "other"; });
   var machineById = machines.filter(function(machine) { return machine.type !== "other"; }).reduce(function(result, machine) {
     result[machine.id] = machine;
@@ -84,9 +87,11 @@ function renderPingMonitoringCard(pingMachines) {
   var referenceButton = REFERENCE_MODE_ENABLED
     ? '<button class="reference-button" type="button" data-ping-reference data-machine-id="__ping__" title="' + escapeHtml(pingReferenceState.title) + '">' + (PING_MONITORING_REFERENCE ? 'Reference' : 'Set Reference') + '</button>'
     : '';
+  var refreshButton = monitoringCardRefreshButton("__ping__", "Relancer tous les pings");
   return '<article class="monitoring-card ping-monitoring-card ' + cardState + (previewingReference ? ' reference-preview' : '') + '" data-monitoring-card-id="__ping__">' +
-    '<div class="card-head"><div><h3 class="monitoring-drag-handle" draggable="true">Ping</h3><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span></div>' +
-      '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="__ping__">Minimize</button>' + referenceButton + '</div></div>' +
+    '<div class="card-head"><h3 class="monitoring-drag-handle" draggable="true">Ping</h3>' +
+      '<div class="card-head-meta"><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span>' +
+      '<div class="card-head-actions">' + monitoringCardMinimizeButton("__ping__", "Minimiser la carte Ping") + refreshButton + referenceButton + '</div></div></div>' +
     '<div class="ping-table-wrap"><table class="ping-monitoring-table">' +
       '<tbody>' + rows + '</tbody>' +
     '</table></div><p class="card-message">' + cardMessageHtml(pingReferenceState.message) + '</p>' +
@@ -153,8 +158,9 @@ async function setPingReference() {
 }
 
 function renderMonitoringMiniCard(machine, state) {
-  return '<article class="monitoring-mini-card ' + escapeHtml(state.state || "unknown") + '" data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
-      '<button class="mini-maximize-button" type="button" data-monitoring-maximize="' + escapeHtml(machine.id) + '">Max</button>' +
+  var colorAttribute = novastarColorAttribute(machine);
+  return '<article class="monitoring-mini-card ' + escapeHtml(state.state || "unknown") + (colorAttribute ? ' novastar-colored' : '') + '"' + colorAttribute + ' data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
+      monitoringCardMaximizeButton(machine.id, "Agrandir la carte " + machine.name) +
       '<strong class="monitoring-drag-handle" draggable="true">' + escapeHtml(machine.name) + '</strong>' +
       '<span>' + escapeHtml(machine.host) + '</span>' +
       '<small>' + escapeHtml(state.label || state.state || "Inconnu") + '</small>' +
@@ -167,20 +173,21 @@ function renderPingMonitoringMiniCard(pingMachines) {
     return state.connected === true && state.state === "ok";
   }).length;
   var stateClass = REFERENCE_MODE_ENABLED ? buildPingReferenceState(pingMachines).state : (okCount === pingMachines.length ? "ok" : "error");
-  return '<article class="monitoring-mini-card ' + stateClass + '" data-monitoring-card-id="__ping__">' +
-    '<button class="mini-maximize-button" type="button" data-monitoring-maximize="__ping__">Max</button>' +
+  return '<article class="monitoring-mini-card ' + stateClass + '" data-machine-id="__ping__" data-monitoring-card-id="__ping__">' +
+    monitoringCardMaximizeButton("__ping__", "Agrandir la carte Ping") +
     '<strong class="monitoring-drag-handle" draggable="true">Ping</strong><span>' + pingMachines.length + ' machine' + (pingMachines.length > 1 ? 's' : '') + '</span>' +
     '<small>' + okCount + ' OK / ' + (pingMachines.length - okCount) + ' Not OK</small></article>';
 }
 
 function renderFullMonitoringCard(machine, state, previewingReference) {
+    var record = monitoringRecords[machine.id];
+    var neverConnected = !previewingReference && state.connected !== true && !(record && record.lastSuccessfulAt);
     var referenceButtonLabel = machine.monitoringReference ? "Reference" : "Set Reference";
-    var referenceButton = REFERENCE_MODE_ENABLED
+    var referenceButton = REFERENCE_MODE_ENABLED && (machine.monitoringReference || !neverConnected)
       ? '<button class="reference-button" type="button" data-machine-id="' + escapeHtml(machine.id) + '"' +
           ' title="' + escapeHtml(referenceButtonTitle(machine)) + '">' + referenceButtonLabel + '</button>'
       : '';
-    var record = monitoringRecords[machine.id];
-    var neverConnected = !previewingReference && state.connected !== true && !(record && record.lastSuccessfulAt);
+    var refreshButton = monitoringCardRefreshButton(machine.id, "Rafraîchir " + machine.name);
     var content = neverConnected
       ? '<div class="equipment-no-information"><strong>' + escapeHtml(machineTypeLabel(machine.type)) + '</strong>' +
           '<p>Aucune information retournée par l’équipement.</p></div>'
@@ -193,13 +200,39 @@ function renderFullMonitoringCard(machine, state, previewingReference) {
             statusOverviewRow(state)) +
         '</div><p class="card-message">' + cardMessageHtml(state.message) + '</p>';
 
-    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + (neverConnected ? ' never-connected' : '') + '" data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
+    var colorAttribute = novastarColorAttribute(machine);
+    return '<article class="monitoring-card ' + escapeHtml(state.state) + (previewingReference ? ' reference-preview' : '') + (neverConnected ? ' never-connected' : '') + (colorAttribute ? ' novastar-colored' : '') + '"' + colorAttribute + ' data-machine-id="' + escapeHtml(machine.id) + '" data-monitoring-card-id="' + escapeHtml(machine.id) + '">' +
       '<div class="card-head">' +
-        '<div><h3 class="monitoring-drag-handle" draggable="true">' + escapeHtml(machine.name) + '</h3><span>' + escapeHtml(machine.host) + '</span></div>' +
-        '<div class="card-head-actions"><button class="card-minimize-button" type="button" data-monitoring-minimize="' + escapeHtml(machine.id) + '">Minimize</button>' + referenceButton + '</div>' +
+        '<h3 class="monitoring-drag-handle" draggable="true" title="' + escapeHtml(machine.name) + '">' + escapeHtml(machine.name) + '</h3>' +
+        '<div class="card-head-meta"><span>' + escapeHtml(machine.host) + '</span>' +
+        '<div class="card-head-actions">' + monitoringCardMinimizeButton(machine.id, "Minimiser la carte " + machine.name) + refreshButton + referenceButton + '</div></div>' +
       '</div>' +
       content +
     '</article>';
+}
+
+function monitoringCardMinimizeButton(machineId, title) {
+  return '<button class="card-minimize-button" type="button" data-monitoring-minimize="' + escapeHtml(machineId) +
+    '" aria-label="' + escapeHtml(title) + '" title="' + escapeHtml(title) +
+    '"><img src="/images/Minimize.png" alt="" /></button>';
+}
+
+function monitoringCardMaximizeButton(machineId, title) {
+  return '<button class="mini-maximize-button" type="button" data-monitoring-maximize="' + escapeHtml(machineId) +
+    '" aria-label="' + escapeHtml(title) + '" title="' + escapeHtml(title) +
+    '"><img src="/images/Maximize.png" alt="" /></button>';
+}
+
+function monitoringCardRefreshButton(machineId, title) {
+  var disabled = targetedMonitoringRefreshes[machineId] ? " disabled" : "";
+  return '<button class="card-refresh-button" type="button" data-monitoring-refresh="' + escapeHtml(machineId) +
+    '" aria-label="' + escapeHtml(title) + '" title="' + escapeHtml(title) + '"' + disabled +
+    '><img src="/images/Refresh.png" alt="" /></button>';
+}
+
+function novastarColorAttribute(machine) {
+  if (!machine || ["novastar-h", "kiloview"].indexOf(machine.type) === -1 || !/^#[0-9a-f]{6}$/i.test(machine.color || "")) return "";
+  return ' style="--novastar-color:' + escapeHtml(machine.color) + '"';
 }
 
 function cardMessageHtml(message) {
@@ -213,6 +246,13 @@ function cardMessageHtml(message) {
 }
 
 function renderMonitoringCardDialog(machineId, previewingReference) {
+  if (machineId === "__ping__") {
+    referencePreviewMachineId = previewingReference ? "__ping__" : "";
+    var pingMachines = machines.filter(function(machine) { return machine.type === "other"; });
+    monitoringCardDialog.dataset.machineId = "__ping__";
+    monitoringCardDialogContent.innerHTML = renderPingMonitoringCard(pingMachines);
+    return;
+  }
   var machine = getMachineById(machineId);
   if (!machine) return;
   var baseState = monitoringState[machine.id] || buildUnknownState(machine);

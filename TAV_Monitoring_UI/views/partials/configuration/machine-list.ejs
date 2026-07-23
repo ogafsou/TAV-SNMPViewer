@@ -5,12 +5,17 @@
 
           <div class="machine-list-zone">
             <div class="section-title compact">
-              <h2>Machines H</h2>
-              <span id="machineCount">0</span>
+              <span id="machineCount">0 machine</span>
+            </div>
+            <div id="machineTypeFilters" class="machine-type-filters" aria-label="Filtrer les équipements par type">
+              <button type="button" data-machine-type="novastar-h" aria-pressed="true">Novastar</button>
+              <button type="button" data-machine-type="kiloview" aria-pressed="true">Kiloview</button>
+              <button type="button" data-machine-type="netgear-m4300" aria-pressed="true">Netgear</button>
+              <button type="button" data-machine-type="other" aria-pressed="true">Ping</button>
             </div>
             <select id="machineList" class="machine-list" size="12" aria-label="Liste des machines H"></select>
             <form id="monitorIntervalForm" class="monitor-interval-form">
-              <label for="monitorIntervalSeconds">Secondes entre deux scans</label>
+              <label for="monitorIntervalSeconds">Durée entre deux scans (en secondes)</label>
               <div>
                 <input id="monitorIntervalSeconds" name="seconds" type="number" min="1" max="86400" step="1" required />
                 <button type="submit">Enregistrer</button>

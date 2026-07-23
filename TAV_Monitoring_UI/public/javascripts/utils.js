@@ -1,5 +1,5 @@
-function summaryTile(label, value) {
-  return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+function summaryTile(label, value, className) {
+  return '<div class="metric' + (className ? " " + escapeHtml(className) : "") + '"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
 }
 
 function fieldTile(label, field) {
@@ -67,8 +67,14 @@ function formatDate(value) {
 }
 
 function setStatus(text, state) {
-  statusNode.textContent = text;
-  statusNode.className = "status-pill " + (state || "");
+  statusNode.dataset.lastOperation = text || "";
+  statusNode.dataset.lastOperationState = state || "";
+}
+
+function setBackendConnectionStatus(connected) {
+  statusNode.textContent = connected ? "Connexion Backend : OK" : "Connexion Backend : Erreur";
+  statusNode.className = "status-pill " + (connected ? "ok" : "error");
+  statusNode.title = "Adresse Backend : " + BACKEND_URL;
 }
 
 function normalizeAccessMethod(value) {

@@ -10,7 +10,8 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   const backendServer = http.createServer((req, res) => {
     if (req.url === "/api/auth/me") {
       res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify({ user: { id: "admin", login: "admin", role: "administrator" } }));
+      const olivier = String(req.headers.cookie || "").includes("session=olivier");
+      res.end(JSON.stringify({ user: { id: "admin", login: olivier ? "Olivier" : "admin", role: "administrator" } }));
       return;
     }
     if (req.url === "/api/health") {
@@ -47,12 +48,17 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(page.status, 200);
   assert.equal(html.includes("TAV Monitoring"), true);
   assert.equal(html.includes('data-rest-refresh-s="45"'), true);
+  assert.equal(html.includes('data-backend-url="http://127.0.0.1:' + backendPort + '"'), true);
+  assert.equal(html.includes("Connexion Backend : Erreur"), true);
   assert.equal(html.includes('--map-background-opacity:0.6'), true);
   assert.equal(html.includes('/javascripts/application.js'), true);
   assert.equal((html.match(/<main class="app-shell">/g) || []).length, 1);
   assert.equal((html.match(/id="monitoringTab"/g) || []).length, 1);
   assert.equal(html.includes('href="/monitoring"'), true);
   assert.equal(html.includes('href="/configuration"'), true);
+  assert.equal(html.includes('href="/monitoring-maps"'), false);
+  assert.equal(html.includes('id="monitoringMapsTab"'), false);
+  assert.equal(html.includes('/javascripts/monitoring-maps.js'), false);
   assert.match(html, /id="monitoringTab" class="tab-panel active"/);
   assert.match(html, /id="configurationTab" class="tab-panel" hidden/);
   const configurationMarkup = html.slice(html.indexOf('id="configurationTab"'), html.indexOf('id="monitoringTab"'));
@@ -63,6 +69,22 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(configurationPage.status, 200);
   assert.match(configurationHtml, /id="configurationTab" class="tab-panel active"/);
   assert.match(configurationHtml, /id="monitoringTab" class="tab-panel" hidden/);
+
+  const forbiddenMapsPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring-maps", { redirect: "manual" });
+  assert.equal(forbiddenMapsPage.status, 302);
+  assert.equal(forbiddenMapsPage.headers.get("location"), "/monitoring");
+
+  const olivierPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring", { headers: { cookie: "session=olivier" } });
+  const olivierHtml = await olivierPage.text();
+  assert.equal(olivierHtml.includes('href="/monitoring-maps"'), true);
+  assert.equal(olivierHtml.includes('id="monitoringMapsTab"'), true);
+  assert.equal(olivierHtml.includes('/javascripts/monitoring-maps.js'), true);
+
+  const allowedMapsPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring-maps", {
+    headers: { cookie: "session=olivier" },
+    redirect: "manual"
+  });
+  assert.equal(allowedMapsPage.status, 200);
 
   const applicationScript = await fetch("http://127.0.0.1:" + frontendPort + "/javascripts/application.js");
   assert.equal(applicationScript.status, 200);

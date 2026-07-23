@@ -1,0 +1,145 @@
+          <section class="data-section" id="outputPortsSection">
+            <div class="section-title">
+              <h2>Ports de sortie</h2>
+              <span id="portCount">0 port</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Port</th>
+                    <th>Link</th>
+                    <th>Backup</th>
+                    <th>Fibre</th>
+                    <th>Statut</th>
+                  </tr>
+                </thead>
+                <tbody id="portsTable">
+                  <tr><td colspan="6" class="empty">Aucun port de sortie retourne.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section">
+            <div class="section-title">
+              <h2>Controleur</h2>
+              <span id="lastScan">Aucun scan</span>
+            </div>
+            <div class="field-grid" id="controllerGrid"></div>
+          </section>
+
+          <section class="data-section" id="systemHealthSection" hidden>
+            <div class="section-title">
+              <h2>Sante systeme</h2>
+            </div>
+            <div class="field-grid" id="systemHealthGrid"></div>
+          </section>
+
+          <section class="data-section" id="mvrSection" hidden>
+            <div class="section-title">
+              <h2>Cartes MVR</h2>
+              <span id="mvrCount">0 carte</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Slot</th><th>Modele</th><th>Serie</th><th>Statut</th><th>Resolution</th><th>Interfaces</th></tr></thead>
+                <tbody id="mvrTable"><tr><td colspan="6" class="empty">Aucune carte MVR retournee.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section" id="mvrVideoSection" hidden>
+            <div class="section-title"><h2>Video MVR</h2></div>
+            <div class="field-grid" id="mvrVideoGrid"></div>
+          </section>
+
+          <section class="data-section" id="usbSection" hidden>
+            <div class="section-title"><h2>USB</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Port</th><th>Statut</th></tr></thead><tbody id="usbTable"></tbody></table></div>
+          </section>
+
+          <section class="data-section" id="fansSection" hidden>
+            <div class="section-title"><h2>Ventilateurs</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Ventilateur</th><th>Statut</th></tr></thead><tbody id="fansTable"></tbody></table></div>
+          </section>
+
+          <section class="data-section" id="powerSection" hidden>
+            <div class="section-title"><h2>Alimentations</h2></div>
+            <div class="table-wrap"><table><thead><tr><th>Alimentation</th><th>Statut</th></tr></thead><tbody id="powerTable"></tbody></table></div>
+          </section>
+
+          <section class="data-section" id="inputSlotsSection">
+            <div class="section-title">
+              <h2>Slots d'entree</h2>
+              <span id="slotCount">0 slot</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Statut</th>
+                    <th>Firmware</th>
+                    <th>Serie</th>
+                    <th>Sources</th>
+                    <th>Source active</th>
+                  </tr>
+                </thead>
+                <tbody id="slotsTable">
+                  <tr><td colspan="6" class="empty">Lancez un scan pour lire les slots d'entree.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section" id="screensSection">
+            <div class="section-title">
+              <h2>Ecrans</h2>
+              <span id="screenCount">0 ecran</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ecran</th>
+                    <th>Nom</th>
+                    <th>Resolution</th>
+                    <th>Frequence</th>
+                    <th>Luminosite</th>
+                    <th>Mode</th>
+                  </tr>
+                </thead>
+                <tbody id="screensTable">
+                  <tr><td colspan="6" class="empty">Lancez un scan pour lire les ecrans.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="data-section" id="receivingCardsSection">
+            <div class="section-title">
+              <h2 id="cardsTitle">Receiving cards</h2>
+              <span id="cardCount">Optionnel</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Port</th>
+                    <th>Card</th>
+                    <th>Link</th>
+                    <th>Travail</th>
+                    <th>Temp.</th>
+                    <th>Voltage</th>
+                    <th>Versions</th>
+                  </tr>
+                </thead>
+                <tbody id="cardsTable">
+                  <tr><td colspan="8" class="empty">Activez la lecture receiving cards dans la configuration machine.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>

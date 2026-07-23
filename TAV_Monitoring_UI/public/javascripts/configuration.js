@@ -4,6 +4,7 @@ function openAddDialog() {
   machineForm.reset();
   machineForm.elements.type.value = "novastar-h";
   machineForm.host.value = "192.168.1.10";
+  setNovastarColor("#32c99a");
   machineForm.readCommunity.value = "public";
   machineForm.writeCommunity.value = "private";
   machineForm.readCommunity.placeholder = "";
@@ -37,6 +38,7 @@ function openEditDialog(machine) {
   machineForm.elements.type.value = normalizeMachineType(machine.type);
   machineForm.name.value = machine.name || "";
   machineForm.host.value = machine.host || "";
+  setNovastarColor(machine.color || "#32c99a");
   setAccessMethod(machine.accessMethod || "snmp");
   machineForm.readCommunity.value = "";
   machineForm.writeCommunity.value = "";
@@ -72,8 +74,11 @@ function closeDialog() {
 }
 
 function renderMachines() {
-  machineCount.textContent = String(machines.length);
-  machineList.innerHTML = machines.map(function(machine) {
+  var visibleMachines = machines.filter(function(machine) {
+    return machineTypeFilters[normalizeMachineType(machine.type)] !== false;
+  });
+  machineCount.textContent = machines.length + (machines.length === 1 ? " machine" : " machines");
+  machineList.innerHTML = visibleMachines.map(function(machine) {
     var source = accessMethodLabel(machine.accessMethod);
     var type = machineTypeLabel(machine.type);
     return '<option value="' + escapeHtml(machine.id) + '">' +
@@ -81,9 +86,11 @@ function renderMachines() {
     "</option>";
   }).join("");
 
-  if (machines.length && !machines.some(function(machine) { return machine.id === selectedMachineId; })) {
-    selectedMachineId = machines[0].id;
+  if (visibleMachines.length && !visibleMachines.some(function(machine) { return machine.id === selectedMachineId; })) {
+    selectedMachineId = visibleMachines[0].id;
     localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
+  } else if (!visibleMachines.length) {
+    selectedMachineId = "";
   }
 
   machineList.value = selectedMachineId;
@@ -128,6 +135,8 @@ function renderSelectedMachine() {
   var machine = getSelectedMachine();
 
   if (!machine) {
+    updateAdvancedInformationVisibility("");
+    selectedMachineType.textContent = "Equipement";
     selectedMachineName.textContent = "Aucune machine";
     selectedMachineDetails.textContent = "Selectionnez un equipement H dans la liste.";
     selectedMachineHint.textContent = "Ajoutez une machine pour commencer.";
@@ -137,6 +146,11 @@ function renderSelectedMachine() {
 
   selectedMachineName.textContent = machine.name;
   var type = normalizeMachineType(machine.type);
+  selectedMachineType.textContent = machineTypeLabel(type);
+  var record = monitoringRecords[machine.id];
+  var hasSuccessfulScan = !!(record && record.lastSuccessfulAt &&
+    (record.lastSuccessfulRaw || (record.view && record.view.connected === true && record.raw && !record.raw.error)));
+  updateAdvancedInformationVisibility(type, hasSuccessfulScan);
   if (type === "kiloview") {
     selectedMachineDetails.textContent = "Kiloview | " + machine.host + " | user: " + (machine.apiUsername || "-");
   } else if (type === "netgear-m4300") {
@@ -155,12 +169,56 @@ function renderSelectedMachine() {
       " | lecture: " + machine.readCommunity +
       " | ecriture: " + machine.writeCommunity;
   }
-  selectedMachineHint.textContent = "Selection: " + machine.name;
+  selectedMachineHint.textContent = "";
   scanButton.disabled = false;
+}
+
+function updateAdvancedInformationVisibility(type, hasScan) {
+  var normalizedType = type ? normalizeMachineType(type) : "";
+  var advancedInformation = document.getElementById("advancedInformationDetails");
+  advancedInformation.hidden = !normalizedType || normalizedType === "other" || hasScan !== true;
+
+  var hiddenForKiloview = ["outputPortsSection", "inputSlotsSection", "screensSection", "receivingCardsSection"];
+  hiddenForKiloview.forEach(function(sectionId) {
+    var section = document.getElementById(sectionId);
+    if (section) section.hidden = normalizedType === "kiloview";
+  });
 }
 
 function getSelectedMachine() {
   return getMachineById(selectedMachineId);
+}
+
+function renderSelectedMachineScanResults() {
+  var machine = getSelectedMachine();
+  var record = machine && monitoringRecords[machine.id];
+  if (!machine || !record) {
+    resetScanResults();
+    return;
+  }
+  var machineType = normalizeMachineType(machine.type);
+  if (machineType === "other") {
+    renderPingSummary(record.raw || { type: "other", host: machine.host }, record);
+    return;
+  }
+  var successfulRaw = record.lastSuccessfulRaw ||
+    (record.view && record.view.connected === true && record.raw && !record.raw.error ? record.raw : null);
+  if (!record.lastSuccessfulAt || !successfulRaw || normalizeMachineType(successfulRaw.type) !== machineType) {
+    updateAdvancedInformationVisibility(machineType, false);
+    resetScanResults();
+    return;
+  }
+  renderMonitor(successfulRaw, record);
+}
+
+function resetMachineTypeFilters() {
+  Object.keys(machineTypeFilters).forEach(function(type) {
+    machineTypeFilters[type] = true;
+  });
+  machineTypeFiltersNode.querySelectorAll("[data-machine-type]").forEach(function(button) {
+    button.setAttribute("aria-pressed", "true");
+  });
+  renderMachines();
 }
 
 function getMachineById(machineId) {
@@ -215,6 +273,10 @@ function updateMachineFormFields() {
   document.querySelectorAll(".novastar-only").forEach(function(node) {
     node.hidden = !isNovaStar;
   });
+  document.querySelectorAll(".colorable-only").forEach(function(node) {
+    node.hidden = !(isNovaStar || isKiloview);
+  });
+  if (!isNovaStar && !isKiloview) closeNovastarColorPalette();
   document.querySelectorAll(".snmp-field").forEach(function(node) {
     node.hidden = !isSnmpDevice || (isNovaStar && method === "api") || (node.classList.contains("novastar-only") && !isNovaStar);
   });
@@ -235,6 +297,73 @@ function updateMachineFormFields() {
     ? "Automatique: http://IP:8000/open/api"
     : "Automatique: http://IP";
 }
+
+var novastarColorButton = document.getElementById("novastarColorButton");
+var novastarColorPalette = document.getElementById("novastarColorPalette");
+
+function initializeNovastarColorPalette() {
+  var colors = ["#000000", "#333333", "#666666", "#999999", "#bfbfbf", "#d9d9d9", "#eeeeee", "#ffffff"];
+  var hues = [0, 30, 60, 120, 180, 210, 270, 315];
+  for (var shadeIndex = 0; shadeIndex < 7; shadeIndex += 1) {
+    hues.forEach(function(hue) {
+      colors.push(hslToHex(hue, 88 - shadeIndex * 3, 24 + shadeIndex * 10));
+    });
+  }
+  colors.forEach(function(color) {
+    var choice = document.createElement("button");
+    choice.type = "button";
+    choice.className = "novastar-color-choice";
+    choice.style.setProperty("--choice-color", color);
+    choice.dataset.color = color;
+    choice.title = color;
+    choice.setAttribute("aria-label", "Couleur " + color);
+    choice.addEventListener("click", function(event) {
+      event.stopPropagation();
+      setNovastarColor(color);
+      closeNovastarColorPalette();
+    });
+    novastarColorPalette.appendChild(choice);
+  });
+  setNovastarColor(machineForm.color.value || "#32c99a");
+}
+
+function setNovastarColor(color) {
+  var normalized = /^#[0-9a-f]{6}$/i.test(String(color || "")) ? String(color).toLowerCase() : "#32c99a";
+  machineForm.color.value = normalized;
+  novastarColorButton.style.setProperty("--novastar-selected-color", normalized);
+  novastarColorPalette.querySelectorAll(".novastar-color-choice").forEach(function(choice) {
+    choice.classList.toggle("selected", choice.dataset.color === normalized);
+  });
+}
+
+function closeNovastarColorPalette() {
+  novastarColorPalette.hidden = true;
+  novastarColorButton.setAttribute("aria-expanded", "false");
+}
+
+function hslToHex(hue, saturation, lightness) {
+  saturation /= 100;
+  lightness /= 100;
+  var chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  var part = chroma * (1 - Math.abs((hue / 60) % 2 - 1));
+  var offset = lightness - chroma / 2;
+  var rgb = hue < 60 ? [chroma, part, 0] : hue < 120 ? [part, chroma, 0] :
+    hue < 180 ? [0, chroma, part] : hue < 240 ? [0, part, chroma] :
+      hue < 300 ? [part, 0, chroma] : [chroma, 0, part];
+  return "#" + rgb.map(function(channel) {
+    return Math.round((channel + offset) * 255).toString(16).padStart(2, "0");
+  }).join("");
+}
+
+novastarColorButton.addEventListener("click", function(event) {
+  event.stopPropagation();
+  var willOpen = novastarColorPalette.hidden;
+  novastarColorPalette.hidden = !willOpen;
+  novastarColorButton.setAttribute("aria-expanded", String(willOpen));
+});
+novastarColorPalette.addEventListener("click", function(event) { event.stopPropagation(); });
+document.addEventListener("click", closeNovastarColorPalette);
+initializeNovastarColorPalette();
 
 function resetScanResults() {
   document.getElementById("summaryGrid").innerHTML = '<div class="notice neutral">Lancez un scan pour lire la machine selectionnee.</div>';

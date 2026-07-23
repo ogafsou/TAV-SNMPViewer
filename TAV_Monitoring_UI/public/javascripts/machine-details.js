@@ -1,4 +1,5 @@
-function renderMonitor(data) {
+function renderMonitor(data, record) {
+  updateAdvancedInformationVisibility(data.type, true);
   document.getElementById("lastScan").textContent = formatDate(data.timestamp);
   var primarySlots = data.inputSlots || data.outputSlots;
   document.getElementById("slotCount").textContent = primarySlots.error
@@ -12,7 +13,7 @@ function renderMonitor(data) {
   document.getElementById("portCount").textContent = plural(outputPorts.length, "port");
   document.getElementById("cardCount").textContent = plural(receivingCards.length, "card");
 
-  renderSummary(data);
+  renderSummary(data, record);
   renderController(data.controller, data.type);
   renderSystemHealth(data.controller);
   renderMvr(data.mvrCards || [], data.mvrVideo || {});
@@ -26,8 +27,13 @@ function renderMonitor(data) {
 }
 
 
-function renderSummary(data) {
+function renderSummary(data, record) {
   var controller = data.controller;
+  var lastScanAt = (record && record.lastSuccessfulAt) || data.timestamp;
+  if (data.type === "other") {
+    renderPingSummary(data, record);
+    return;
+  }
   if (data.type === "kiloview") {
     document.getElementById("summaryGrid").innerHTML = [
       summaryTile("Equipement", data.host),
@@ -37,7 +43,8 @@ function renderSummary(data) {
       summaryTile("CPU", fieldValue(controller.cpuLoad) || "-"),
       summaryTile("Memoire", fieldValue(controller.memoryUsed) || "-"),
       summaryTile("Reseau", fieldValue(controller.networkState) || "-"),
-      summaryTile("Source", "KILOVIEW API")
+      summaryTile("Source", "KILOVIEW API"),
+      summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
     ].join("");
     return;
   }
@@ -51,7 +58,8 @@ function renderSummary(data) {
       summaryTile("Statut", fieldValue(controller.workingStatus) || "-"),
       summaryTile("Uptime", fieldValue(controller.workingTime) || "-"),
       summaryTile("Ports", ports.length),
-      summaryTile("Source", "SNMP V2C")
+      summaryTile("Source", "SNMP V2C"),
+      summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
     ].join("");
     return;
   }
@@ -68,7 +76,20 @@ function renderSummary(data) {
     summaryTile("Temperature", temp || "-"),
     summaryTile("Source", (data.source || "snmp").toUpperCase()),
     summaryTile("Slots entree", (data.inputSlots && data.inputSlots.count) || 0),
-    summaryTile("Slots sortie", (data.outputSlots && data.outputSlots.count) || 0)
+    summaryTile("Slots sortie", (data.outputSlots && data.outputSlots.count) || 0),
+    summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
+  ].join("");
+}
+
+function renderPingSummary(data, record) {
+  var connected = record && record.view ? record.view.connected === true
+    : data.controller && data.controller.workingStatus && data.controller.workingStatus.ok === true;
+  var lastSuccessfulAt = record && record.lastSuccessfulAt;
+  document.getElementById("summaryGrid").innerHTML = [
+    summaryTile("IP adresse", data.host || "-"),
+    summaryTile("Statut", connected ? "Online" : "Offline"),
+    summaryTile("Source", "PING"),
+    summaryTile("Last Ping", lastSuccessfulAt ? formatDate(lastSuccessfulAt) : "-", "timestamp-metric")
   ].join("");
 }
 
@@ -350,4 +371,3 @@ function renderCards(cards) {
 function renderError(message) {
   document.getElementById("summaryGrid").innerHTML = '<div class="notice">' + escapeHtml(message) + '</div>';
 }
-

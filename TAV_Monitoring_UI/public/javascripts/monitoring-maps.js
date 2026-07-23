@@ -20,6 +20,7 @@ var mapBackgroundFile = document.getElementById("mapBackgroundFile");
 var mapBackgroundImage = document.getElementById("mapBackgroundImage");
 var mapZonePlaceholder = document.getElementById("mapZonePlaceholder");
 var mapZone = document.getElementById("mapZone");
+var mapContent = document.getElementById("mapContent");
 var segmentContextMenu = document.getElementById("segmentContextMenu");
 var editSegmentCasesButton = document.getElementById("editSegmentCasesButton");
 var copySegmentButton = document.getElementById("copySegmentButton");
@@ -29,7 +30,22 @@ var segmentEditActions = document.getElementById("segmentEditActions");
 var selectedSegmentId = "";
 var selectedCaseIndex = -1;
 var segmentGesture = null;
+var mapPanGesture = null;
 var lastNovastarAssignment = null;
+var mapZoom = 1;
+var mapPanX = 0;
+var mapPanY = 0;
+
+function applyMapTransform() {
+  mapContent.style.transform = "translate(" + mapPanX + "px, " + mapPanY + "px) scale(" + mapZoom + ")";
+}
+
+function resetMapTransform() {
+  mapZoom = 1;
+  mapPanX = 0;
+  mapPanY = 0;
+  applyMapTransform();
+}
 
 function fitMapBackground() {
   if (mapBackgroundImage.hidden || !mapBackgroundImage.naturalWidth || !mapBackgroundImage.naturalHeight) return;
@@ -64,15 +80,22 @@ function renderMapSegments() {
       var assignment = segment.assignments && segment.assignments[index];
       cell.dataset.caseIndex = String(index);
       if (assignment) {
-        cell.textContent = assignment.outputId;
-        cell.title = [assignment.machineName || assignment.machineId, "carte " + assignment.cardId, "sortie " + assignment.outputId].join(" - ");
+        cell.textContent = outputAssignmentLabel(assignment);
+        var assignedMachine = machines.find(function(machine) { return String(machine.id) === String(assignment.machineId); });
+        if (assignedMachine && /^#[0-9a-f]{6}$/i.test(assignedMachine.color || "")) cell.style.color = assignedMachine.color;
+        cell.title = [assignment.machineName || assignment.machineId, assignment.cardId, assignment.outputId].join(" - ");
         cell.classList.add("assigned");
       }
       node.appendChild(cell);
     }
-    mapZone.appendChild(node);
+    mapContent.appendChild(node);
   });
   mapZone.classList.toggle("editing", mapEditMode.checked && !!map);
+}
+
+function outputAssignmentLabel(assignment) {
+  var cardNumber = String(assignment.cardId || "").replace(/^O[-_.\s]*/i, "");
+  return cardNumber + "." + String(assignment.outputId || "");
 }
 
 function promptCases(currentValue) {
@@ -100,12 +123,28 @@ async function saveMapSegments(map) {
 
 function mapPoint(event) {
   var rect = mapZone.getBoundingClientRect();
-  return { x: Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)), y: Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height)) };
+  return {
+    x: Math.min(1, Math.max(0, (event.clientX - rect.left - mapPanX) / mapZoom / rect.width)),
+    y: Math.min(1, Math.max(0, (event.clientY - rect.top - mapPanY) / mapZoom / rect.height))
+  };
 }
 
 function segmentById(id) { var map = selectedMap(); return map && (map.segments || []).find(function(segment) { return segment.id === id; }); }
 
 mapZone.addEventListener("pointerdown", function(event) {
+  if (event.button === 2 && !event.target.closest(".map-segment")) {
+    mapPanGesture = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originalPanX: mapPanX,
+      originalPanY: mapPanY
+    };
+    mapZone.classList.add("panning");
+    mapZone.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    return;
+  }
   if (!mapEditMode.checked || event.button !== 0) return;
   if (event.target.closest(".map-segment i")) return;
   var segmentNode = event.target.closest(".map-segment");
@@ -127,6 +166,13 @@ mapZone.addEventListener("pointerdown", function(event) {
 });
 
 mapZone.addEventListener("pointermove", function(event) {
+  if (mapPanGesture && event.pointerId === mapPanGesture.pointerId) {
+    mapPanX = mapPanGesture.originalPanX + event.clientX - mapPanGesture.startX;
+    mapPanY = mapPanGesture.originalPanY + event.clientY - mapPanGesture.startY;
+    applyMapTransform();
+    event.preventDefault();
+    return;
+  }
   if (!segmentGesture) return;
   var point = mapPoint(event);
   if (segmentGesture.type === "move") {
@@ -140,7 +186,7 @@ mapZone.addEventListener("pointermove", function(event) {
   } else {
     segmentGesture.current = point;
     if (!segmentGesture.draft) {
-      segmentGesture.draft = document.createElement("div"); segmentGesture.draft.className = "map-segment draft horizontal"; mapZone.appendChild(segmentGesture.draft);
+      segmentGesture.draft = document.createElement("div"); segmentGesture.draft.className = "map-segment draft horizontal"; mapContent.appendChild(segmentGesture.draft);
     }
     var dx = point.x - segmentGesture.start.x; var dy = point.y - segmentGesture.start.y;
     var horizontal = Math.abs(dx) >= Math.abs(dy); var draft = segmentGesture.draft;
@@ -152,7 +198,12 @@ mapZone.addEventListener("pointermove", function(event) {
   }
 });
 
-mapZone.addEventListener("pointerup", async function() {
+mapZone.addEventListener("pointerup", async function(event) {
+  if (mapPanGesture && event.pointerId === mapPanGesture.pointerId) {
+    mapPanGesture = null;
+    mapZone.classList.remove("panning");
+    return;
+  }
   if (!segmentGesture) return;
   var gesture = segmentGesture; segmentGesture = null;
   try {
@@ -177,7 +228,12 @@ mapZone.addEventListener("pointerup", async function() {
     await saveMapSegments(map); setStatus("Segment ajoute", "ok");
   } catch (error) { renderMapSegments(); setStatus(error.message, "error"); }
 });
-mapZone.addEventListener("pointercancel", function() { if (segmentGesture && segmentGesture.draft) segmentGesture.draft.remove(); segmentGesture = null; });
+mapZone.addEventListener("pointercancel", function() {
+  if (segmentGesture && segmentGesture.draft) segmentGesture.draft.remove();
+  segmentGesture = null;
+  mapPanGesture = null;
+  mapZone.classList.remove("panning");
+});
 
 mapZone.addEventListener("click", async function(event) {
   var cell = event.target.closest(".map-segment i");
@@ -200,10 +256,30 @@ mapZone.addEventListener("click", async function(event) {
   await assignSelectedCase(next);
 });
 
+mapZone.addEventListener("wheel", function(event) {
+  if (!selectedMap()) return;
+  event.preventDefault();
+  var rect = mapZone.getBoundingClientRect();
+  var cursorX = event.clientX - rect.left;
+  var cursorY = event.clientY - rect.top;
+  var contentX = (cursorX - mapPanX) / mapZoom;
+  var contentY = (cursorY - mapPanY) / mapZoom;
+  var factor = Math.exp(-event.deltaY * 0.0015);
+  var nextZoom = Math.min(8, Math.max(0.5, mapZoom * factor));
+  if (nextZoom === mapZoom) return;
+  mapPanX = cursorX - contentX * nextZoom;
+  mapPanY = cursorY - contentY * nextZoom;
+  mapZoom = nextZoom;
+  applyMapTransform();
+}, { passive: false });
+
 mapZone.addEventListener("contextmenu", function(event) {
   var cell = event.target.closest(".map-segment i");
   var node = event.target.closest(".map-segment");
-  if (!node) return;
+  if (!node) {
+    event.preventDefault();
+    return;
+  }
   if (!cell && !mapEditMode.checked) return;
   event.preventDefault();
   selectedSegmentId = node.dataset.segmentId;
@@ -436,11 +512,16 @@ mapBackgroundFile.addEventListener("change", async function() {
   } catch (error) { setStatus(error.message || "Chargement impossible", "error"); }
   finally { loadMapBackgroundButton.disabled = false; mapBackgroundFile.value = ""; }
 });
-mapList.addEventListener("change", function() { selectedMapId = mapList.value; localStorage.setItem("tavSelectedMapId", selectedMapId); renderSelectedMap(); });
+mapList.addEventListener("change", function() {
+  selectedMapId = mapList.value;
+  localStorage.setItem("tavSelectedMapId", selectedMapId);
+  resetMapTransform();
+  renderSelectedMap();
+});
 mapList.addEventListener("contextmenu", function(event) {
   var option = event.target.closest("option");
   if (!option) return;
-  event.preventDefault(); contextMapId = option.value; selectedMapId = option.value; renderMapList(); renderSelectedMap();
+  event.preventDefault(); contextMapId = option.value; selectedMapId = option.value; resetMapTransform(); renderMapList(); renderSelectedMap();
   mapContextMenu.style.left = Math.min(event.clientX, window.innerWidth - 150) + "px";
   mapContextMenu.style.top = Math.min(event.clientY, window.innerHeight - 100) + "px";
   mapContextMenu.hidden = false;
@@ -451,7 +532,7 @@ deleteMapButton.addEventListener("click", async function() {
   if (!map || !window.confirm("Supprimer la map " + map.name + " ?")) return;
   var response = await fetch("/api/maps/" + encodeURIComponent(map.id), { method: "DELETE" });
   if (!response.ok) { var error = await response.json(); setStatus(error.error || "Suppression impossible", "error"); return; }
-  monitoringMaps = monitoringMaps.filter(function(item) { return item.id !== map.id; }); renderMapList(); renderSelectedMap(); setStatus("Map supprimee", "ok");
+  monitoringMaps = monitoringMaps.filter(function(item) { return item.id !== map.id; }); resetMapTransform(); renderMapList(); renderSelectedMap(); setStatus("Map supprimee", "ok");
 });
 mapForm.addEventListener("submit", async function(event) {
   event.preventDefault();
@@ -460,7 +541,7 @@ mapForm.addEventListener("submit", async function(event) {
   var result = await response.json();
   if (!response.ok) { setStatus(result.error || "Enregistrement impossible", "error"); return; }
   if (editedMapId) monitoringMaps = monitoringMaps.map(function(map) { return map.id === editedMapId ? result.map : map; });
-  else { monitoringMaps.push(result.map); selectedMapId = result.map.id; }
+  else { monitoringMaps.push(result.map); selectedMapId = result.map.id; resetMapTransform(); }
   mapDialog.close(); renderMapList(); renderSelectedMap(); setStatus("Map enregistree", "ok");
 });
 document.addEventListener("click", function(event) { if (!mapContextMenu.hidden && !mapContextMenu.contains(event.target)) mapContextMenu.hidden = true; });

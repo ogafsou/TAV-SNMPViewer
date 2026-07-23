@@ -39,13 +39,13 @@
           <nav class="tabs" aria-label="Sections">
             <a class="tab<%= page === 'configuration' ? ' active' : '' %>" href="/configuration">Configuration</a>
             <a class="tab<%= page === 'monitoring' ? ' active' : '' %>" href="/monitoring">Monitoring</a>
-            <a id="monitoringMapsLink" class="tab<%= page === 'monitoring-maps' ? ' active' : '' %>" href="/monitoring-maps" hidden>Monitoring Map</a>
+            <% if (canAccessMonitoringMaps) { %><a id="monitoringMapsLink" class="tab<%= page === 'monitoring-maps' ? ' active' : '' %>" href="/monitoring-maps">Monitoring Map</a><% } %>
           </nav>
         </div>
         <div class="topbar-actions" style="display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:8px;width:auto;">
-          <div class="status-pill" id="connectionStatus" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;">Pret</div>
-          <button id="toggleMonitoringView" type="button" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;"<% if (page !== 'monitoring') { %> hidden<% } %>>Minimize All</button>
-          <button id="refreshMonitoring" type="button" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;"<% if (page !== 'monitoring') { %> hidden<% } %>>Refresh</button>
+          <div class="status-pill error" id="connectionStatus" title="Adresse Backend : <%= backend_url %>" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;">Connexion Backend : Erreur</div>
+          <button id="toggleMonitoringView" class="icon-monitoring-toggle" type="button" aria-label="Minimiser toutes les cartes" title="Minimiser toutes les cartes" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;"<% if (page !== 'monitoring') { %> hidden<% } %>><img src="/images/Minimize.png" alt="" /></button>
+          <button id="refreshMonitoring" class="icon-refresh-button" type="button" aria-label="Rafraîchir toutes les machines" title="Rafraîchir toutes les machines" style="flex:0 0 auto;width:auto;height:38px;min-height:38px;white-space:nowrap;"<% if (page !== 'monitoring') { %> hidden<% } %>><img src="/images/Refresh.png" alt="" /></button>
           <div class="user-menu-control" style="flex:0 0 38px;width:38px;height:38px;">
             <button id="userMenuButton" class="user-menu-button" type="button" style="width:38px;height:38px;min-width:38px;min-height:38px;" aria-label="Menu utilisateur" aria-expanded="false"><img src="/images/User.png?v=20260718-2" width="20" height="20" alt="" /></button>
             <div id="userMenu" class="user-menu" hidden>

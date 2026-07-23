@@ -1,6 +1,8 @@
 var LEGACY_STORAGE_KEY = "novastarMachines";
 var AUTOREFRESH_S = Number(document.body.dataset.restRefreshS || 0) || 0;
+var BACKEND_URL = document.body.dataset.backendUrl || (window.location.origin + "/api");
 var REFERENCE_MODE_ENABLED = false;
+var BACKEND_CONFIG_LOADED = false;
 var PING_MONITORING_REFERENCE = null;
 var BACKEND_MONITOR_INTERVAL_S = 0;
 var machines = [];
@@ -9,8 +11,15 @@ var contextMachineId = "";
 var editingMachineId = "";
 var monitoringState = {};
 var monitoringRecords = {};
+var machineTypeFilters = {
+  "novastar-h": true,
+  "kiloview": true,
+  "netgear-m4300": true,
+  "other": true
+};
 var activeTabId = document.getElementById("monitoringTab").classList.contains("active") ? "monitoringTab" : "configurationTab";
 var monitoringRefreshInProgress = false;
+var targetedMonitoringRefreshes = {};
 var autoRefreshTimer = null;
 var monitoringMinimized = localStorage.getItem("tavMonitoringMinimized") === "true";
 var minimizedMonitoringCards = loadMinimizedMonitoringCards();
@@ -47,9 +56,11 @@ function saveMonitoringCardOrder() {
 
 var machineList = document.getElementById("machineList");
 var machineCount = document.getElementById("machineCount");
+var machineTypeFiltersNode = document.getElementById("machineTypeFilters");
 var monitorIntervalForm = document.getElementById("monitorIntervalForm");
 var monitorIntervalSeconds = document.getElementById("monitorIntervalSeconds");
 var selectedMachineName = document.getElementById("selectedMachineName");
+var selectedMachineType = document.getElementById("selectedMachineType");
 var selectedMachineDetails = document.getElementById("selectedMachineDetails");
 var selectedMachineHint = document.getElementById("selectedMachineHint");
 var scanButton = document.getElementById("scanButton");
@@ -71,6 +82,16 @@ var monitoringCardDialog = document.getElementById("monitoringCardDialog");
 var monitoringCardDialogContent = document.getElementById("monitoringCardDialogContent");
 
 document.getElementById("openAddDialog").addEventListener("click", openAddDialog);
+machineTypeFiltersNode.addEventListener("click", function(event) {
+  var button = event.target.closest("[data-machine-type]");
+  if (!button) return;
+  var type = button.dataset.machineType;
+  machineTypeFilters[type] = !machineTypeFilters[type];
+  button.setAttribute("aria-pressed", String(machineTypeFilters[type]));
+  renderMachines();
+  renderSelectedMachine();
+  renderSelectedMachineScanResults();
+});
 document.getElementById("closeAddDialog").addEventListener("click", closeDialog);
 document.getElementById("cancelAddDialog").addEventListener("click", closeDialog);
 monitorIntervalForm.addEventListener("submit", async function(event) {
@@ -117,19 +138,39 @@ monitoringCardDialog.addEventListener("close", function() { delete monitoringCar
 monitoringCardDialog.addEventListener("click", function(event) { if (event.target === monitoringCardDialog) monitoringCardDialog.close(); });
 monitoringCardDialogContent.addEventListener("pointerdown", function(event) {
   var button = event.target.closest(".reference-button");
+  if (button && button.hasAttribute("data-ping-reference") && event.button === 0 && PING_MONITORING_REFERENCE) {
+    referencePreviewMachineId = "__ping__";
+    renderMonitoringCardDialog("__ping__", true);
+    return;
+  }
   var machine = button && getMachineById(button.dataset.machineId);
   if (!button || event.button !== 0 || !machine || !machine.monitoringReference) return;
   referencePreviewMachineId = machine.id;
   renderMonitoringCardDialog(machine.id, true);
 });
 monitoringCardDialogContent.addEventListener("click", function(event) {
+  var refreshButton = event.target.closest("[data-monitoring-refresh]");
+  if (refreshButton) {
+    refreshMonitoringCard(refreshButton.dataset.monitoringRefresh);
+    return;
+  }
   var button = event.target.closest(".reference-button");
+  if (button && button.hasAttribute("data-ping-reference") && !PING_MONITORING_REFERENCE) {
+    setPingReference();
+    return;
+  }
   var machine = button && getMachineById(button.dataset.machineId);
   if (!button || !machine || machine.monitoringReference) return;
   setMachineReference(machine.id);
 });
 monitoringCardDialogContent.addEventListener("contextmenu", function(event) {
   var button = event.target.closest(".reference-button");
+  if (button && button.hasAttribute("data-ping-reference")) {
+    event.preventDefault();
+    if (!window.confirm("Remplacer la reference Ping par la liste des machines qui repondent actuellement ?")) return;
+    setPingReference();
+    return;
+  }
   var machine = button && getMachineById(button.dataset.machineId);
   if (!button || !machine) return;
   event.preventDefault();
@@ -157,7 +198,7 @@ machineList.addEventListener("change", function() {
   selectedMachineId = machineList.value;
   localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
   renderSelectedMachine();
-  resetScanResults();
+  renderSelectedMachineScanResults();
 });
 
 machineList.addEventListener("contextmenu", function(event) {
@@ -172,7 +213,7 @@ machineList.addEventListener("contextmenu", function(event) {
     machineList.value = selectedMachineId;
     localStorage.setItem("novastarSelectedMachineId", selectedMachineId);
     renderSelectedMachine();
-    resetScanResults();
+    renderSelectedMachineScanResults();
   }
 
   contextMachineId = selectedMachineId;
@@ -213,6 +254,7 @@ machineForm.addEventListener("submit", async function(event) {
     type: normalizeMachineType(formData.get("type")),
     name: String(formData.get("name") || "").trim(),
     host: String(formData.get("host") || "").trim(),
+    color: String(formData.get("color") || "#32c99a"),
     accessMethod: normalizeAccessMethod(formData.get("accessMethod")),
     readCommunity: String(formData.get("readCommunity") || "public").trim() || "public",
     writeCommunity: String(formData.get("writeCommunity") || "private").trim() || "private",
@@ -253,6 +295,7 @@ machineForm.addEventListener("submit", async function(event) {
     delete machine.recvCardsPerPort;
     delete machine.includeReceivingCards;
   } else if (machine.type === "netgear-m4300") {
+    delete machine.color;
     machine.accessMethod = "snmp";
     ["writeCommunity", "apiProtocol", "apiBaseUrl", "apiUsername", "apiPassword", "apiProjectId",
       "apiSecretKey", "apiEncryption", "apiDeviceId", "maxOutputSlots", "maxScreens", "maxInputSlots",
@@ -330,9 +373,17 @@ scanButton.addEventListener("click", async function() {
       throw new Error(record.error || "Erreur de scan");
     }
 
+    setBackendConnectionStatus(true);
     applyMonitoringRecord(record);
+    if (machine.type === "other") {
+      if (!record.view || !record.view.connected) resetScanResults();
+      renderPingSummary(record.raw || { type: "other", host: machine.host }, record);
+      renderMonitoringCards();
+      setStatus(record.view && record.view.connected ? "Connecte" : "Erreur", record.view && record.view.connected ? "ok" : "error");
+      return;
+    }
     if (!record.view || !record.view.connected) throw new Error(record.raw && record.raw.error || "Equipement non connecte");
-    renderMonitor(record.raw);
+    renderMonitor(record.raw, record);
     renderMonitoringCards();
     setStatus("Connecte", "ok");
   } catch (error) {
@@ -349,7 +400,7 @@ refreshMonitoringButton.addEventListener("click", function() {
   refreshMonitoring(true);
 });
 
-monitoringReferenceMode.addEventListener("change", async function() {
+if (monitoringReferenceMode) monitoringReferenceMode.addEventListener("change", async function() {
   var requestedMode = monitoringReferenceMode.checked;
   monitoringReferenceMode.disabled = true;
 
@@ -441,6 +492,11 @@ monitoringCards.addEventListener("dragend", function() {
 });
 
 monitoringCards.addEventListener("click", function(event) {
+  var cardRefreshButton = event.target.closest("[data-monitoring-refresh]");
+  if (cardRefreshButton) {
+    refreshMonitoringCard(cardRefreshButton.dataset.monitoringRefresh);
+    return;
+  }
   var minimizeButton = event.target.closest("[data-monitoring-minimize]");
   if (minimizeButton) {
     minimizedMonitoringCards[minimizeButton.dataset.monitoringMinimize] = true;

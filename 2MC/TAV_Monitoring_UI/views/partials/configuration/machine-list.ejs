@@ -1,0 +1,26 @@
+        <aside class="machine-sidebar">
+          <div class="add-zone">
+            <button id="openAddDialog" type="button">Add</button>
+          </div>
+
+          <div class="machine-list-zone">
+            <div class="section-title compact">
+              <span id="machineCount">0 machine</span>
+            </div>
+            <div id="machineTypeFilters" class="machine-type-filters" aria-label="Filtrer les équipements par type">
+              <button type="button" data-machine-type="novastar-h" aria-pressed="true">Novastar</button>
+              <button type="button" data-machine-type="kiloview" aria-pressed="true">Kiloview</button>
+              <button type="button" data-machine-type="netgear-m4300" aria-pressed="true">Netgear</button>
+              <button type="button" data-machine-type="other" aria-pressed="true">Ping</button>
+            </div>
+            <select id="machineList" class="machine-list" size="12" aria-label="Liste des machines H"></select>
+            <form id="monitorIntervalForm" class="monitor-interval-form">
+              <label for="monitorIntervalSeconds">Secondes entre deux scans</label>
+              <div>
+                <input id="monitorIntervalSeconds" name="seconds" type="number" min="1" max="86400" step="1" required />
+                <button type="submit">Enregistrer</button>
+              </div>
+            </form>
+            <p class="sidebar-help" id="selectedMachineHint">Ajoutez une machine pour commencer.</p>
+          </div>
+        </aside>

@@ -22,9 +22,14 @@
               <input name="name" type="text" placeholder="H9 Regie principale" autocomplete="off" required />
             </label>
 
-            <label>
+            <label class="host-color-field">
               <span>Adresse IP</span>
-              <input name="host" type="text" value="192.168.1.10" autocomplete="off" required />
+              <span class="host-color-control">
+                <input name="host" type="text" value="192.168.1.10" autocomplete="off" required />
+                <button id="novastarColorButton" class="novastar-color-button colorable-only" type="button" aria-label="Choisir la couleur de l’équipement" aria-expanded="false"></button>
+                <input name="color" type="hidden" value="#32c99a" />
+              </span>
+              <span id="novastarColorPalette" class="novastar-color-palette" hidden></span>
             </label>
           </div>
 

@@ -7,7 +7,7 @@ const DEFAULTS = {
   machines_file: "./machines.json",
   maps_file: "./maps.json",
   users_file: "./users.json",
-  monitoring_reference_mode: false,
+  monitoring_reference_mode: true,
   ping_monitoring_reference: null,
   loglevel: "info",
   max_parallel_scans: 8,

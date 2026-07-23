@@ -86,6 +86,11 @@ function normalizeMachine(value) {
   machine.type = normalizeMachineType(machine.type);
   machine.name = String(machine.name || "").trim();
   machine.host = String(machine.host || "").trim();
+  if (machine.type === "novastar-h" || machine.type === "kiloview") {
+    machine.color = normalizeColor(machine.color);
+  } else {
+    delete machine.color;
+  }
   if (machine.type === "kiloview") {
     const threshold = Number(machine.kiloviewBitrateThresholdMbps);
     machine.kiloviewBitrateThresholdMbps = Number.isFinite(threshold) && threshold >= 0 && threshold <= 1000 ? threshold : 1;
@@ -104,6 +109,11 @@ function normalizeMachine(value) {
 function normalizeMachineType(value) {
   const type = String(value || "novastar-h").toLowerCase();
   return ["novastar-h", "kiloview", "netgear-m4300", "other"].includes(type) ? type : "novastar-h";
+}
+
+function normalizeColor(value) {
+  const color = String(value || "").trim().toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(color) ? color : "#32c99a";
 }
 
 function sanitizeMachine(machine) {

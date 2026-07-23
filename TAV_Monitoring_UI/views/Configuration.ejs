@@ -1,10 +1,14 @@
 <section id="configurationTab" class="tab-panel<%= page === 'configuration' ? ' active' : '' %>"<% if (page !== 'configuration') { %> hidden<% } %>>
-  <%- include("partials/configuration/options") %>
   <section class="configuration-layout">
     <%- include("partials/configuration/machine-list") %>
     <section class="monitor-zone">
       <%- include("partials/configuration/selected-machine-header") %>
-      <%- include("partials/configuration/selected-machine-information") %>
+      <details id="advancedInformationDetails" class="configuration-advanced-information">
+        <summary>Informations avancées</summary>
+        <div class="configuration-advanced-information-content">
+          <%- include("partials/configuration/selected-machine-information") %>
+        </div>
+      </details>
     </section>
   </section>
 </section>

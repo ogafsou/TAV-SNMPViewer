@@ -17,12 +17,19 @@ function createFrontend(options) {
   app.use(express.static(path.join(__dirname, "public")));
   app.use("/api", restProxy(config.backend_rest_url));
   function renderPage(page) {
-    return (req, res) => res.render("index", {
-      title: page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-maps" ? "Monitoring Maps - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring")),
-      page,
-      rest_refresh_s: config.rest_refresh_s,
-      bkgnd_opacity: config.bkgnd_opacity === undefined ? 1 : config.bkgnd_opacity
-    });
+    return (req, res) => {
+      const currentUser = res.locals.currentUser;
+      const canAccessMonitoringMaps = currentUser && currentUser.role === "administrator"
+        && String(currentUser.login || "").toLowerCase() === "olivier";
+      res.render("index", {
+        title: page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-maps" ? "Monitoring Maps - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring")),
+        page,
+        canAccessMonitoringMaps,
+        backend_url: config.backend_rest_url,
+        rest_refresh_s: config.rest_refresh_s,
+        bkgnd_opacity: config.bkgnd_opacity === undefined ? 1 : config.bkgnd_opacity
+      });
+    };
   }
 
   app.get("/", (req, res) => res.redirect("/monitoring"));
@@ -63,6 +70,7 @@ function authorizePage(config, roles, requiredLogin) {
         let result;
         try { result = JSON.parse(body); } catch (error) { return res.status(502).send("Backend authentication unavailable"); }
         if (!result.user || !roles.includes(result.user.role) || (requiredLogin && String(result.user.login || "").toLowerCase() !== requiredLogin.toLowerCase())) return res.redirect("/monitoring");
+        res.locals.currentUser = result.user;
         next();
       });
     });

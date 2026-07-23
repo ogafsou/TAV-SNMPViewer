@@ -13,7 +13,8 @@ async function initializeAuthentication() {
 
   document.getElementById("currentUserName").textContent = CURRENT_USER.login + " (" + CURRENT_USER.role + ")";
   document.querySelector('a[href="/configuration"]').hidden = CURRENT_USER.role === "user";
-  document.getElementById("monitoringMapsLink").hidden = CURRENT_USER.role !== "administrator" || CURRENT_USER.login.toLowerCase() !== "olivier";
+  var monitoringMapsLink = document.getElementById("monitoringMapsLink");
+  if (monitoringMapsLink) monitoringMapsLink.hidden = CURRENT_USER.role !== "administrator" || CURRENT_USER.login.toLowerCase() !== "olivier";
   document.getElementById("manageUsersLink").hidden = CURRENT_USER.role !== "administrator";
   setupUserMenu();
   if (path === "/users") await loadUsers();
