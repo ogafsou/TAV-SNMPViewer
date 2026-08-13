@@ -7,10 +7,11 @@ const DefaultPingConnector = require("../classes/PingLib");
 const modelProfiles = require("../classes/ModelProfiles");
 const logger = require("../classes/Logger");
 const { normalizeMachineType } = require("../classes/MachineStore");
+const { canonicalizeIo, combineIo } = require("./CanonicalIo");
 
 const kiloviewScanLocks = new Map();
 
-function createDeviceMonitor(overrides) {
+function createDeviceMonitor(overrides, reconciliation) {
   const dependencies = Object.assign({
     SNMPConnector: DefaultSNMPConnector,
     NovaStarApiConnector: DefaultNovaStarApiConnector,
@@ -36,6 +37,7 @@ function createDeviceMonitor(overrides) {
     else data = await collectSnmp(params, host);
     data.type = type;
     data.machineId = String(machine.id);
+    if (!data.inventory || !data.observations) canonicalizeIo(data, data.source);
     return data;
   }
 
@@ -74,10 +76,9 @@ function createDeviceMonitor(overrides) {
         workingStatus: { ok: true, value: "Online" },
         latency: { ok: true, value: result.latencyMs + " ms" }
       },
-      inputSlots: { count: 0, slots: [] },
-      outputSlots: { count: 0, slots: [] },
-      screens: { count: 0, screens: [] },
-      receivingCards: []
+      inventory: { schemaVersion: 1, entities: [] },
+      observations: { schemaVersion: 1, collectedAt: new Date().toISOString(), items: [] },
+      resolvedState: {}
     };
   }
 
@@ -101,6 +102,7 @@ function createDeviceMonitor(overrides) {
       modelProfile: modelProfiles.getProfile(configuredModel || "H9")
     });
     data.source = "snmp";
+    canonicalizeIo(data, "snmp");
     return data;
   }
 
@@ -120,10 +122,13 @@ function createDeviceMonitor(overrides) {
       timeout: clampNumber(params.timeout, 500, 15000, 5000)
     });
     await connector.init();
-    return connector.monitor({
+    const data = await connector.monitor({
       model: configuredModel,
       modelProfile: modelProfiles.getProfile(configuredModel || "H9")
     });
+    data.source = "api";
+    canonicalizeIo(data, "api");
+    return data;
   }
 
   async function collectHybrid(params, host) {
@@ -141,6 +146,7 @@ function createDeviceMonitor(overrides) {
       api: apiData ? "" : results[1].reason.message
     };
     merged.timestamp = new Date().toISOString();
+    combineIo(merged, [snmpData, apiData], reconciliation);
     return merged;
   }
 
@@ -184,36 +190,12 @@ function buildHybridMonitor(snmpData, apiData) {
       base.controller[key] = mergePreferred(apiData.controller[key], snmpData && snmpData.controller && snmpData.controller[key]);
     });
   }
-  base.inputSlots = preferApiSlots(apiData && apiData.inputSlots, snmpData && snmpData.inputSlots);
-  base.outputSlots = preferApiSlots(apiData && apiData.outputSlots, snmpData && snmpData.outputSlots);
-  base.screens = preferSnmpScreens(snmpData && snmpData.screens, apiData && apiData.screens);
-  base.receivingCards = snmpData && Array.isArray(snmpData.receivingCards) ? snmpData.receivingCards : [];
   ["outputPorts", "mvrCards", "usbPorts", "fans", "powerSupplies"].forEach((key) => {
     base[key] = apiData && Array.isArray(apiData[key]) ? apiData[key] : [];
   });
   base.mvrVideo = apiData && apiData.mvrVideo ? apiData.mvrVideo : {};
   if (apiData && apiData.apiDetails) base.apiDetails = apiData.apiDetails;
   return base;
-}
-
-function preferApiSlots(apiCollection, snmpCollection) {
-  if (!apiCollection || apiCollection.error || !Array.isArray(apiCollection.slots)) return snmpCollection || { count: 0, slots: [] };
-  const fallback = snmpCollection && Array.isArray(snmpCollection.slots) ? snmpCollection.slots : [];
-  const slots = apiCollection.slots.map((item) => {
-    const match = fallback.find((candidate) => itemIdentity(candidate) === itemIdentity(item));
-    return match ? mergePreferred(item, match) : item;
-  });
-  return Object.assign({}, apiCollection, { count: slots.length, slots });
-}
-
-function preferSnmpScreens(snmpScreens, apiScreens) {
-  if (!snmpScreens || snmpScreens.error || !Array.isArray(snmpScreens.screens)) return apiScreens || { count: 0, screens: [] };
-  if (!snmpScreens.screens.length) return apiScreens && Array.isArray(apiScreens.screens) ? apiScreens : snmpScreens;
-  const screens = snmpScreens.screens.slice();
-  if (screens.length === 1 && apiScreens && Array.isArray(apiScreens.screens) && apiScreens.screens.length === 1) {
-    screens[0] = mergePreferred(screens[0], apiScreens.screens[0]);
-  }
-  return Object.assign({}, snmpScreens, { count: screens.length, screens });
 }
 
 function mergePreferred(primary, fallback) {
@@ -225,8 +207,6 @@ function mergePreferred(primary, fallback) {
     if (preferred.error && !backup.error && Object.keys(backup).length) return backup;
     const merged = {};
     Object.keys(Object.assign({}, backup, preferred)).forEach((key) => { merged[key] = mergePreferred(preferred[key], backup[key]); });
-    if (Array.isArray(merged.slots)) merged.count = merged.slots.length;
-    if (Array.isArray(merged.screens)) merged.count = merged.screens.length;
     return merged;
   }
   return isPresent(primary) ? primary : fallback;

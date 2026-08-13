@@ -11,6 +11,9 @@
     <section class="monitor-zone map-view-zone">
       <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2></div>
       <div class="map-editor-toolbar">
+        <button id="resetMapViewButton" class="map-view-icon-button map-reset-view-button" type="button" aria-label="Réinitialiser la vue" title="Réinitialiser la vue" hidden>
+          <img src="/images/resetview.png" alt="" />
+        </button>
         <button id="mapWarningsFilter" class="map-novastar-filter" type="button" hidden>Warning</button>
         <label id="mapEditModeLabel"><input id="mapEditMode" type="checkbox" /> Mode édition</label>
         <button id="loadMapBackgroundButton" type="button" hidden>Load Background</button>
@@ -32,6 +35,8 @@
     <div id="novastarOutputMenu" class="nested-menu"></div>
     <div id="segmentClearAction" class="segment-clear-action">
       <button id="clearSegmentCaseButton" type="button">Clear Case</button>
+      <button id="clearSegmentBlockButton" type="button">Clear Block</button>
+      <button id="clearSegmentNovastarButton" type="button" hidden>Clear NovaStar</button>
     </div>
     <div id="segmentEditActions" class="segment-edit-actions">
       <button id="editSegmentCasesButton" type="button">Modifier le nombre de cases</button>

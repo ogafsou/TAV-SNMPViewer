@@ -8,6 +8,7 @@ const MonitoringService = require("../TAV_Monitoring_Backend/services/Monitoring
 const SNMPConnector = require("../TAV_Monitoring_Backend/classes/SnmpLib");
 const { buildMonitoringView, applyReferenceMode, buildReferenceSnapshot } = require("../TAV_Monitoring_Backend/services/MonitoringState");
 const { createDeviceMonitor } = require("../TAV_Monitoring_Backend/services/DeviceMonitor");
+const { canonicalizeIo, combineIo } = require("../TAV_Monitoring_Backend/services/CanonicalIo");
 
 function data(frame, uptime) {
   return {
@@ -33,7 +34,176 @@ test("NovaStar numeric input types select BNC, DVI and DisplayPort icons", () =>
       }
     }))
   }] };
+  canonicalizeIo(sample, "api");
   assert.deepEqual(buildMonitoringView(sample).inputSlots.map((item) => item.icon), ["bnc", "dvi", "dp"]);
+});
+
+test("NovaStar canonical model separates inventory from source observations", () => {
+  const sample = data("50 Hz", "1");
+  sample.source = "api";
+  sample.inputSlots = { count: 1, slots: [{
+    slotId: "I-3",
+    rawSlotId: 2,
+    fields: { status: { ok: true, value: "Normal" } },
+    inputSources: [{ sourceId: 2, fields: { status: { ok: true, value: 1 } } }]
+  }] };
+  sample.outputSlots = { count: 1, slots: [{
+    slotId: "O-11",
+    rawSlotId: 10,
+    fields: { status: { ok: true, value: "Normal" } },
+    outputPorts: [{ portId: 4, status: 1 }]
+  }] };
+
+  canonicalizeIo(sample, "api");
+
+  assert.deepEqual(
+    sample.inventory.entities.map((entity) => entity.id),
+    ["input:I-3", "input:I-3:2", "output:O-11", "output:O-11:4"]
+  );
+  assert.equal(sample.inventory.entities.find((entity) => entity.id === "input:I-3:2").parentId, "input:I-3");
+  assert.equal(sample.observations.items.find((item) => item.entityId === "input:I-3:2").source, "api");
+  assert.equal(sample.observations.items.find((item) => item.entityId === "input:I-3:2").fields.status.value, 1);
+});
+
+test("SNMP and API produce the same canonical IDs for the same physical IO", () => {
+  const api = data("50 Hz", "1");
+  api.inputSlots = { slots: [{ slotId: "I-3", rawSlotId: 2, inputSources: [{ sourceId: 1, fields: {} }] }] };
+  const snmp = data("50 Hz", "1");
+  snmp.inputSlots = { slots: [{ slotId: 3, inputSources: [{ inputSlotId: 3, sourceId: 1, fields: {} }] }] };
+
+  canonicalizeIo(api, "api");
+  canonicalizeIo(snmp, "snmp");
+
+  assert.equal(api.inventory.entities.find((item) => item.kind === "input").id, "input:I-3:1");
+  assert.equal(snmp.inventory.entities.find((item) => item.kind === "input").id, "input:I-3:1");
+});
+
+test("hybrid reconciliation keeps both observations and prefers SNMP for operational state", () => {
+  const api = data("50 Hz", "1");
+  api.inputSlots = { slots: [{ slotId: "I-3", rawSlotId: 2, inputSources: [
+    { sourceId: 1, fields: { status: { ok: true, value: "Normal" } } }
+  ] }] };
+  const snmp = data("50 Hz", "1");
+  snmp.inputSlots = { slots: [{ slotId: 3, inputSources: [
+    { sourceId: 1, fields: { status: { ok: true, value: 0 } } },
+    { sourceId: 2, fields: { status: { ok: true, value: 1 } } }
+  ] }] };
+  canonicalizeIo(api, "api");
+  canonicalizeIo(snmp, "snmp");
+
+  const hybrid = { timestamp: new Date().toISOString() };
+  combineIo(hybrid, [snmp, api]);
+
+  assert.deepEqual(hybrid.observations.items.filter((item) => item.entityId === "input:I-3:1").map((item) => item.source), ["snmp", "api"]);
+  assert.equal(hybrid.resolvedState["input:I-3:1"].source, "snmp");
+  assert.equal(hybrid.resolvedState["input:I-3:1"].state, "inactive");
+  assert.equal(hybrid.resolvedState["input:I-3:1"].agreement, false);
+  assert.ok(hybrid.inventory.entities.some((entity) => entity.id === "input:I-3:2"));
+  assert.deepEqual(hybrid.divergences.summary, {
+    total: 2,
+    affectedEntities: 2,
+    missingObservations: 1,
+    missingFields: 0,
+    stateMismatches: 1,
+    valueMismatches: 0
+  });
+  const statusDifference = hybrid.divergences.items.find((item) => item.entityId === "input:I-3:1" && item.field === "status");
+  assert.equal(statusDifference.reason, "state-mismatch");
+  assert.deepEqual(statusDifference.observations.snmp, {
+    present: true,
+    observedAt: snmp.timestamp,
+    value: 0,
+    state: "inactive"
+  });
+  assert.equal(statusDifference.observations.api.value, "Normal");
+  assert.deepEqual(statusDifference.selected, { source: "snmp", state: "inactive", value: 0 });
+  const missingFromApi = hybrid.divergences.items.find((item) => item.entityId === "input:I-3:2");
+  assert.equal(missingFromApi.reason, "missing-observation");
+  assert.equal(missingFromApi.observations.api.present, false);
+  assert.equal(hybrid.resolvedState["input:I-3:2"].agreement, false);
+});
+
+test("divergence report compares semantic states before raw API and SNMP values", () => {
+  const api = data("50 Hz", "1");
+  api.inputSlots = { slots: [{ slotId: "I-1", inputSources: [{ sourceId: 1, fields: {
+    status: { ok: true, value: "Normal" },
+    type: { ok: true, value: "HDMI" },
+    firmware: { ok: true, value: "1.0" }
+  } }] }] };
+  const snmp = data("50 Hz", "1");
+  snmp.inputSlots = { slots: [{ slotId: 1, inputSources: [{ sourceId: 1, fields: {
+    status: { ok: true, value: 1 },
+    type: { ok: true, value: "DVI" }
+  } }] }] };
+  canonicalizeIo(api, "api");
+  canonicalizeIo(snmp, "snmp");
+  const hybrid = { timestamp: new Date().toISOString() };
+  combineIo(hybrid, [snmp, api]);
+
+  const differences = hybrid.divergences.items.filter((item) => item.entityId === "input:I-1:1");
+  assert.equal(differences.some((item) => item.field === "status"), false);
+  assert.equal(differences.find((item) => item.field === "type").reason, "value-mismatch");
+  assert.equal(differences.find((item) => item.field === "firmware").reason, "missing-field");
+});
+
+test("IO reconciliation applies best, worst and source-priority strategies", () => {
+  const source = (name, value) => {
+    const sample = data("50 Hz", "1");
+    sample.inputSlots = { slots: [{ slotId: 1, inputSources: [{ sourceId: 1, fields: {
+      status: { ok: true, value }
+    } }] }] };
+    sample.source = name;
+    return canonicalizeIo(sample, name);
+  };
+  const snmp = source("snmp", 0);
+  const api = source("api", "Normal");
+  const resolved = (operationalStrategy) => {
+    const hybrid = { timestamp: new Date().toISOString() };
+    combineIo(hybrid, [snmp, api], { operational_strategy: operationalStrategy });
+    return hybrid.resolvedState["input:I-1:1"];
+  };
+
+  assert.deepEqual([resolved("worst-valid-state").state, resolved("worst-valid-state").reason], ["inactive", "worst-state-on-conflict"]);
+  assert.deepEqual([resolved("best-valid-state").state, resolved("best-valid-state").source], ["ok", "api"]);
+  assert.equal(resolved("snmp-first").source, "snmp");
+  assert.equal(resolved("api-first").source, "api");
+  assert.deepEqual([resolved("unknown-on-conflict").state, resolved("unknown-on-conflict").source], ["unknown", "none"]);
+});
+
+test("inactive NovaStar inputs and outputs stay inactive after canonical reconciliation", () => {
+  const sample = data("50 Hz", "1");
+  sample.inputSlots = { slots: [{ slotId: 1, inputSources: [{ sourceId: 1, fields: {
+    status: { ok: true, value: 0 }
+  } }] }] };
+  sample.outputSlots = { slots: [{ slotId: 2, outputPorts: [{ portId: 1, status: 0 }] }] };
+  canonicalizeIo(sample, "snmp");
+
+  assert.equal(sample.resolvedState["input:I-1:1"].state, "inactive");
+  assert.equal(sample.resolvedState["output:O-2:1"].state, "inactive");
+  const view = buildMonitoringView(sample);
+  assert.equal(view.inputSlots[0].state, "inactive");
+  assert.equal(view.outputSlots[0].state, "inactive");
+  assert.equal(view.inputSlots[0].ok, null);
+  assert.equal(view.outputSlots[0].ok, null);
+});
+
+test("IO reconciliation inventory strategy can use union, intersection or one source", () => {
+  const api = data("50 Hz", "1");
+  api.inputSlots = { slots: [{ slotId: 1, inputSources: [{ sourceId: 1, fields: { status: { ok: true, value: 1 } } }] }] };
+  const snmp = data("50 Hz", "1");
+  snmp.inputSlots = { slots: [{ slotId: 1, inputSources: [{ sourceId: 2, fields: { status: { ok: true, value: 1 } } }] }] };
+  canonicalizeIo(api, "api");
+  canonicalizeIo(snmp, "snmp");
+  const ids = (strategy) => {
+    const hybrid = {};
+    combineIo(hybrid, [snmp, api], { inventory_strategy: strategy });
+    return hybrid.inventory.entities.map((item) => item.id);
+  };
+
+  assert.deepEqual(ids("union-api-first"), ["input:I-1", "input:I-1:1", "input:I-1:2"]);
+  assert.deepEqual(ids("intersection"), ["input:I-1"]);
+  assert.deepEqual(ids("api-only"), ["input:I-1", "input:I-1:1"]);
+  assert.deepEqual(ids("snmp-only"), ["input:I-1", "input:I-1:2"]);
 });
 
 test("Kiloview monitoring exposes system, network, video, audio and NDI groups", () => {
@@ -232,6 +402,27 @@ test("NovaStar SNMP defaults use public for both read and write communities", ()
 
   assert.equal(connector.readCommunity, "public");
   assert.equal(connector.writeCommunity, "public");
+});
+
+test("NovaStar monitor exposes only the canonical IO contract", async () => {
+  class FakeSnmpConnector {
+    async monitor() {
+      return {
+        timestamp: new Date().toISOString(),
+        controller: { workingStatus: { ok: true, value: "Online" } },
+        inputSlots: { slots: [{ slotId: 1, inputSources: [] }] },
+        outputSlots: { slots: [] }, screens: { screens: [] }, receivingCards: []
+      };
+    }
+  }
+  const monitor = createDeviceMonitor({ SNMPConnector: FakeSnmpConnector });
+  const result = await monitor.monitor({ id: "nova-1", type: "novastar-h", host: "192.0.2.30" });
+
+  ["inputSlots", "outputSlots", "screens", "receivingCards"].forEach((key) => {
+    assert.equal(Object.prototype.hasOwnProperty.call(result, key), false);
+  });
+  assert.ok(result.inventory.entities.some((entity) => entity.id === "input:I-1"));
+  assert.ok(result.observations.items.some((item) => item.entityId === "input:I-1"));
 });
 
 test("NovaStar SNMP scans physical slot IDs and skips unpopulated gaps", async () => {

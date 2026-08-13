@@ -126,6 +126,7 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   const allowedMapMonitoringHtml = await allowedMapMonitoringPage.text();
   assert.match(allowedMapMonitoringHtml, /id="mapMonitoringTab" class="tab-panel active"/);
   assert.equal(allowedMapMonitoringHtml.includes('id="openMapConfiguration"'), true);
+  assert.equal(allowedMapMonitoringHtml.includes('id="configureMapMonitoringDialog"'), true);
   assert.equal(allowedMapMonitoringHtml.includes('href="/monitoring-maps"'), true);
   assert.equal(allowedMapMonitoringHtml.includes('src="/images/Configuration.png"'), true);
   assert.equal(allowedMapMonitoringHtml.includes('id="mapReferenceContextMenu"'), true);

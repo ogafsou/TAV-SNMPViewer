@@ -1,54 +1,49 @@
-{
-  "schema_version": 1,
-  "point_number": 4,
-  "created_at": "2026-07-27T20:10:33.5460695+02:00",
-  "description": "Point de synchronisation cree apres la preparation et la validation du paquet 2MC numero 4.",
-  "baseline": {
-    "git_commit": "b4fa8d0d44b9def2489415a0b99239b97e912dc2",
-    "working_tree_overrides": {
-      "package.json": "8dc8839c41020543113469f8efd004f764e6e76f",
-      "tests/README.md": "3a16d1db349716b54cf85e3ffc0ca6fc917d5237",
-      "tests/novastar-trap-test.js": "8acab54db67ddf30e4142fdd3b834271d2d2cba2",
-      "tests/novastar-trap-receiver.test.js": "597ec0655764c17aa6712a45d23ebdc5d8f00cad",
-      "tests/frontend-proxy.test.js": "63ac79a1ee0eee3693163736c0702274b77847be",
-      "Codex/Microcoupures.md": "4266c3accf704ed987acf7a4c96340b9283a2b04",
-      "Codex/Mail_Novastar.txt": "00ff00ca3cfd38a370788004a14f44ae45a85378",
-      "tests/architecture.test.js": "da1478850b2583e7ded6acc467a3a930dcf4c463",
-      "NovaStarSimulator/state.json": "50980d0795c5c25a1073125b632bb92f3f9b41c1",
-      "TAV_Monitoring_UI/views/partials/shared/header.ejs": "bbcbc539e814dc77eab341a9bfe81260772a179a",
-      "TAV_Monitoring_Backend/classes/SnmpLib.js": "195fdfdadd0718a97ecec06fa013ce1691fe4c89",
-      "TAV_Monitoring_Backend/classes/NetgearM4300SnmpLib.js": "66ca46cb49ab7e713e46e28dfc1bbc1466db6c47",
-      "TAV_Monitoring_UI/app.js": "a87542bd5b933e5766ede89b6a08e910abfad0f6",
-      "TAV_Monitoring_UI/public/stylesheets/style.css": "acf5e4a476319ac81f0b26c63cb3723ad0f8c042",
-      "TAV_Monitoring_UI/public/images/Eye.png": "95a1f834d306d49b37ef0ba9abc3408f9e3e9ee5",
-      "TAV_Monitoring_UI/public/images/Configuration.png": "89d1543247c666dc6ac52863d775a907c9f3b6e2",
-      "TAV_Monitoring_UI/views/index.ejs": "b6df8ee30e7a328deac5df4b16b51eaf89dda17e",
-      "TAV_Monitoring_UI/views/MonitoringMap.ejs": "dce7bb2a1288deb7ce1672364d22010db884f405",
-      "TAV_Monitoring_UI/views/MonitoringMaps.ejs": "f2790f0b31ebcd13ee2b24b26bb242b594ee186c",
-      "TAV_Monitoring_UI/public/javascripts/configuration.js": "271c695e931156961f3b941af7c4de45da739cb2",
-      "TAV_Monitoring_UI/public/javascripts/auth.js": "ab3e07e640ab4ac1870989e710977ed8335ba96d",
-      "TAV_Monitoring_UI/public/javascripts/map-monitoring.js": "a5dc40aca33a3db3a64fb0900013950f149e6ae8",
-      "TAV_Monitoring_UI/public/javascripts/monitoring-maps.js": "a3a8a80ff353039737460598b9b5272172e7bb90",
-      "TAV_Monitoring_UI/public/javascripts/monitoring.js": "e8359b7840a37bb0bec2cf9e24df8f92868b9682",
-      "TAV_Monitoring_UI/public/javascripts/monitoring-renderers.js": "ad1077afa48b99ef288d3acad6a2f1b652bfc644",
-      "KiloviewSimulator/state.json": "89ae575b86d5f9debc5ce16c2f3d78b11ea086b9"
-    }
-  },
-  "always_excluded_from_transfer": [
-    "2MC/**",
-    "Codex/2MC_sync_point.json",
-    "node_modules/**",
-    "**/node_modules/**",
-    "**/*.log",
-    "**/cache/**",
-    "**/tmp/**",
-    "**/*.tmp"
-  ],
-  "target_specific_configuration": [
-    "**/config.json",
-    "**/machines.json",
-    "**/machines.json.bak",
-    "**/users.json",
-    "**/maps.json"
-  ]
+﻿{
+    "schema_version":  1,
+    "point_number":  6,
+    "created_at":  "2026-08-13T11:36:52.3482326+02:00",
+    "description":  "Point de synchronisation cree apres la preparation et la validation du paquet 2MC numero 6.",
+    "baseline":  {
+                     "git_commit":  "26b824b8427965d01cb06a53b5f57aa060f09df2",
+                     "working_tree_overrides":  {
+                                                    "AGENTS.md":  "42e75ddd7b68eac5f63d5f1379e1189090082fa6",
+                                                    "TAV_Monitoring_Backend/README.md":  "199d37ca13bc2ef65e0dfdd8b448f1a69ff01e62",
+                                                    "TAV_Monitoring_Backend/app.js":  "4868c963a46501fa6f827250f93a6fe213378c72",
+                                                    "TAV_Monitoring_Backend/classes/Config.js":  "3725f30ab518c36b37423fe6925afc601093d91c",
+                                                    "TAV_Monitoring_Backend/config.json":  "7d59497ed163d9ab74620509dd079b5e249c4718",
+                                                    "TAV_Monitoring_Backend/machines.json":  "144583584692af737b36357222f9a80e9b699052",
+                                                    "TAV_Monitoring_Backend/machines.json.bak":  "7b1b71b008065627533097566ed54438b3b39f7c",
+                                                    "TAV_Monitoring_Backend/maps.json":  "2f99b84a9b142c8d2991b38480dbd9d840f090c2",
+                                                    "TAV_Monitoring_Backend/services/AlertService.js":  "87128f82579d8fcc863b6da8df85174e4e3de951",
+                                                    "TAV_Monitoring_Backend/services/CanonicalIo.js":  "d918911b837e14df2043c83a09eefa3c55c4c6d1",
+                                                    "TAV_Monitoring_Backend/services/DeviceMonitor.js":  "29eaa6de7471ce4bbef9fe41f593f3dc0fbe310b",
+                                                    "TAV_Monitoring_Backend/services/MonitoringState.js":  "c795df5855a2ad80b6ef0a4a238c5bd24eb17f86",
+                                                    "TAV_Monitoring_UI/public/javascripts/machine-details.js":  "aa4e43e50f678e0d4bd472294276cd390f734d63",
+                                                    "TAV_Monitoring_UI/public/javascripts/map-monitoring.js":  "af6f7380613e46b553f24b8e847e9b8c2e3ef6bf",
+                                                    "TAV_Monitoring_UI/public/javascripts/monitoring-maps.js":  "e2dd68836926054c79f72b5e2a7d3ef9e533d610",
+                                                    "TAV_Monitoring_UI/public/javascripts/monitoring-renderers.js":  "88e48b0c73e0c6d8d898d497cd0ba35f2703baef",
+                                                    "TAV_Monitoring_UI/public/stylesheets/style.css":  "7fd44d49692b269cfe6cba5bd7c9eaafe56c87b9",
+                                                    "TAV_Monitoring_UI/views/MonitoringMaps.ejs":  "1cf18fff18087540e7a1a42df4de8be370fb223b",
+                                                    "TAV_Monitoring_UI/views/index.ejs":  "b27ebd3c8eadaf7197d24f618ab84ecd0dfff316",
+                                                    "tests/architecture.test.js":  "89d9c01d72edc663fa11f9c72f26382728893eab",
+                                                    "tests/backend-monitoring.test.js":  "8cb25d3354c587c784b0e9fbd7e2caca0a230668"
+                                                }
+                 },
+    "always_excluded_from_transfer":  [
+                                          "2MC/**",
+                                          "Codex/2MC_sync_point.json",
+                                          "node_modules/**",
+                                          "**/node_modules/**",
+                                          "**/*.log",
+                                          "**/cache/**",
+                                          "**/tmp/**",
+                                          "**/*.tmp"
+                                      ],
+    "target_specific_configuration":  [
+                                          "**/config.json",
+                                          "**/machines.json",
+                                          "**/machines.json.bak",
+                                          "**/users.json",
+                                          "**/maps.json"
+                                      ]
 }

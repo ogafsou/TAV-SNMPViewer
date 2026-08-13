@@ -30,6 +30,20 @@ test("device connectors exist only in the new backend", () => {
   });
 });
 
+test("NovaStar SNMP collection stays behind the single backend orchestrator", () => {
+  const backendRoot = path.join(root, "TAV_Monitoring_Backend");
+  const allowedImporter = path.join(backendRoot, "services", "DeviceMonitor.js");
+  const connectorFile = path.join(backendRoot, "classes", "SnmpLib.js");
+  const violations = javascriptFiles(backendRoot)
+    .filter((file) => file !== allowedImporter && file !== connectorFile)
+    .filter((file) => /require\(["'][^"']*SnmpLib["']\)|new\s+\w*SNMPConnector\s*\(/.test(fs.readFileSync(file, "utf8")))
+    .map((file) => path.relative(root, file));
+
+  assert.deepEqual(violations, [],
+    "NovaStar SNMP selectors must remain orchestrated by DeviceMonitor/MonitoringService; " +
+    "a direct connector call requires an explicit host:port locking design first");
+});
+
 test("frontend contains no direct device monitor endpoint", () => {
   const javascriptFolder = path.join(root, "TAV_Monitoring_UI", "public", "javascripts");
   const javascript = fs.readdirSync(javascriptFolder)
@@ -40,6 +54,14 @@ test("frontend contains no direct device monitor endpoint", () => {
   assert.equal(javascript.includes("readCommunity: machine.readCommunity"), false);
   assert.equal(javascript.includes("setupWebSocket()"), true);
 });
+
+function javascriptFiles(folder) {
+  return fs.readdirSync(folder, { withFileTypes: true }).flatMap((entry) => {
+    const target = path.join(folder, entry.name);
+    if (entry.isDirectory()) return entry.name === "node_modules" ? [] : javascriptFiles(target);
+    return entry.isFile() && entry.name.endsWith(".js") ? [target] : [];
+  });
+}
 
 test("a reference difference colors the control red without replacing the icon status color", () => {
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
@@ -69,7 +91,7 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20260727-4/);
+  assert.match(view, /style\.css\?v=20260813-7/);
   assert.match(view, /monitoring-renderers\.js\?v=20260724-1/);
   assert.match(view, /utils\.js\?v=20260723-2/);
   assert.match(view, /auth\.js\?v=20260725-1/);
@@ -77,8 +99,8 @@ test("monitoring assets use the current cache-busting version", () => {
   assert.match(view, /monitoring\.js\?v=20260724-2/);
   assert.match(view, /configuration\.js\?v=20260724-4/);
   assert.match(view, /application\.js\?v=20260723-12/);
-  assert.match(view, /monitoring-maps\.js\?v=20260724-11/);
-  assert.match(view, /map-monitoring\.js\?v=20260727-4/);
+  assert.match(view, /monitoring-maps\.js\?v=20260813-3/);
+  assert.match(view, /map-monitoring\.js\?v=20260813-3/);
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
   assert.match(css, /#toggleMonitoringView\[hidden\],[\s\S]*?#refreshMonitoring\[hidden\]\s*\{\s*display:\s*none !important;/);
   assert.match(css, /\.topbar\s*\{[^}]*align-items:\s*center;[^}]*padding-bottom:\s*0;/s);
@@ -131,7 +153,7 @@ test("monitoring cards group system health in one compact section", () => {
   assert.match(css, /\.monitoring-card\.never-connected\s*\{[^}]*color:\s*var\(--ink\);[^}]*filter:\s*none;/s);
   assert.doesNotMatch(renderer, /"Nom : "/);
   assert.doesNotMatch(renderer, /"Statut : "/);
-  assert.match(renderer, /Reference : " \+ stateTitle\(item\.referenceState\)/);
+  assert.match(renderer, /Reference attendue : " \+ stateTitle\(item\.referenceState\)/);
   assert.match(css, /table th,[\s\S]*?table td:first-child,[\s\S]*?\.io-status-group > span\s*\{[^}]*font-family:\s*Poppins/);
   assert.match(css, /\.io-status-table th\s*\{[^}]*vertical-align:\s*middle;/s);
 });
@@ -237,6 +259,8 @@ test("large monitoring maps open the assigned NovaStar output", () => {
   const mapMonitoring = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "map-monitoring.js"), "utf8");
   const mapConfiguration = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-maps.js"), "utf8");
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
+  const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "MonitoringMap.ejs"), "utf8");
+  const configurationView = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "MonitoringMaps.ejs"), "utf8");
 
   assert.match(mapMonitoring, /cell\.dataset\.machineId = String\(assignment\.machineId\)/);
   assert.match(mapMonitoring, /map-monitoring-stage-large \.map-monitoring-segment i\[data-machine-id\]/);
@@ -244,4 +268,16 @@ test("large monitoring maps open the assigned NovaStar output", () => {
   assert.match(mapConfiguration, /function openMapAssignmentMonitoring\(assignment\)/);
   assert.match(mapConfiguration, /outputCell\.classList\.add\("map-output-highlight"\)/);
   assert.match(css, /\.monitoring-card-dialog \.io-status-table td\.map-output-highlight\s*\{[^}]*outline:\s*5px solid #fff;/s);
+  assert.match(css, /\.map-monitoring-dialog-actions \.icon-mode-switch img\s*\{[^}]*width:\s*22px;[^}]*height:\s*22px;/s);
+  assert.match(view, /if \(canAccessMonitoringMaps && page === 'monitoring-map'\)[\s\S]*?id="configureMapMonitoringDialog"[\s\S]*?Configuration\.png/);
+  assert.match(mapMonitoring, /configureMapMonitoringDialog\.href = "\/monitoring-maps\?mapId=" \+ encodeURIComponent\(map\.id\)/);
+  assert.match(view, /id="resetMapMonitoringViewButton"[^>]*hidden/);
+  assert.match(configurationView, /id="resetMapViewButton"[^>]*hidden/);
+  assert.match(view, /id="resetMapMonitoringViewButton"[\s\S]*?\/images\/resetview\.png/);
+  assert.match(view, /id="closeMapMonitoringDialog"[\s\S]*?\/images\/close\.png/);
+  assert.match(configurationView, /id="resetMapViewButton"[\s\S]*?\/images\/resetview\.png/);
+  assert.match(mapMonitoring, /mapMonitoringDialog\.addEventListener\("wheel"/);
+  assert.match(mapMonitoring, /mapMonitoringDialogPanX/);
+  assert.match(mapConfiguration, /resetMapViewButton\.addEventListener\("click", resetMapTransform\)/);
+  assert.match(mapConfiguration, /new URLSearchParams\(window\.location\.search\)\.get\("mapId"\)/);
 });

@@ -1,15 +1,12 @@
 function renderMonitor(data, record) {
+  var io = selectCanonicalIo(data);
   updateAdvancedInformationVisibility(data.type, true);
   document.getElementById("lastScan").textContent = formatDate(data.timestamp);
-  var primarySlots = data.inputSlots || data.outputSlots;
-  document.getElementById("slotCount").textContent = primarySlots.error
-    ? "Erreur: " + primarySlots.error
-    : plural(primarySlots.count, "slot");
-  document.getElementById("screenCount").textContent = data.screens.error
-    ? "Erreur: " + data.screens.error
-    : plural(data.screens.count, "ecran");
+  var primarySlots = io.inputSlots.length ? io.inputSlots : io.outputSlots;
+  document.getElementById("slotCount").textContent = plural(primarySlots.length, "slot");
+  document.getElementById("screenCount").textContent = plural(io.screens.length, "ecran");
   var outputPorts = Array.isArray(data.outputPorts) ? data.outputPorts : [];
-  var receivingCards = Array.isArray(data.receivingCards) ? data.receivingCards : [];
+  var receivingCards = io.receivingCards;
   document.getElementById("portCount").textContent = plural(outputPorts.length, "port");
   document.getElementById("cardCount").textContent = plural(receivingCards.length, "card");
 
@@ -20,8 +17,8 @@ function renderMonitor(data, record) {
   renderSimpleStatusSection("usbSection", "usbTable", data.usbPorts || [], "usbId", "USB ");
   renderSimpleStatusSection("fansSection", "fansTable", data.fans || [], "fanId", "Ventilateur ");
   renderSimpleStatusSection("powerSection", "powerTable", data.powerSupplies || [], "powerId", "Alimentation ");
-  renderSlots(primarySlots.slots);
-  renderScreens(data.screens.screens);
+  renderSlots(primarySlots);
+  renderScreens(io.screens);
   renderOutputPorts(outputPorts);
   renderCards(receivingCards);
 }
@@ -75,8 +72,8 @@ function renderSummary(data, record) {
     summaryTile("Statut", status || "-"),
     summaryTile("Temperature", temp || "-"),
     summaryTile("Source", (data.source || "snmp").toUpperCase()),
-    summaryTile("Slots entree", (data.inputSlots && data.inputSlots.count) || 0),
-    summaryTile("Slots sortie", (data.outputSlots && data.outputSlots.count) || 0),
+    summaryTile("Slots entree", selectCanonicalIo(data).inputSlots.length),
+    summaryTile("Slots sortie", selectCanonicalIo(data).outputSlots.length),
     summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
   ].join("");
 }
@@ -196,6 +193,40 @@ function renderSlots(slots) {
       cell(sourceDetails, "wide") +
     "</tr>";
   }).join("");
+}
+
+function selectCanonicalIo(data) {
+  var entities = data.inventory && data.inventory.entities || [];
+  var resolved = data.resolvedState || {};
+  function items(kind) {
+    return entities.filter(function(entity) { return entity.kind === kind; });
+  }
+  function fields(entity) {
+    return resolved[entity.id] && resolved[entity.id].fields || {};
+  }
+  function children(parentId, kind) {
+    return entities.filter(function(entity) { return entity.parentId === parentId && entity.kind === kind; });
+  }
+  var inputSlots = items("input-slot").map(function(slot) {
+    return {
+      slotId: slot.label,
+      fields: fields(slot),
+      inputSources: children(slot.id, "input").map(function(input) {
+        return { sourceId: input.label, fields: fields(input) };
+      })
+    };
+  });
+  var outputSlots = items("output-slot").map(function(slot) {
+    return { slotId: slot.label, fields: fields(slot) };
+  });
+  var screens = items("screen").map(function(screen) {
+    return { screenId: screen.label, fields: fields(screen) };
+  });
+  var receivingCards = items("receiving-card").map(function(card) {
+    var parts = card.id.match(/^output:O-([^:]+):([^:]+):receiving:(.+)$/) || [];
+    return { outputSlotId: "O-" + (parts[1] || "-"), netPortId: parts[2] || "-", recvCardId: parts[3] || "-", fields: fields(card) };
+  });
+  return { inputSlots: inputSlots, outputSlots: outputSlots, screens: screens, receivingCards: receivingCards };
 }
 
 function formatInputSources(sources) {

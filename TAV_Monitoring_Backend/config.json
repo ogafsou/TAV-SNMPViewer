@@ -7,6 +7,20 @@
   "monitoring_reference_mode": true,
   "loglevel": "debug",
   "max_parallel_scans": 8,
+  "io_reconciliation": {
+    "_comment_inventory_strategy": "Valeurs: union-api-first (union, descriptif API prioritaire), union-snmp-first (union, descriptif SNMP prioritaire), api-only, snmp-only, intersection (uniquement les elements vus par les deux sources).",
+    "inventory_strategy": "union-api-first",
+    "_comment_operational_strategy": "Valeurs: worst-valid-state (etat le plus defavorable), best-valid-state (etat le plus favorable, peut masquer une panne), snmp-first, api-first, unknown-on-conflict.",
+    "operational_strategy": "worst-valid-state",
+    "_comment_single_source_strategy": "Valeurs: use-available, require-both, snmp-required, api-required.",
+    "single_source_strategy": "use-available",
+    "_comment_missing_state": "Etat si aucune observation n'est retenue. Valeurs: unknown, warning, error, inactive.",
+    "missing_state": "unknown",
+    "_comment_recovery_confirmation_scans": "Nombre de scans sains consecutifs avant retour a la normale. Reserve a la stabilisation inter-scans.",
+    "recovery_confirmation_scans": 2,
+    "_comment_inventory_removal_confirmation_scans": "Nombre de scans d'absence consecutifs avant retrait d'un element. Reserve a la stabilisation inter-scans.",
+    "inventory_removal_confirmation_scans": 3
+  },
   "alerts": {
     "enabled": true,
     "provider": "ntfy",

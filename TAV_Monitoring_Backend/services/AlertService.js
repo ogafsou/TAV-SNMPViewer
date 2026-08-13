@@ -142,8 +142,8 @@ function itemLabel(collection, item) {
     const output = coordinates[2];
     return output && output !== "-" ? `Carte de sortie ${card}, sortie ${output}` : `Carte de sortie ${card}`;
   }
-  if (collection === "receivingCards" && coordinates[0] === "receiving") {
-    return `Carte de reception ${coordinates.slice(1).join(".") || item.label}`;
+  if (collection === "receivingCards" && coordinates[0] === "output") {
+    return `Carte de reception ${item.label || coordinates.filter((part) => part !== "output" && part !== "receiving").join(".")}`;
   }
   const names = {
     controller: "Controleur", inputSlots: "Entree", outputSlots: "Sortie", screens: "Ecran",

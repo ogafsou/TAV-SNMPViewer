@@ -1,74 +1,76 @@
+const { selectIo } = require("./CanonicalIo");
+
 function buildMonitoringView(data) {
   const controllerState = fieldsVisualState(data.controller);
   const controllerOk = stateHealth(controllerState);
   const kiloviewGroups = normalizeMachineType(data.type) === "kiloview" ? buildKiloviewGroups(data.controller || {}) : [];
   const netgearPorts = normalizeMachineType(data.type) === "netgear-m4300" ? buildNetgearPorts(data.netgearPorts || []) : [];
-  const primarySlots = data.inputSlots || data.outputSlots || { slots: [] };
+  const io = selectIo(data);
   const inputTables = [];
-  const inputSlots = (primarySlots.slots || []).reduce((items, slot) => {
-    const sources = Array.isArray(slot.inputSources) ? slot.inputSources : [];
+  const inputSlots = io.inputSlots.reduce((items, slot) => {
+    const sources = slot.inputs;
     if (!sources.length) {
       let state = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
-      const item = Object.assign(referenceItem(String(slot.slotId), state, interfaceIcon(slot.fields), "input:" + slot.slotId + ":-", { state, icon: interfaceIcon(slot.fields) }), {
-        name: "Input " + slot.slotId,
+      const item = Object.assign(referenceItem(slot.label, state, interfaceIcon(slot.fields), slot.id + ":-", { state, icon: interfaceIcon(slot.fields) }), {
+        name: "Input " + slot.label,
         value: fieldValue(slot.fields && slot.fields.status) || "Aucun signal"
       });
       items.push(item);
-      inputTables.push({ label: String(slot.slotId), ports: [Object.assign({}, item, { label: "-" })] });
+      inputTables.push({ label: slot.label, ports: [Object.assign({}, item, { label: "-" })] });
       return items;
     }
     const ports = sources.map((source) => {
       const state = inputSignalState(source.fields && source.fields.status);
       const icon = interfaceIcon(source.fields);
-      const item = Object.assign(referenceItem(String(slot.slotId) + "." + source.sourceId, state, icon, "input:" + slot.slotId + ":" + source.sourceId, { state, icon }), {
-        name: "Input " + slot.slotId + "." + source.sourceId,
+      const item = Object.assign(referenceItem(slot.label + "." + source.label, state, icon, source.id, { state, icon }), {
+        name: "Input " + slot.label + "." + source.label,
         value: fieldValue(source.fields && source.fields.status) || "Aucun signal"
       });
       items.push(item);
-      return Object.assign({}, item, { label: String(source.sourceId) });
+      return Object.assign({}, item, { label: source.label });
     });
-    inputTables.push({ label: String(slot.slotId), ports });
+    inputTables.push({ label: slot.label, ports });
     return items;
   }, []);
 
   const outputTables = [];
-  const outputSlots = (((data.outputSlots || {}).slots) || []).reduce((items, slot) => {
-    const ports = Array.isArray(slot.outputPorts) ? slot.outputPorts : [];
+  const outputSlots = io.outputSlots.reduce((items, slot) => {
+    const ports = slot.outputs;
     if (!ports.length) {
       let state = slot.selectorError ? "error" : fieldsVisualState(slot.fields);
       if (state === "ok") state = "inactive";
-      const item = Object.assign(referenceItem(String(slot.slotId), state, "rj45", "output:" + slot.slotId + ":-", { state, icon: "rj45" }), {
-        name: "Output " + slot.slotId,
+      const item = Object.assign(referenceItem(slot.label, state, "rj45", slot.id + ":-", { state, icon: "rj45" }), {
+        name: "Output " + slot.label,
         value: "Aucun port actif"
       });
       items.push(item);
-      outputTables.push({ label: String(slot.slotId), ports: [Object.assign({}, item, { label: "-" })] });
+      outputTables.push({ label: slot.label, ports: [Object.assign({}, item, { label: "-" })] });
       return items;
     }
     const cells = ports.map((port) => {
-      const state = rawPortState(port.status);
-      const item = Object.assign(referenceItem(String(slot.slotId) + "." + port.portId, state, "rj45", "output:" + slot.slotId + ":" + port.portId, { state, icon: "rj45" }), {
-        name: "Output " + slot.slotId + "." + port.portId,
-        value: String(port.status === undefined ? "-" : port.status)
+      const state = port.state === "unknown" ? rawPortState(port.fields.status) : port.state;
+      const item = Object.assign(referenceItem(slot.label + "." + port.label, state, "rj45", port.id, { state, icon: "rj45" }), {
+        name: "Output " + slot.label + "." + port.label,
+        value: fieldValue(port.fields.status) || stateTitle(state)
       });
       items.push(item);
-      return Object.assign({}, item, { label: String(port.portId) });
+      return Object.assign({}, item, { label: port.label });
     });
-    outputTables.push({ label: String(slot.slotId), ports: cells });
+    outputTables.push({ label: slot.label, ports: cells });
     return items;
   }, []);
 
-  const screens = ((((data.screens || {}).screens) || [])).map((screen) => {
+  const screens = io.screens.map((screen) => {
     const state = fieldsVisualState(screen.fields);
-    return Object.assign(referenceItem(String(screen.screenId), state, "", "screen:" + screen.screenId, state), {
-      name: "Ecran " + screen.screenId,
+    return Object.assign(referenceItem(screen.label, state, "", screen.id, state), {
+      name: "Ecran " + screen.label,
       value: fieldValue(screen.fields && (screen.fields.workingStatus || screen.fields.status)) || stateTitle(state)
     });
   });
-  const receivingCards = (data.receivingCards || []).map((card) => {
+  const receivingCards = io.receivingCards.map((card) => {
     const state = fieldsVisualState(card.fields);
-    const label = [card.outputSlotId, card.netPortId, card.recvCardId].join(".");
-    return Object.assign(referenceItem(label, state, "", "receiving:" + [card.outputSlotId, card.netPortId, card.recvCardId].join(":"), state), {
+    const label = card.id.replace(/^output:O-/, "").replace(/:receiving:/, ".").replace(/:/g, ".");
+    return Object.assign(referenceItem(label, state, "", card.id, state), {
       name: "Receiving Card " + label,
       value: [fieldValue(card.fields && card.fields.workingStatus), fieldValue(card.fields && card.fields.temperatureValue), fieldValue(card.fields && card.fields.voltageValue)].filter(Boolean).join(" / ") || stateTitle(state)
     });
@@ -135,7 +137,7 @@ function buildOfflineView(machine, error, timestamp) {
 function applyReferenceMode(machine, baseView, enabled) {
   const view = clone(baseView);
   if (!enabled) return view;
-  const reference = machine.monitoringReference && machine.monitoringReference.snapshot;
+  const reference = migrateReferenceSnapshot(machine.monitoringReference && machine.monitoringReference.snapshot);
   if (!reference || !reference.controls) {
     view.state = "unknown";
     view.label = "Reference non definie";
@@ -149,6 +151,19 @@ function applyReferenceMode(machine, baseView, enabled) {
   view.label = same ? "OK" : "Probleme";
   view.message = baseView.message + " - Reference: " + formatDate(machine.monitoringReference.setAt);
   return view;
+}
+
+function migrateReferenceSnapshot(snapshot) {
+  if (!snapshot || !snapshot.controls) return snapshot;
+  const controls = {};
+  Object.entries(snapshot.controls).forEach(([key, value]) => {
+    const parts = key.split(":");
+    const canonicalKey = parts[0] === "receiving" && parts.length === 4
+      ? `output:O-${parts[1]}:${parts[2]}:receiving:${parts[3]}`
+      : key;
+    controls[canonicalKey] = value;
+  });
+  return Object.assign({}, snapshot, { controls });
 }
 
 function buildReferenceSnapshot(view) {

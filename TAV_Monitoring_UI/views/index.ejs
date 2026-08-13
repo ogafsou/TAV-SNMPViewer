@@ -4,7 +4,7 @@
     <title><%= title %></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="/stylesheets/style.css?v=20260727-4" />
+    <link rel="stylesheet" href="/stylesheets/style.css?v=20260813-7" />
   </head>
   <body data-rest-refresh-s="<%= rest_refresh_s || 0 %>" data-backend-url="<%= backend_url %>" style="--map-background-opacity:<%= bkgnd_opacity %>">
     <main class="app-shell">
@@ -32,8 +32,8 @@
     <script src="/javascripts/machine-details.js?v=20260723-6"></script>
     <script src="/javascripts/monitoring.js?v=20260724-2"></script>
     <script src="/javascripts/configuration.js?v=20260724-4"></script>
-    <% if (canAccessMonitoringMaps) { %><script src="/javascripts/map-monitoring.js?v=20260727-4"></script><% } %>
-    <% if (canAccessMonitoringMaps) { %><script src="/javascripts/monitoring-maps.js?v=20260724-11"></script><% } %>
+    <% if (canAccessMonitoringMaps) { %><script src="/javascripts/map-monitoring.js?v=20260813-3"></script><% } %>
+    <% if (canAccessMonitoringMaps) { %><script src="/javascripts/monitoring-maps.js?v=20260813-3"></script><% } %>
     <script src="/javascripts/application.js?v=20260723-12"></script>
   </body>
 </html>

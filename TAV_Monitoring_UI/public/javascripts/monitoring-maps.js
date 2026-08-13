@@ -1,5 +1,6 @@
 var monitoringMaps = [];
-var selectedMapId = localStorage.getItem("tavSelectedMapId") || "";
+var requestedMapId = new URLSearchParams(window.location.search).get("mapId") || "";
+var selectedMapId = requestedMapId || localStorage.getItem("tavSelectedMapId") || "";
 var editedMapId = "";
 var contextMapId = "";
 var mapCount = document.getElementById("mapCount");
@@ -22,6 +23,7 @@ var mapBackgroundImage = document.getElementById("mapBackgroundImage");
 var mapZonePlaceholder = document.getElementById("mapZonePlaceholder");
 var mapNovastarFilters = document.getElementById("mapNovastarFilters");
 var mapWarningsFilter = document.getElementById("mapWarningsFilter");
+var resetMapViewButton = document.getElementById("resetMapViewButton");
 var mapZone = document.getElementById("mapZone");
 var mapContent = document.getElementById("mapContent");
 var segmentContextMenu = document.getElementById("segmentContextMenu");
@@ -29,6 +31,8 @@ var editSegmentCasesButton = document.getElementById("editSegmentCasesButton");
 var copySegmentButton = document.getElementById("copySegmentButton");
 var deleteSegmentButton = document.getElementById("deleteSegmentButton");
 var clearSegmentCaseButton = document.getElementById("clearSegmentCaseButton");
+var clearSegmentBlockButton = document.getElementById("clearSegmentBlockButton");
+var clearSegmentNovastarButton = document.getElementById("clearSegmentNovastarButton");
 var novastarOutputMenu = document.getElementById("novastarOutputMenu");
 var segmentClearAction = document.getElementById("segmentClearAction");
 var segmentEditActions = document.getElementById("segmentEditActions");
@@ -45,6 +49,9 @@ var warningsOnlyMapIds = {};
 
 function applyMapTransform() {
   mapContent.style.transform = "translate(" + mapPanX + "px, " + mapPanY + "px) scale(" + mapZoom + ")";
+  if (resetMapViewButton) {
+    resetMapViewButton.hidden = Math.abs(mapZoom - 1) < 0.001 && Math.abs(mapPanX) < 0.5 && Math.abs(mapPanY) < 0.5;
+  }
 }
 
 function resetMapTransform() {
@@ -85,6 +92,10 @@ function zoomMapAt(nextZoom, cursorX, cursorY) {
 }
 
 function selectedMap() { return monitoringMaps.find(function(item) { return item.id === selectedMapId; }); }
+
+if (resetMapViewButton) {
+  resetMapViewButton.addEventListener("click", resetMapTransform);
+}
 
 function segmentThicknessPx(segment) {
   var axisLength = segment.orientation === "horizontal" ? mapZone.clientWidth : mapZone.clientHeight;
@@ -438,8 +449,16 @@ function openSegmentMenu(x, y, showEditActions) {
   renderNovastarOutputMenu();
   var segment = segmentById(selectedSegmentId);
   var assignment = segment && segment.assignments && segment.assignments[selectedCaseIndex];
-  segmentClearAction.hidden = !showEditActions || selectedCaseIndex < 0;
+  var assignedMachine = assignment && machines.find(function(machine) {
+    return String(machine.id) === String(assignment.machineId);
+  });
+  segmentClearAction.hidden = !showEditActions;
   clearSegmentCaseButton.disabled = !assignment;
+  clearSegmentBlockButton.disabled = !segment || !(segment.assignments || []).some(Boolean);
+  clearSegmentNovastarButton.hidden = !assignment;
+  clearSegmentNovastarButton.textContent = assignment
+    ? "Clear " + (assignedMachine && assignedMachine.name || assignment.machineName || assignment.machineId)
+    : "Clear NovaStar";
   segmentEditActions.hidden = !showEditActions;
   segmentContextMenu.style.left = Math.min(x, window.innerWidth - 240) + "px";
   segmentContextMenu.style.top = Math.min(y, window.innerHeight - 220) + "px";
@@ -713,6 +732,58 @@ clearSegmentCaseButton.addEventListener("click", async function() {
     setStatus("Case effacee", "ok");
   } catch (error) {
     segment.assignments[selectedCaseIndex] = previousAssignment;
+    renderMapSegments();
+    setStatus(error.message, "error");
+  }
+});
+
+clearSegmentBlockButton.addEventListener("click", async function() {
+  var segment = segmentById(selectedSegmentId);
+  var map = selectedMap();
+  if (!segment || !map) return;
+  var previousAssignments = Array.isArray(segment.assignments) ? segment.assignments.slice() : [];
+  if (!previousAssignments.some(Boolean)) return;
+  segmentContextMenu.hidden = true;
+  segment.assignments = Array.from({ length: segment.cases }, function() { return null; });
+  try {
+    await saveMapSegments(map);
+    setStatus("Bloc efface", "ok");
+  } catch (error) {
+    segment.assignments = previousAssignments;
+    renderMapSegments();
+    setStatus(error.message, "error");
+  }
+});
+
+clearSegmentNovastarButton.addEventListener("click", async function() {
+  var segment = segmentById(selectedSegmentId);
+  var map = selectedMap();
+  var assignment = segment && segment.assignments && segment.assignments[selectedCaseIndex];
+  if (!assignment || !map) return;
+  var machineId = String(assignment.machineId);
+  var machineName = machines.find(function(machine) { return String(machine.id) === machineId; });
+  var previousLastNovastarAssignment = lastNovastarAssignment;
+  var previousAssignments = (map.segments || []).map(function(item) {
+    return Array.isArray(item.assignments) ? item.assignments.slice() : [];
+  });
+  segmentContextMenu.hidden = true;
+  (map.segments || []).forEach(function(item) {
+    if (!Array.isArray(item.assignments)) return;
+    item.assignments = item.assignments.map(function(existing) {
+      return existing && String(existing.machineId) === machineId ? null : existing;
+    });
+  });
+  if (lastNovastarAssignment && String(lastNovastarAssignment.machineId) === machineId) {
+    lastNovastarAssignment = null;
+  }
+  try {
+    await saveMapSegments(map);
+    setStatus("Affectations de " + (machineName && machineName.name || assignment.machineName || assignment.machineId) + " effacees", "ok");
+  } catch (error) {
+    lastNovastarAssignment = previousLastNovastarAssignment;
+    (map.segments || []).forEach(function(item, index) {
+      item.assignments = previousAssignments[index];
+    });
     renderMapSegments();
     setStatus(error.message, "error");
   }

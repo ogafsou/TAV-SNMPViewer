@@ -11,6 +11,14 @@ const DEFAULTS = {
   ping_monitoring_reference: null,
   loglevel: "info",
   max_parallel_scans: 8,
+  io_reconciliation: {
+    inventory_strategy: "union-api-first",
+    operational_strategy: "worst-valid-state",
+    single_source_strategy: "use-available",
+    missing_state: "unknown",
+    recovery_confirmation_scans: 2,
+    inventory_removal_confirmation_scans: 3
+  },
   alerts: {
     enabled: false,
     provider: "ntfy",
@@ -55,8 +63,30 @@ function loadConfig(configPath) {
     loglevel: ["debug", "info", "warning", "error"].includes(String(merged.loglevel).toLowerCase())
       ? String(merged.loglevel).toLowerCase() : DEFAULTS.loglevel,
     max_parallel_scans: numberInRange(merged.max_parallel_scans, 1, 32, DEFAULTS.max_parallel_scans),
+    io_reconciliation: normalizeIoReconciliation(merged.io_reconciliation),
     alerts: normalizeAlerts(merged.alerts)
   };
+}
+
+function normalizeIoReconciliation(value) {
+  const stored = value && typeof value === "object" ? value : {};
+  const defaults = DEFAULTS.io_reconciliation;
+  return {
+    inventory_strategy: enumValue(stored.inventory_strategy,
+      ["union-api-first", "union-snmp-first", "api-only", "snmp-only", "intersection"], defaults.inventory_strategy),
+    operational_strategy: enumValue(stored.operational_strategy,
+      ["worst-valid-state", "best-valid-state", "snmp-first", "api-first", "unknown-on-conflict"], defaults.operational_strategy),
+    single_source_strategy: enumValue(stored.single_source_strategy,
+      ["use-available", "require-both", "snmp-required", "api-required"], defaults.single_source_strategy),
+    missing_state: enumValue(stored.missing_state, ["unknown", "warning", "error", "inactive"], defaults.missing_state),
+    recovery_confirmation_scans: numberInRange(stored.recovery_confirmation_scans, 1, 20, defaults.recovery_confirmation_scans),
+    inventory_removal_confirmation_scans: numberInRange(stored.inventory_removal_confirmation_scans, 1, 20, defaults.inventory_removal_confirmation_scans)
+  };
+}
+
+function enumValue(value, allowed, fallback) {
+  const normalized = String(value || "").toLowerCase();
+  return allowed.includes(normalized) ? normalized : fallback;
 }
 
 function normalizePingReference(value) {

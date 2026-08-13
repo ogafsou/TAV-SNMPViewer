@@ -1066,7 +1066,7 @@ function stateTitle(state) {
 function monitoringItemTooltip(item, state) {
   var lines = [monitoringItemIdentity(item) + (state ? " - " + stateTitle(state) : "")];
   if (item && item.changed && item.referenceState) {
-    lines.push("Reference : " + stateTitle(item.referenceState));
+    lines.push("Reference attendue : " + stateTitle(item.referenceState));
   }
   return lines.join("\n");
 }

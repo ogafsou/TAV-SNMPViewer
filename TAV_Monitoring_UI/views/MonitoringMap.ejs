@@ -16,7 +16,19 @@
   <dialog id="mapMonitoringDialog" class="map-monitoring-dialog">
     <div class="map-monitoring-dialog-head">
       <strong id="mapMonitoringDialogTitle">Monitoring Map</strong>
-      <button id="closeMapMonitoringDialog" class="ghost-button" type="button">Fermer</button>
+      <div class="map-monitoring-dialog-actions">
+        <button id="resetMapMonitoringViewButton" class="icon-mode-switch map-reset-view-button" type="button" aria-label="Réinitialiser la vue" title="Réinitialiser la vue" hidden>
+          <img src="/images/resetview.png" alt="" />
+        </button>
+        <% if (canAccessMonitoringMaps && page === 'monitoring-map') { %>
+          <a id="configureMapMonitoringDialog" class="icon-mode-switch" href="/monitoring-maps" aria-label="Configurer cette map" title="Configurer cette map">
+            <img src="/images/Configuration.png" alt="" />
+          </a>
+        <% } %>
+        <button id="closeMapMonitoringDialog" class="icon-mode-switch" type="button" aria-label="Fermer" title="Fermer">
+          <img src="/images/close.png" alt="" />
+        </button>
+      </div>
     </div>
     <div id="mapMonitoringDialogStage" class="map-monitoring-stage map-monitoring-stage-large"></div>
   </dialog>

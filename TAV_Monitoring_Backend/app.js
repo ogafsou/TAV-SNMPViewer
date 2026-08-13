@@ -20,7 +20,7 @@ function createBackend(options) {
   const store = settings.store || new MachineStore(config.machinesFile);
   const mapsFile = config.mapsFile || path.resolve(path.dirname(config.configPath || "."), config.maps_file || "maps.json");
   const mapStore = settings.mapStore || new MapStore(mapsFile);
-  const deviceMonitor = settings.deviceMonitor || createDeviceMonitor();
+  const deviceMonitor = settings.deviceMonitor || createDeviceMonitor(undefined, config.io_reconciliation);
   const notifier = settings.notifier || new NtfyClient(config.alerts || {});
   let alerts = settings.alerts || null;
   const monitoring = settings.monitoring || new MonitoringService({ store, deviceMonitor, config, alerts: null });

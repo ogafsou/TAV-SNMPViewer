@@ -52,6 +52,23 @@ l'etat et le nombre d'anomalies par equipement. Le lien expire selon
 
 Le WebSocket standard est disponible sur `/ws`.
 
+## Rapport de divergences NovaStar
+
+Une collecte NovaStar expose dans `raw.divergences` la comparaison des observations
+API et SNMP. `summary` donne les compteurs et `items` détaille chaque différence par
+entité canonique et par champ. Les causes possibles sont `missing-observation`,
+`missing-field`, `state-mismatch` et `value-mismatch`. Chaque entrée conserve les
+valeurs et horodatages des deux sources ainsi que la valeur finalement sélectionnée
+dans `resolvedState`. Les états sémantiquement équivalents, par exemple `Normal` et
+`1`, ne sont pas signalés comme divergents.
+
+La section `io_reconciliation` de `config.json` choisit la stratégie appliquée
+à `resolvedState`. Le JSON reste strictement valide : ses explications sont des
+propriétés `_comment_*`, ignorées au chargement. `best-valid-state` est disponible,
+mais peut masquer une panne détectée par une seule source. Les deux seuils
+`*_confirmation_scans` sont validés et réservés à la future stabilisation entre
+plusieurs scans ; ils ne changent pas encore le résultat d'un scan isolé.
+
 ## API NovaStar H
 
 Le connecteur par defaut utilise l'OpenAPI officielle sous `/open/api`. Pour une

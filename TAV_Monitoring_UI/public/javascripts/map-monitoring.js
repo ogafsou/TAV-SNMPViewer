@@ -6,10 +6,60 @@ var mapMonitoringDialog = document.getElementById("mapMonitoringDialog");
 var mapMonitoringDialogTitle = document.getElementById("mapMonitoringDialogTitle");
 var mapMonitoringDialogStage = document.getElementById("mapMonitoringDialogStage");
 var closeMapMonitoringDialog = document.getElementById("closeMapMonitoringDialog");
+var configureMapMonitoringDialog = document.getElementById("configureMapMonitoringDialog");
+var resetMapMonitoringViewButton = document.getElementById("resetMapMonitoringViewButton");
 var mapReferenceContextMenu = document.getElementById("mapReferenceContextMenu");
 var setMapReferenceMenuItem = document.getElementById("setMapReferenceMenuItem");
 var mapReferencePreviewId = "";
 var mapReferenceContextId = "";
+var mapMonitoringDialogZoom = 1;
+var mapMonitoringDialogPanX = 0;
+var mapMonitoringDialogPanY = 0;
+var mapMonitoringDialogPanGesture = null;
+
+function mapMonitoringViewIsInitial() {
+  return Math.abs(mapMonitoringDialogZoom - 1) < 0.001 &&
+    Math.abs(mapMonitoringDialogPanX) < 0.5 && Math.abs(mapMonitoringDialogPanY) < 0.5;
+}
+
+function applyMapMonitoringDialogTransform() {
+  var canvas = mapMonitoringDialogStage && mapMonitoringDialogStage.querySelector(".map-monitoring-canvas");
+  if (canvas) {
+    canvas.style.transform = "translate(" + mapMonitoringDialogPanX + "px, " + mapMonitoringDialogPanY + "px) scale(" + mapMonitoringDialogZoom + ")";
+  }
+  if (resetMapMonitoringViewButton) resetMapMonitoringViewButton.hidden = mapMonitoringViewIsInitial();
+}
+
+function resetMapMonitoringDialogTransform() {
+  mapMonitoringDialogZoom = 1;
+  mapMonitoringDialogPanX = 0;
+  mapMonitoringDialogPanY = 0;
+  mapMonitoringDialogPanGesture = null;
+  if (mapMonitoringDialogStage) mapMonitoringDialogStage.classList.remove("panning");
+  applyMapMonitoringDialogTransform();
+}
+
+function mapMonitoringDialogMaximumZoom() {
+  var canvas = mapMonitoringDialogStage && mapMonitoringDialogStage.querySelector(".map-monitoring-canvas");
+  var image = canvas && canvas.querySelector("img");
+  if (!canvas || !image || !image.naturalWidth || !canvas.clientWidth) return 1;
+  return Math.max(1, Math.min(image.naturalWidth / canvas.clientWidth, image.naturalHeight / canvas.clientHeight));
+}
+
+function zoomMapMonitoringDialogAt(nextZoom, cursorX, cursorY) {
+  var canvas = mapMonitoringDialogStage && mapMonitoringDialogStage.querySelector(".map-monitoring-canvas");
+  if (!canvas) return;
+  var baseX = (mapMonitoringDialogStage.clientWidth - canvas.offsetWidth) / 2;
+  var baseY = (mapMonitoringDialogStage.clientHeight - canvas.offsetHeight) / 2;
+  var localX = cursorX - baseX;
+  var localY = cursorY - baseY;
+  var contentX = (localX - mapMonitoringDialogPanX) / mapMonitoringDialogZoom;
+  var contentY = (localY - mapMonitoringDialogPanY) / mapMonitoringDialogZoom;
+  mapMonitoringDialogPanX = localX - contentX * nextZoom;
+  mapMonitoringDialogPanY = localY - contentY * nextZoom;
+  mapMonitoringDialogZoom = nextZoom;
+  applyMapMonitoringDialogTransform();
+}
 
 function mapMonitoringAssignmentIsOk(assignment, referenceOutputs) {
   if (referenceOutputs) {
@@ -116,9 +166,15 @@ function createMapMonitoringStage(map, large, referenceOutputs) {
       var cell = document.createElement("i");
       var assignment = segment.assignments && segment.assignments[index];
       cell.className = assignment
-        ? (mapMonitoringAssignmentIsOk(assignment, referenceOutputs) ? "output-ok" : "output-not-ok")
+        ? "assigned " + (mapMonitoringAssignmentIsOk(assignment, referenceOutputs) ? "output-ok" : "output-not-ok")
         : "output-unassigned";
       if (assignment) {
+        var assignedMachine = machines.find(function(machine) {
+          return String(machine.id) === String(assignment.machineId);
+        });
+        if (assignedMachine && /^#[0-9a-f]{6}$/i.test(assignedMachine.color || "")) {
+          cell.style.setProperty("--assigned-novastar-color", assignedMachine.color);
+        }
         cell.dataset.machineId = String(assignment.machineId);
         cell.dataset.cardId = String(assignment.cardId);
         cell.dataset.outputId = String(assignment.outputId);
@@ -152,6 +208,14 @@ function fitMapMonitoringCanvas(stage, naturalWidth, naturalHeight) {
     canvas.style.height = Math.floor(height * scale) + "px";
   }
   sizeMapMonitoringSegments(stage);
+  if (stage === mapMonitoringDialogStage) {
+    var maximumZoom = mapMonitoringDialogMaximumZoom();
+    if (mapMonitoringDialogZoom > maximumZoom) {
+      zoomMapMonitoringDialogAt(maximumZoom, stage.clientWidth / 2, stage.clientHeight / 2);
+    } else {
+      applyMapMonitoringDialogTransform();
+    }
+  }
 }
 
 function sizeMapMonitoringSegments(stage) {
@@ -209,9 +273,13 @@ function openMapMonitoring(mapId) {
   var map = mapMonitoringMaps.find(function(item) { return String(item.id) === String(mapId); });
   if (!map) return;
   mapMonitoringDialogTitle.textContent = map.name;
+  if (configureMapMonitoringDialog) {
+    configureMapMonitoringDialog.href = "/monitoring-maps?mapId=" + encodeURIComponent(map.id);
+  }
   mapMonitoringDialogStage.replaceWith(createMapMonitoringStage(map, true, null));
   mapMonitoringDialogStage = mapMonitoringDialog.querySelector(".map-monitoring-stage");
   mapMonitoringDialogStage.id = "mapMonitoringDialogStage";
+  resetMapMonitoringDialogTransform();
   mapMonitoringDialog.showModal();
   window.requestAnimationFrame(function() { sizeMapMonitoringSegments(mapMonitoringDialogStage); });
 }
@@ -310,6 +378,51 @@ if (mapMonitoringGrid) {
     }
   });
   closeMapMonitoringDialog.addEventListener("click", function() { mapMonitoringDialog.close(); });
+  if (resetMapMonitoringViewButton) {
+    resetMapMonitoringViewButton.addEventListener("click", resetMapMonitoringDialogTransform);
+  }
+  mapMonitoringDialog.addEventListener("pointerdown", function(event) {
+    var stage = event.target.closest(".map-monitoring-stage-large");
+    if (!stage || event.target.closest(".map-monitoring-segment")) return;
+    if (event.button !== 0 && event.button !== 2) return;
+    mapMonitoringDialogPanGesture = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originalPanX: mapMonitoringDialogPanX,
+      originalPanY: mapMonitoringDialogPanY
+    };
+    stage.classList.add("panning");
+    stage.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  mapMonitoringDialog.addEventListener("pointermove", function(event) {
+    if (!mapMonitoringDialogPanGesture || event.pointerId !== mapMonitoringDialogPanGesture.pointerId) return;
+    mapMonitoringDialogPanX = mapMonitoringDialogPanGesture.originalPanX + event.clientX - mapMonitoringDialogPanGesture.startX;
+    mapMonitoringDialogPanY = mapMonitoringDialogPanGesture.originalPanY + event.clientY - mapMonitoringDialogPanGesture.startY;
+    applyMapMonitoringDialogTransform();
+    event.preventDefault();
+  });
+  function finishMapMonitoringPan(event) {
+    if (!mapMonitoringDialogPanGesture || event.pointerId !== mapMonitoringDialogPanGesture.pointerId) return;
+    mapMonitoringDialogPanGesture = null;
+    if (mapMonitoringDialogStage) mapMonitoringDialogStage.classList.remove("panning");
+  }
+  mapMonitoringDialog.addEventListener("pointerup", finishMapMonitoringPan);
+  mapMonitoringDialog.addEventListener("pointercancel", finishMapMonitoringPan);
+  mapMonitoringDialog.addEventListener("wheel", function(event) {
+    var stage = event.target.closest(".map-monitoring-stage-large");
+    if (!stage) return;
+    event.preventDefault();
+    var rect = stage.getBoundingClientRect();
+    var factor = Math.exp(-event.deltaY * 0.0015);
+    var nextZoom = Math.min(mapMonitoringDialogMaximumZoom(), Math.max(1, mapMonitoringDialogZoom * factor));
+    if (Math.abs(nextZoom - mapMonitoringDialogZoom) < 0.001) return;
+    zoomMapMonitoringDialogAt(nextZoom, event.clientX - rect.left, event.clientY - rect.top);
+  }, { passive: false });
+  mapMonitoringDialog.addEventListener("contextmenu", function(event) {
+    if (event.target.closest(".map-monitoring-stage-large") && !event.target.closest(".map-monitoring-segment")) event.preventDefault();
+  });
   mapMonitoringDialog.addEventListener("click", function(event) {
     var outputCell = event.target.closest(".map-monitoring-stage-large .map-monitoring-segment i[data-machine-id]");
     if (outputCell) {
