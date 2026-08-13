@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <title><%= title %></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/stylesheets/style.css?v=20260728-1" />
+  </head>
+  <body class="login-page backend-unavailable-page">
+    <main class="login-card backend-unavailable-card" role="alert">
+      <div class="backend-unavailable-icon" aria-hidden="true">!</div>
+      <p class="eyebrow">TAV Monitoring</p>
+      <h1>Backend indisponible</h1>
+      <p class="backend-unavailable-message">
+        Le serveur de monitoring ne répond pas pour le moment.
+        Vérifiez qu’il est démarré, puis réessayez.
+      </p>
+      <a class="backend-retry-button" href="<%= retryUrl %>">Réessayer</a>
+    </main>
+  </body>
+</html>

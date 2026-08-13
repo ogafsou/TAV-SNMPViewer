@@ -18,10 +18,12 @@ async function refreshMonitoring(manual) {
       monitoringState[machine.id] = buildTransientMonitoringState(machine, "pending", "Scan", "Scan en cours");
     });
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
     var response = await fetch("/api/monitoring/scan", { method: "POST" });
     var snapshot = await response.json();
     if (!response.ok) throw new Error(snapshot.error || "Erreur de scan");
     applyMonitoringSnapshot(snapshot);
+    setBackendConnectionStatus(true);
     refreshSucceeded = true;
   } catch (error) {
     setStatus(error.message || "Erreur de scan", "error");
@@ -50,6 +52,7 @@ async function refreshMonitoringCard(cardId) {
       var response = await fetch("/api/machines/" + encodeURIComponent(machineId) + "/scan", { method: "POST" });
       var record = await response.json();
       if (!response.ok) throw new Error(record.error || "Erreur de scan");
+      setBackendConnectionStatus(true);
       return record;
     }));
     records.forEach(applyMonitoringRecord);
@@ -123,6 +126,7 @@ async function initializeApplication() {
   renderSelectedMachine();
   renderMonitoringCards();
   await syncMonitoringSnapshot();
+  if (typeof initializeMapMonitoring === "function") await initializeMapMonitoring();
   if (typeof initializeMonitoringMaps === "function") await initializeMonitoringMaps();
 }
 
@@ -184,12 +188,19 @@ function applyMonitoringSnapshot(snapshot) {
   (snapshot.machines || []).forEach(applyMonitoringRecord);
   renderSelectedMachineScanResults();
   renderMonitoringCards();
+  refreshMonitoringMapSegments();
 }
 
 function applyMonitoringRecord(record) {
   if (!record || !record.machineId) return;
   var previous = monitoringRecords[record.machineId];
   if (previous && Number(previous.revision) > Number(record.revision)) return;
+  if (record.view && record.view.connected === true && record.raw && !record.raw.error) {
+    record.lastSuccessfulRaw = record.raw;
+  } else {
+    record.lastSuccessfulRaw = previous && (previous.lastSuccessfulRaw ||
+      (previous.view && previous.view.connected === true ? previous.raw : null)) || null;
+  }
   monitoringRecords[record.machineId] = record;
   monitoringState[record.machineId] = record.view || buildMonitoringState(record.raw || {});
 }
@@ -205,9 +216,21 @@ function setupWebSocket() {
   });
   socket.addEventListener("open", function() { setBackendConnectionStatus(true); });
   socket.addEventListener("close", function() {
-    setBackendConnectionStatus(false);
+    verifyBackendConnection();
     window.setTimeout(setupWebSocket, 3000);
   });
+}
+
+async function verifyBackendConnection() {
+  try {
+    var response = await fetch("/api/health", { cache: "no-store" });
+    if (!response.ok) throw new Error("Backend indisponible");
+    setBackendConnectionStatus(true);
+    return true;
+  } catch (_) {
+    setBackendConnectionStatus(false);
+    return false;
+  }
 }
 
 function handleWebSocketMessage(message) {
@@ -218,6 +241,7 @@ function handleWebSocketMessage(message) {
   if (message.type === "monitoring.initialized" || message.type === "monitoring.changed") {
     applyMonitoringRecord(message.monitoring);
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
     return;
   }
   if (message.type === "telemetry.patch") {
@@ -229,13 +253,20 @@ function handleWebSocketMessage(message) {
     if (monitoringState[message.machineId] && message.message) monitoringState[message.machineId].message = message.message;
     if (selectedMachineId === message.machineId && record.raw) renderMonitor(record.raw, record);
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
     return;
   }
   if (message.type === "machine.deleted") {
     delete monitoringRecords[message.machineId];
     delete monitoringState[message.machineId];
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
   }
+}
+
+function refreshMonitoringMapSegments() {
+  if (typeof renderMapSegments === "function") renderMapSegments();
+  if (typeof renderMapMonitoringCards === "function") renderMapMonitoringCards();
 }
 
 function setObjectPath(target, path, value) {

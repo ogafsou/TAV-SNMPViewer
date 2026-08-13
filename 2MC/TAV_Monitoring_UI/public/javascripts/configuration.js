@@ -81,7 +81,11 @@ function renderMachines() {
   machineList.innerHTML = visibleMachines.map(function(machine) {
     var source = accessMethodLabel(machine.accessMethod);
     var type = machineTypeLabel(machine.type);
-    return '<option value="' + escapeHtml(machine.id) + '">' +
+    var color = /^#[0-9a-f]{6}$/i.test(machine.color || "") ? machine.color : "";
+    var colorAttributes = color
+      ? ' class="machine-colored" style="--machine-list-color:' + escapeHtml(color) + '"'
+      : "";
+    return '<option value="' + escapeHtml(machine.id) + '"' + colorAttributes + '>' +
       escapeHtml(machine.name + " - " + type + (normalizeMachineType(machine.type) === "novastar-h" ? " - " + source : "") + " - " + machine.host) +
     "</option>";
   }).join("");
@@ -136,6 +140,7 @@ function renderSelectedMachine() {
 
   if (!machine) {
     updateAdvancedInformationVisibility("");
+    selectedMachineType.textContent = "Equipement";
     selectedMachineName.textContent = "Aucune machine";
     selectedMachineDetails.textContent = "Selectionnez un equipement H dans la liste.";
     selectedMachineHint.textContent = "Ajoutez une machine pour commencer.";
@@ -145,8 +150,11 @@ function renderSelectedMachine() {
 
   selectedMachineName.textContent = machine.name;
   var type = normalizeMachineType(machine.type);
+  selectedMachineType.textContent = machineTypeLabel(type);
   var record = monitoringRecords[machine.id];
-  updateAdvancedInformationVisibility(type, !!(record && record.raw));
+  var hasSuccessfulScan = !!(record && record.lastSuccessfulAt &&
+    (record.lastSuccessfulRaw || (record.view && record.view.connected === true && record.raw && !record.raw.error)));
+  updateAdvancedInformationVisibility(type, hasSuccessfulScan);
   if (type === "kiloview") {
     selectedMachineDetails.textContent = "Kiloview | " + machine.host + " | user: " + (machine.apiUsername || "-");
   } else if (type === "netgear-m4300") {
@@ -165,7 +173,7 @@ function renderSelectedMachine() {
       " | lecture: " + machine.readCommunity +
       " | ecriture: " + machine.writeCommunity;
   }
-  selectedMachineHint.textContent = "Selection: " + machine.name;
+  selectedMachineHint.textContent = "";
   scanButton.disabled = false;
 }
 
@@ -188,15 +196,23 @@ function getSelectedMachine() {
 function renderSelectedMachineScanResults() {
   var machine = getSelectedMachine();
   var record = machine && monitoringRecords[machine.id];
-  if (!machine || !record || !record.raw) {
+  if (!machine || !record) {
     resetScanResults();
     return;
   }
-  if (machine.type === "other") {
-    renderPingSummary(record.raw, record);
+  var machineType = normalizeMachineType(machine.type);
+  if (machineType === "other") {
+    renderPingSummary(record.raw || { type: "other", host: machine.host }, record);
     return;
   }
-  renderMonitor(record.raw, record);
+  var successfulRaw = record.lastSuccessfulRaw ||
+    (record.view && record.view.connected === true && record.raw && !record.raw.error ? record.raw : null);
+  if (!record.lastSuccessfulAt || !successfulRaw || normalizeMachineType(successfulRaw.type) !== machineType) {
+    updateAdvancedInformationVisibility(machineType, false);
+    resetScanResults();
+    return;
+  }
+  renderMonitor(successfulRaw, record);
 }
 
 function resetMachineTypeFilters() {
@@ -290,12 +306,19 @@ var novastarColorButton = document.getElementById("novastarColorButton");
 var novastarColorPalette = document.getElementById("novastarColorPalette");
 
 function initializeNovastarColorPalette() {
-  var colors = ["#000000", "#333333", "#666666", "#999999", "#bfbfbf", "#d9d9d9", "#eeeeee", "#ffffff"];
-  var hues = [0, 30, 60, 120, 180, 210, 270, 315];
-  for (var shadeIndex = 0; shadeIndex < 7; shadeIndex += 1) {
-    hues.forEach(function(hue) {
-      colors.push(hslToHex(hue, 88 - shadeIndex * 3, 24 + shadeIndex * 10));
-    });
+  var colors = [];
+  for (var row = 0; row < 8; row += 1) {
+    for (var column = 0; column < 8; column += 1) {
+      var red = Math.round(255 * (1 - row / 7));
+      var green = Math.round(255 * column / 7);
+      var blue = Math.round(255 * row / 7);
+      colors.push(
+        "#" +
+          red.toString(16).padStart(2, "0") +
+          green.toString(16).padStart(2, "0") +
+          blue.toString(16).padStart(2, "0")
+      );
+    }
   }
   colors.forEach(function(color) {
     var choice = document.createElement("button");
@@ -327,20 +350,6 @@ function setNovastarColor(color) {
 function closeNovastarColorPalette() {
   novastarColorPalette.hidden = true;
   novastarColorButton.setAttribute("aria-expanded", "false");
-}
-
-function hslToHex(hue, saturation, lightness) {
-  saturation /= 100;
-  lightness /= 100;
-  var chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
-  var part = chroma * (1 - Math.abs((hue / 60) % 2 - 1));
-  var offset = lightness - chroma / 2;
-  var rgb = hue < 60 ? [chroma, part, 0] : hue < 120 ? [part, chroma, 0] :
-    hue < 180 ? [0, chroma, part] : hue < 240 ? [0, part, chroma] :
-      hue < 300 ? [part, 0, chroma] : [chroma, 0, part];
-  return "#" + rgb.map(function(channel) {
-    return Math.round((channel + offset) * 255).toString(16).padStart(2, "0");
-  }).join("");
 }
 
 novastarColorButton.addEventListener("click", function(event) {

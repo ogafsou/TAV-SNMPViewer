@@ -18,6 +18,7 @@ async function refreshMonitoring(manual) {
       monitoringState[machine.id] = buildTransientMonitoringState(machine, "pending", "Scan", "Scan en cours");
     });
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
     var response = await fetch("/api/monitoring/scan", { method: "POST" });
     var snapshot = await response.json();
     if (!response.ok) throw new Error(snapshot.error || "Erreur de scan");
@@ -125,6 +126,7 @@ async function initializeApplication() {
   renderSelectedMachine();
   renderMonitoringCards();
   await syncMonitoringSnapshot();
+  if (typeof initializeMapMonitoring === "function") await initializeMapMonitoring();
   if (typeof initializeMonitoringMaps === "function") await initializeMonitoringMaps();
 }
 
@@ -186,6 +188,7 @@ function applyMonitoringSnapshot(snapshot) {
   (snapshot.machines || []).forEach(applyMonitoringRecord);
   renderSelectedMachineScanResults();
   renderMonitoringCards();
+  refreshMonitoringMapSegments();
 }
 
 function applyMonitoringRecord(record) {
@@ -238,6 +241,7 @@ function handleWebSocketMessage(message) {
   if (message.type === "monitoring.initialized" || message.type === "monitoring.changed") {
     applyMonitoringRecord(message.monitoring);
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
     return;
   }
   if (message.type === "telemetry.patch") {
@@ -249,13 +253,20 @@ function handleWebSocketMessage(message) {
     if (monitoringState[message.machineId] && message.message) monitoringState[message.machineId].message = message.message;
     if (selectedMachineId === message.machineId && record.raw) renderMonitor(record.raw, record);
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
     return;
   }
   if (message.type === "machine.deleted") {
     delete monitoringRecords[message.machineId];
     delete monitoringState[message.machineId];
     renderMonitoringCards();
+    refreshMonitoringMapSegments();
   }
+}
+
+function refreshMonitoringMapSegments() {
+  if (typeof renderMapSegments === "function") renderMapSegments();
+  if (typeof renderMapMonitoringCards === "function") renderMapMonitoringCards();
 }
 
 function setObjectPath(target, path, value) {

@@ -12,7 +12,8 @@ async function initializeAuthentication() {
   if (CURRENT_USER.role !== "administrator" && path === "/users") { window.location.replace("/monitoring"); return false; }
 
   document.getElementById("currentUserName").textContent = CURRENT_USER.login + " (" + CURRENT_USER.role + ")";
-  document.querySelector('a[href="/configuration"]').hidden = CURRENT_USER.role === "user";
+  var configurationButton = document.getElementById("openConfiguration");
+  if (configurationButton) configurationButton.hidden = CURRENT_USER.role === "user";
   var monitoringMapsLink = document.getElementById("monitoringMapsLink");
   if (monitoringMapsLink) monitoringMapsLink.hidden = CURRENT_USER.role !== "administrator" || CURRENT_USER.login.toLowerCase() !== "olivier";
   document.getElementById("manageUsersLink").hidden = CURRENT_USER.role !== "administrator";

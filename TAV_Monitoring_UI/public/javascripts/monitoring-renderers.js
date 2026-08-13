@@ -1033,7 +1033,8 @@ function kiloviewStatusItem(item) {
 function ioStatusCell(item) {
   var className = item.state || (item.ok === true ? "ok" : item.ok === false ? "warning" : "inactive");
   var title = monitoringItemTooltip(item, className);
-  return '<td class="' + className + referenceComparisonClass(item) + '" title="' + escapeHtml(title) + '">' +
+  var referenceAttribute = item.referenceKey ? ' data-reference-key="' + escapeHtml(item.referenceKey) + '"' : "";
+  return '<td class="' + className + referenceComparisonClass(item) + '"' + referenceAttribute + ' title="' + escapeHtml(title) + '">' +
     (item.icon ? statusIcon(item.icon, className, item.label) : "") +
     '<span>' + escapeHtml(item.label) + '</span></td>';
 }

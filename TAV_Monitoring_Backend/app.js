@@ -109,6 +109,10 @@ function createBackend(options) {
     try { res.json({ map: mapStore.setSegments(req.params.id, req.body && req.body.segments) }); }
     catch (error) { next(error); }
   });
+  app.put("/api/maps/:id/reference", requireMapAdministrator, (req, res, next) => {
+    try { res.json({ map: mapStore.setReference(req.params.id, req.body && req.body.outputs) }); }
+    catch (error) { next(error); }
+  });
 
   app.get("/api/config", (req, res) => res.json({
     monitor_interval_s: config.monitor_interval_s,

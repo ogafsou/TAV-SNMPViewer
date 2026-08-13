@@ -11,9 +11,11 @@
     <section class="monitor-zone map-view-zone">
       <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2></div>
       <div class="map-editor-toolbar">
-        <label><input id="mapEditMode" type="checkbox" /> Mode édition</label>
+        <button id="mapWarningsFilter" class="map-novastar-filter" type="button" hidden>Warning</button>
+        <label id="mapEditModeLabel"><input id="mapEditMode" type="checkbox" /> Mode édition</label>
         <button id="loadMapBackgroundButton" type="button" hidden>Load Background</button>
         <input id="mapBackgroundFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+        <div id="mapNovastarFilters" class="map-novastar-filters" aria-label="Affichage des sorties NovaStar"></div>
       </div>
       <div id="mapZone" class="map-zone">
         <div id="mapContent" class="map-content"><img id="mapBackgroundImage" alt="" hidden /></div>
@@ -28,6 +30,9 @@
   </div>
   <div id="segmentContextMenu" class="context-menu" hidden>
     <div id="novastarOutputMenu" class="nested-menu"></div>
+    <div id="segmentClearAction" class="segment-clear-action">
+      <button id="clearSegmentCaseButton" type="button">Clear Case</button>
+    </div>
     <div id="segmentEditActions" class="segment-edit-actions">
       <button id="editSegmentCasesButton" type="button">Modifier le nombre de cases</button>
       <button id="copySegmentButton" type="button">Copier</button>

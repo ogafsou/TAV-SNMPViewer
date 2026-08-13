@@ -257,7 +257,7 @@ machineForm.addEventListener("submit", async function(event) {
     color: String(formData.get("color") || "#32c99a"),
     accessMethod: normalizeAccessMethod(formData.get("accessMethod")),
     readCommunity: String(formData.get("readCommunity") || "public").trim() || "public",
-    writeCommunity: String(formData.get("writeCommunity") || "private").trim() || "private",
+    writeCommunity: String(formData.get("writeCommunity") || "public").trim() || "public",
     timeout: String(formData.get("timeout") || "2000"),
     retries: String(formData.get("retries") || "1"),
     apiProtocol: String(formData.get("apiProtocol") || "openapi"),

@@ -29,7 +29,7 @@ function renderMonitor(data, record) {
 
 function renderSummary(data, record) {
   var controller = data.controller;
-  var lastScanAt = (record && record.timestamp) || data.timestamp;
+  var lastScanAt = (record && record.lastSuccessfulAt) || data.timestamp;
   if (data.type === "other") {
     renderPingSummary(data, record);
     return;
@@ -44,7 +44,7 @@ function renderSummary(data, record) {
       summaryTile("Memoire", fieldValue(controller.memoryUsed) || "-"),
       summaryTile("Reseau", fieldValue(controller.networkState) || "-"),
       summaryTile("Source", "KILOVIEW API"),
-      summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-")
+      summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
     ].join("");
     return;
   }
@@ -59,7 +59,7 @@ function renderSummary(data, record) {
       summaryTile("Uptime", fieldValue(controller.workingTime) || "-"),
       summaryTile("Ports", ports.length),
       summaryTile("Source", "SNMP V2C"),
-      summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-")
+      summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
     ].join("");
     return;
   }
@@ -77,7 +77,7 @@ function renderSummary(data, record) {
     summaryTile("Source", (data.source || "snmp").toUpperCase()),
     summaryTile("Slots entree", (data.inputSlots && data.inputSlots.count) || 0),
     summaryTile("Slots sortie", (data.outputSlots && data.outputSlots.count) || 0),
-    summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-")
+    summaryTile("Last Scan", lastScanAt ? formatDate(lastScanAt) : "-", "timestamp-metric")
   ].join("");
 }
 
@@ -89,7 +89,7 @@ function renderPingSummary(data, record) {
     summaryTile("IP adresse", data.host || "-"),
     summaryTile("Statut", connected ? "Online" : "Offline"),
     summaryTile("Source", "PING"),
-    summaryTile("Last Ping", lastSuccessfulAt ? formatDate(lastSuccessfulAt) : "-")
+    summaryTile("Last Ping", lastSuccessfulAt ? formatDate(lastSuccessfulAt) : "-", "timestamp-metric")
   ].join("");
 }
 

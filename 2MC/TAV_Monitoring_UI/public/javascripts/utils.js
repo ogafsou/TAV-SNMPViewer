@@ -1,5 +1,5 @@
-function summaryTile(label, value) {
-  return '<div class="metric"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+function summaryTile(label, value, className) {
+  return '<div class="metric' + (className ? " " + escapeHtml(className) : "") + '"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
 }
 
 function fieldTile(label, field) {

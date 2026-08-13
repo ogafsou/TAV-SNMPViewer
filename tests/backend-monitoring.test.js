@@ -226,3 +226,62 @@ test("SNMP controller fields are read concurrently and fail fast when the device
   await assert.rejects(() => connector.readController(), /SNMP device unavailable/);
   assert.equal(maxActive, 19);
 });
+
+test("NovaStar SNMP defaults use public for both read and write communities", () => {
+  const connector = new SNMPConnector({ host: "192.0.2.1" });
+
+  assert.equal(connector.readCommunity, "public");
+  assert.equal(connector.writeCommunity, "public");
+});
+
+test("NovaStar SNMP scans physical slot IDs and skips unpopulated gaps", async () => {
+  const connector = new SNMPConnector({ host: "192.0.2.1" });
+  const operations = [];
+
+  connector.getNumber = async (oid) => {
+    if (oid === SNMPConnector.OIDS.inputSlotCount) return 2;
+    if (oid === SNMPConnector.OIDS.outputSlotCount) return 2;
+    if (oid === SNMPConnector.OIDS.screenCount) return 2;
+    throw new Error(`Unexpected count OID: ${oid}`);
+  };
+  connector.setSelector = async (oid, type, value) => {
+    operations.push(["set", oid, type, value]);
+    return null;
+  };
+  connector.readFields = async (definitions) => {
+    operations.push(["get", definitions.map((definition) => definition.oid)]);
+    const selector = operations.filter((operation) => operation[0] === "set").at(-1);
+    const selectedId = selector && selector[3];
+    const populated = selector && (
+      (selector[1] === SNMPConnector.OIDS.inputSlotSelector && (selectedId === 1 || selectedId === 3)) ||
+      (selector[1] === SNMPConnector.OIDS.outputSlotSelector && (selectedId === 11 || selectedId === 12))
+    );
+    return Object.fromEntries(definitions.map((definition) => [
+      definition.key,
+      populated
+        ? { ok: true, value: definition.key === "sourceCount" || definition.key === "netPortCount" ? 0 : "ok", oid: definition.oid }
+        : { ok: true, value: "ERROR: BizIdError", oid: definition.oid, state: "notApplicable" }
+    ]));
+  };
+
+  await connector.readInputSlots();
+  await connector.readOutputSlots();
+
+  for (let index = 0; index < operations.length; index += 2) {
+    assert.equal(operations[index][0], "set");
+    assert.equal(operations[index + 1][0], "get");
+  }
+
+  assert.deepEqual(
+    operations
+      .filter((operation) => operation[0] === "set" && operation[1] === SNMPConnector.OIDS.inputSlotSelector)
+      .map((operation) => operation[3]),
+    [1, 2, 3]
+  );
+  assert.deepEqual(
+    operations
+      .filter((operation) => operation[0] === "set" && operation[1] === SNMPConnector.OIDS.outputSlotSelector)
+      .map((operation) => operation[3]),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  );
+});

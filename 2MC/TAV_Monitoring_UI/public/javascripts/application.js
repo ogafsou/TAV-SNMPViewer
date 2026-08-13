@@ -60,6 +60,7 @@ var machineTypeFiltersNode = document.getElementById("machineTypeFilters");
 var monitorIntervalForm = document.getElementById("monitorIntervalForm");
 var monitorIntervalSeconds = document.getElementById("monitorIntervalSeconds");
 var selectedMachineName = document.getElementById("selectedMachineName");
+var selectedMachineType = document.getElementById("selectedMachineType");
 var selectedMachineDetails = document.getElementById("selectedMachineDetails");
 var selectedMachineHint = document.getElementById("selectedMachineHint");
 var scanButton = document.getElementById("scanButton");
@@ -372,6 +373,7 @@ scanButton.addEventListener("click", async function() {
       throw new Error(record.error || "Erreur de scan");
     }
 
+    setBackendConnectionStatus(true);
     applyMonitoringRecord(record);
     if (machine.type === "other") {
       if (!record.view || !record.view.connected) resetScanResults();

@@ -86,7 +86,7 @@ function createDeviceMonitor(overrides) {
     const connector = new dependencies.SNMPConnector({
       host,
       readCommunity: String(params.readCommunity || "public"),
-      writeCommunity: String(params.writeCommunity || "private"),
+      writeCommunity: String(params.writeCommunity || "public"),
       timeout: clampNumber(params.timeout, 500, 10000, 2000),
       retries: clampNumber(params.retries, 0, 5, 1)
     });

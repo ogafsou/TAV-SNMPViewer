@@ -11,7 +11,12 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
     if (req.url === "/api/auth/me") {
       res.setHeader("content-type", "application/json");
       const olivier = String(req.headers.cookie || "").includes("session=olivier");
-      res.end(JSON.stringify({ user: { id: "admin", login: olivier ? "Olivier" : "admin", role: "administrator" } }));
+      const user = String(req.headers.cookie || "").includes("session=user");
+      res.end(JSON.stringify({ user: {
+        id: user ? "user" : "admin",
+        login: user ? "viewer" : (olivier ? "Olivier" : "admin"),
+        role: user ? "user" : "administrator"
+      } }));
       return;
     }
     if (req.url === "/api/health") {
@@ -56,7 +61,13 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal((html.match(/id="monitoringTab"/g) || []).length, 1);
   assert.equal(html.includes('href="/monitoring"'), true);
   assert.equal(html.includes('href="/configuration"'), true);
+  assert.equal(html.includes('id="openConfiguration"'), true);
+  assert.equal(html.includes('src="/images/Configuration.png"'), true);
+  assert.doesNotMatch(html, /<a class="tab[^"]*" href="\/configuration">/);
   assert.equal(html.includes('href="/monitoring-maps"'), false);
+  assert.equal(html.includes('href="/monitoring-map"'), false);
+  assert.equal(html.includes('id="mapMonitoringTab"'), false);
+  assert.equal(html.includes('/javascripts/map-monitoring.js'), false);
   assert.equal(html.includes('id="monitoringMapsTab"'), false);
   assert.equal(html.includes('/javascripts/monitoring-maps.js'), false);
   assert.match(html, /id="monitoringTab" class="tab-panel active"/);
@@ -69,14 +80,31 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(configurationPage.status, 200);
   assert.match(configurationHtml, /id="configurationTab" class="tab-panel active"/);
   assert.match(configurationHtml, /id="monitoringTab" class="tab-panel" hidden/);
+  assert.equal(configurationHtml.includes('id="openMonitoring"'), true);
+  assert.equal(configurationHtml.includes('src="/images/Eye.png"'), true);
+  assert.equal(configurationHtml.includes('id="openConfiguration"'), false);
+
+  const userPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring", { headers: { cookie: "session=user" } });
+  const userHtml = await userPage.text();
+  assert.equal(userPage.status, 200);
+  assert.equal(userHtml.includes('id="openConfiguration"'), false);
 
   const forbiddenMapsPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring-maps", { redirect: "manual" });
   assert.equal(forbiddenMapsPage.status, 302);
   assert.equal(forbiddenMapsPage.headers.get("location"), "/monitoring");
+  const forbiddenMapMonitoringPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring-map", {
+    headers: { cookie: "session=user" },
+    redirect: "manual"
+  });
+  assert.equal(forbiddenMapMonitoringPage.status, 302);
+  assert.equal(forbiddenMapMonitoringPage.headers.get("location"), "/monitoring");
 
   const olivierPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring", { headers: { cookie: "session=olivier" } });
   const olivierHtml = await olivierPage.text();
   assert.equal(olivierHtml.includes('href="/monitoring-maps"'), true);
+  assert.equal(olivierHtml.includes('href="/monitoring-map"'), true);
+  assert.equal(olivierHtml.includes('id="mapMonitoringTab"'), true);
+  assert.equal(olivierHtml.includes('/javascripts/map-monitoring.js'), true);
   assert.equal(olivierHtml.includes('id="monitoringMapsTab"'), true);
   assert.equal(olivierHtml.includes('/javascripts/monitoring-maps.js'), true);
 
@@ -85,6 +113,12 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
     redirect: "manual"
   });
   assert.equal(allowedMapsPage.status, 200);
+  const allowedMapMonitoringPage = await fetch("http://127.0.0.1:" + frontendPort + "/monitoring-map", {
+    headers: { cookie: "session=olivier" },
+    redirect: "manual"
+  });
+  assert.equal(allowedMapMonitoringPage.status, 200);
+  assert.match(await allowedMapMonitoringPage.text(), /id="mapMonitoringTab" class="tab-panel active"/);
 
   const applicationScript = await fetch("http://127.0.0.1:" + frontendPort + "/javascripts/application.js");
   assert.equal(applicationScript.status, 200);

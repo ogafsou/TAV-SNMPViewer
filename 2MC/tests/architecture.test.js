@@ -69,17 +69,23 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20260723-20/);
-  assert.match(view, /monitoring-renderers\.js\?v=20260723-9/);
-  assert.match(view, /utils\.js\?v=20260723-1/);
-  assert.match(view, /auth\.js\?v=20260723-1/);
-  assert.match(view, /machine-details\.js\?v=20260723-4/);
-  assert.match(view, /monitoring\.js\?v=20260723-7/);
-  assert.match(view, /configuration\.js\?v=20260723-6/);
-  assert.match(view, /application\.js\?v=20260723-10/);
-  assert.match(view, /monitoring-maps\.js\?v=20260723-10/);
+  assert.match(view, /style\.css\?v=20260727-1/);
+  assert.match(view, /monitoring-renderers\.js\?v=20260724-1/);
+  assert.match(view, /utils\.js\?v=20260723-2/);
+  assert.match(view, /auth\.js\?v=20260725-1/);
+  assert.match(view, /machine-details\.js\?v=20260723-6/);
+  assert.match(view, /monitoring\.js\?v=20260724-2/);
+  assert.match(view, /configuration\.js\?v=20260724-4/);
+  assert.match(view, /application\.js\?v=20260723-12/);
+  assert.match(view, /monitoring-maps\.js\?v=20260724-11/);
+  assert.match(view, /map-monitoring\.js\?v=20260727-1/);
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
   assert.match(css, /#toggleMonitoringView\[hidden\],[\s\S]*?#refreshMonitoring\[hidden\]\s*\{\s*display:\s*none !important;/);
+  assert.match(css, /\.topbar\s*\{[^}]*align-items:\s*center;[^}]*padding-bottom:\s*0;/s);
+  assert.match(css, /\.topbar \.tabs\s*\{[^}]*margin-bottom:\s*0;/s);
+  assert.match(css, /\.topbar \.topbar-actions\s*\{[^}]*grid-template-rows:\s*36px;/s);
+  assert.match(css, /#configurationTab \.configuration-layout\s*\{[^}]*margin-top:\s*12px;/s);
+  assert.match(css, /\.monitoring-grid\s*\{[^}]*margin-top:\s*12px;/s);
 });
 
 test("Kiloview summary separates actual status text from reference comparison background", () => {
@@ -137,6 +143,7 @@ test("configuration advanced equipment information is collapsed by default", () 
   const configurationScript = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "configuration.js"), "utf8");
   const information = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "partials", "configuration", "selected-machine-information.ejs"), "utf8");
   const machineList = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "partials", "configuration", "machine-list.ejs"), "utf8");
+  const selectedMachineHeader = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "partials", "configuration", "selected-machine-header.ejs"), "utf8");
 
   assert.match(configuration, /<details id="advancedInformationDetails" class="configuration-advanced-information">/);
   assert.doesNotMatch(configuration, /partials\/configuration\/options/);
@@ -146,8 +153,10 @@ test("configuration advanced equipment information is collapsed by default", () 
   assert.match(css, /\.configuration-advanced-information-content\s*\{[^}]*display:\s*grid;/s);
   assert.match(details, /function renderPingSummary\(data, record\)/);
   assert.match(details, /summaryTile\("IP adresse", data\.host \|\| "-"\)/);
-  assert.match(details, /summaryTile\("Last Ping", lastSuccessfulAt \? formatDate\(lastSuccessfulAt\) : "-"\)/);
-  assert.match(details, /summaryTile\("Last Scan", lastScanAt \? formatDate\(lastScanAt\) : "-"\)/);
+  assert.match(details, /summaryTile\("Last Ping", lastSuccessfulAt \? formatDate\(lastSuccessfulAt\) : "-", "timestamp-metric"\)/);
+  assert.match(details, /summaryTile\("Last Scan", lastScanAt \? formatDate\(lastScanAt\) : "-", "timestamp-metric"\)/);
+  assert.match(css, /\.metric\.timestamp-metric strong\s*\{[^}]*font-size:\s*13px;/s);
+  assert.match(css, /\.metric strong\s*\{[^}]*font-size:\s*13px;/s);
   assert.match(configurationScript, /advancedInformation\.hidden = !normalizedType \|\| normalizedType === "other" \|\| hasScan !== true/);
   assert.match(configurationScript, /\["outputPortsSection", "inputSlotsSection", "screensSection", "receivingCardsSection"\]/);
   assert.match(configurationScript, /section\.hidden = normalizedType === "kiloview"/);
@@ -161,6 +170,16 @@ test("configuration advanced equipment information is collapsed by default", () 
   assert.match(machineList, /data-machine-type="netgear-m4300" aria-pressed="true">Netgear/);
   assert.match(machineList, /data-machine-type="other" aria-pressed="true">Ping/);
   assert.match(configurationScript, /function resetMachineTypeFilters\(\)/);
+  assert.match(selectedMachineHeader, /id="selectedMachineType">Equipement/);
+  assert.match(configurationScript, /selectedMachineType\.textContent = machineTypeLabel\(type\)/);
+  assert.match(configurationScript, /var hasSuccessfulScan = !!\(record && record\.lastSuccessfulAt/);
+  assert.match(configurationScript, /normalizeMachineType\(successfulRaw\.type\) !== machineType/);
+  assert.match(details, /var lastScanAt = \(record && record\.lastSuccessfulAt\) \|\| data\.timestamp/);
+  assert.match(configurationScript, /selectedMachineHint\.textContent = ""/);
+  assert.match(css, /\.machine-type-filters\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/s);
+  assert.match(css, /\.machine-type-filters button\s*\{[^}]*background:\s*#697184 !important;[^}]*font-size:\s*9px;/s);
+  assert.match(css, /\.machine-type-filters button\[aria-pressed="true"\]\s*\{[^}]*background:\s*var\(--accent\) !important;/s);
+  assert.match(css, /\.machine-type-filters button\[aria-pressed="false"\],[\s\S]*?background:\s*#697184 !important;/s);
 });
 
 test("reference button previews expected state and uses a confirmed context-menu action", () => {
@@ -205,6 +224,8 @@ test("reference button previews expected state and uses a confirmed context-menu
   const monitoring = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring.js"), "utf8");
   assert.match(monitoring, /BACKEND_CONFIG_LOADED = true;/);
   assert.match(monitoring, /if \(!BACKEND_CONFIG_LOADED\) await loadBackendConfig\(\);/);
+  assert.match(monitoring, /socket\.addEventListener\("close", function\(\) \{\s*verifyBackendConnection\(\);/);
+  assert.match(monitoring, /async function verifyBackendConnection\(\)[\s\S]*?fetch\("\/api\/health", \{ cache: "no-store" \}\)/);
   assert.match(renderer, /current\.length === expected\.length/);
   assert.match(renderer, /fetch\("\/api\/monitoring\/ping\/reference", \{ method: "PUT" \}\)/);
   assert.match(application, /addEventListener\("contextmenu"/);

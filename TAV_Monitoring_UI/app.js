@@ -19,11 +19,14 @@ function createFrontend(options) {
   function renderPage(page) {
     return (req, res) => {
       const currentUser = res.locals.currentUser;
+      const canAccessConfiguration = currentUser
+        && (currentUser.role === "editor" || currentUser.role === "administrator");
       const canAccessMonitoringMaps = currentUser && currentUser.role === "administrator"
         && String(currentUser.login || "").toLowerCase() === "olivier";
       res.render("index", {
-        title: page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-maps" ? "Monitoring Maps - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring")),
+        title: page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-map" ? "Monitoring Map - TAV Monitoring" : (page === "monitoring-maps" ? "Map Configuration - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring"))),
         page,
+        canAccessConfiguration,
         canAccessMonitoringMaps,
         backend_url: config.backend_rest_url,
         rest_refresh_s: config.rest_refresh_s,
@@ -41,6 +44,7 @@ function createFrontend(options) {
     res.render("status", { title: "Etat général - TAV Monitoring" });
   });
   app.get("/monitoring", authorizePage(config, ["user", "editor", "administrator"]), renderPage("monitoring"));
+  app.get("/monitoring-map", authorizePage(config, ["administrator"], "Olivier"), renderPage("monitoring-map"));
   app.get("/configuration", authorizePage(config, ["editor", "administrator"]), renderPage("configuration"));
   app.get("/monitoring-maps", authorizePage(config, ["administrator"], "Olivier"), renderPage("monitoring-maps"));
   app.get("/users", authorizePage(config, ["administrator"]), renderPage("users"));
@@ -54,6 +58,16 @@ function authorizePage(config, roles, requiredLogin) {
   return (req, res, next) => {
     const target = new URL(config.backend_rest_url);
     const transport = target.protocol === "https:" ? https : http;
+    let completed = false;
+    const backendUnavailable = () => {
+      if (completed) return;
+      completed = true;
+      res.setHeader("Cache-Control", "no-store");
+      res.status(503).render("backend-unavailable", {
+        title: "Backend indisponible - TAV Monitoring",
+        retryUrl: req.originalUrl || "/monitoring"
+      });
+    };
     const request = transport.request({
       protocol: target.protocol,
       hostname: target.hostname,
@@ -65,16 +79,27 @@ function authorizePage(config, roles, requiredLogin) {
       let body = "";
       backendResponse.setEncoding("utf8");
       backendResponse.on("data", (chunk) => { body += chunk; });
+      backendResponse.on("error", backendUnavailable);
       backendResponse.on("end", () => {
-        if (backendResponse.statusCode === 401) return res.redirect("/login");
+        if (completed) return;
+        if (backendResponse.statusCode === 401) {
+          completed = true;
+          return res.redirect("/login");
+        }
+        if (backendResponse.statusCode !== 200) return backendUnavailable();
         let result;
-        try { result = JSON.parse(body); } catch (error) { return res.status(502).send("Backend authentication unavailable"); }
-        if (!result.user || !roles.includes(result.user.role) || (requiredLogin && String(result.user.login || "").toLowerCase() !== requiredLogin.toLowerCase())) return res.redirect("/monitoring");
+        try { result = JSON.parse(body); } catch (error) { return backendUnavailable(); }
+        if (!result.user) return backendUnavailable();
+        completed = true;
+        if (!roles.includes(result.user.role) || (requiredLogin && String(result.user.login || "").toLowerCase() !== requiredLogin.toLowerCase())) return res.redirect("/monitoring");
         res.locals.currentUser = result.user;
         next();
       });
     });
-    request.on("error", () => res.status(502).send("Backend authentication unavailable"));
+    request.setTimeout(Number(config.backend_request_timeout_ms) || 5000, () => {
+      request.destroy(new Error("Backend authentication timeout"));
+    });
+    request.on("error", backendUnavailable);
     request.end();
   };
 }

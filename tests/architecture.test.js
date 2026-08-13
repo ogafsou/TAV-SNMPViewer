@@ -69,15 +69,16 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20260723-27/);
-  assert.match(view, /monitoring-renderers\.js\?v=20260723-9/);
+  assert.match(view, /style\.css\?v=20260727-4/);
+  assert.match(view, /monitoring-renderers\.js\?v=20260724-1/);
   assert.match(view, /utils\.js\?v=20260723-2/);
-  assert.match(view, /auth\.js\?v=20260723-1/);
+  assert.match(view, /auth\.js\?v=20260725-1/);
   assert.match(view, /machine-details\.js\?v=20260723-6/);
-  assert.match(view, /monitoring\.js\?v=20260723-9/);
-  assert.match(view, /configuration\.js\?v=20260723-9/);
+  assert.match(view, /monitoring\.js\?v=20260724-2/);
+  assert.match(view, /configuration\.js\?v=20260724-4/);
   assert.match(view, /application\.js\?v=20260723-12/);
-  assert.match(view, /monitoring-maps\.js\?v=20260723-10/);
+  assert.match(view, /monitoring-maps\.js\?v=20260724-11/);
+  assert.match(view, /map-monitoring\.js\?v=20260727-4/);
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
   assert.match(css, /#toggleMonitoringView\[hidden\],[\s\S]*?#refreshMonitoring\[hidden\]\s*\{\s*display:\s*none !important;/);
   assert.match(css, /\.topbar\s*\{[^}]*align-items:\s*center;[^}]*padding-bottom:\s*0;/s);
@@ -230,4 +231,17 @@ test("reference button previews expected state and uses a confirmed context-menu
   assert.match(application, /addEventListener\("contextmenu"/);
   assert.match(application, /window\.confirm\(/);
   assert.match(view, />Set reference<\/button>/);
+});
+
+test("large monitoring maps open the assigned NovaStar output", () => {
+  const mapMonitoring = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "map-monitoring.js"), "utf8");
+  const mapConfiguration = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "monitoring-maps.js"), "utf8");
+  const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
+
+  assert.match(mapMonitoring, /cell\.dataset\.machineId = String\(assignment\.machineId\)/);
+  assert.match(mapMonitoring, /map-monitoring-stage-large \.map-monitoring-segment i\[data-machine-id\]/);
+  assert.match(mapMonitoring, /openMapAssignmentMonitoring\(\{/);
+  assert.match(mapConfiguration, /function openMapAssignmentMonitoring\(assignment\)/);
+  assert.match(mapConfiguration, /outputCell\.classList\.add\("map-output-highlight"\)/);
+  assert.match(css, /\.monitoring-card-dialog \.io-status-table td\.map-output-highlight\s*\{[^}]*outline:\s*5px solid #fff;/s);
 });

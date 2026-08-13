@@ -17,12 +17,22 @@ class NetgearM4300SnmpConnector {
   }
 
   createSession() {
-    return snmp.createSession(this.host, this.readCommunity, {
+    const session = snmp.createSession(this.host, this.readCommunity, {
       version: snmp.Version2c,
       timeout: this.timeout,
       retries: this.retries,
       port: this.port
     });
+
+    session.on("error", (error) => {
+      console.error("SNMP session protocol error", {
+        host: this.host,
+        port: this.port,
+        error: error.message
+      });
+    });
+
+    return session;
   }
 
   get(oids) {

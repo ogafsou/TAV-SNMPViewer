@@ -77,7 +77,7 @@ class SNMPConnector {
   constructor(options = {}) {
     this.host = options.host || "192.168.1.10";
     this.readCommunity = options.readCommunity || "public";
-    this.writeCommunity = options.writeCommunity || "private";
+    this.writeCommunity = options.writeCommunity || "public";
     this.timeout = Number(options.timeout || 2000);
     this.retries = Number(options.retries || 1);
     this.port = Number(options.port || 161);
@@ -96,12 +96,22 @@ class SNMPConnector {
       community: maskCommunity(community)
     });
 
-    return snmp.createSession(this.host, community, {
+    const session = snmp.createSession(this.host, community, {
       version: snmp.Version2c,
       timeout: this.timeout,
       retries: this.retries,
       port: this.port
     });
+
+    session.on("error", (error) => {
+      logger.warning("SNMP session protocol error", {
+        host: this.host,
+        port: this.port,
+        error: error.message
+      });
+    });
+
+    return session;
   }
 
   get(oid) {
@@ -370,16 +380,20 @@ class SNMPConnector {
   }
 
   async readInputSlots(maxSlots) {
-    const count = maxSlots || await this.getNumber(OIDS.inputSlotCount);
+    const count = await this.getNumber(OIDS.inputSlotCount);
+    const scanLimit = maxSlots || 32;
     const slots = [];
-    logger.info("SNMP input slots read started", { host: this.host, count });
+    logger.info("SNMP input slots read started", { host: this.host, count, scanLimit });
 
-    for (let slotId = 1; slotId <= count; slotId += 1) {
+    for (let slotId = 1; slotId <= scanLimit && slots.length < count; slotId += 1) {
       const slot = await this.readInputSlot(slotId);
-      slots.push(slot);
 
       if (slot.selectorError) {
         break;
+      }
+
+      if (isPopulatedSlot(slot)) {
+        slots.push(slot);
       }
     }
 
@@ -404,16 +418,20 @@ class SNMPConnector {
   }
 
   async readOutputSlots(maxSlots) {
-    const count = maxSlots || await this.getNumber(OIDS.outputSlotCount);
+    const count = await this.getNumber(OIDS.outputSlotCount);
+    const scanLimit = maxSlots || 32;
     const slots = [];
-    logger.info("SNMP output slots read started", { host: this.host, count });
+    logger.info("SNMP output slots read started", { host: this.host, count, scanLimit });
 
-    for (let slotId = 1; slotId <= count; slotId += 1) {
+    for (let slotId = 1; slotId <= scanLimit && slots.length < count; slotId += 1) {
       const slot = await this.readOutputSlot(slotId);
-      slots.push(slot);
 
       if (slot.selectorError) {
         break;
+      }
+
+      if (isPopulatedSlot(slot)) {
+        slots.push(slot);
       }
     }
 
@@ -548,6 +566,7 @@ class SNMPConnector {
         recvCardsPerPort: options.recvCardsPerPort || 1
       })
       : [];
+    attachOutputPorts(outputSlots.slots, receivingCards);
 
     const result = {
       host: this.host,
@@ -606,4 +625,26 @@ function parseJsonField(field) {
 
 function isBusinessErrorValue(value) {
   return typeof value === "string" && /^ERROR:\s*BizIdError$/i.test(value.trim());
+}
+
+function isPopulatedSlot(slot) {
+  return Object.values((slot && slot.fields) || {}).some((field) => (
+    field &&
+    field.ok === true &&
+    field.state !== "notApplicable" &&
+    field.value !== null &&
+    field.value !== undefined &&
+    String(field.value).trim() !== ""
+  ));
+}
+
+function attachOutputPorts(slots, receivingCards) {
+  for (const slot of slots || []) {
+    slot.outputPorts = (receivingCards || [])
+      .filter((card) => Number(card.outputSlotId) === Number(slot.slotId) && Number(card.recvCardId) === 1)
+      .map((card) => ({
+        portId: card.netPortId,
+        status: card.fields && card.fields.netPortLinkStatus
+      }));
+  }
 }

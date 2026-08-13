@@ -117,6 +117,14 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   assert.equal(savedSegment.cases, 8);
   assert.deepEqual(savedSegment.assignments[0], { machineId: "m1", machineName: "NovaStar 1", cardId: "2", outputId: "3" });
   assert.equal(savedSegment.assignments.length, 8);
+  response = await fetch(base + "/api/maps/" + createdMap.id + "/reference", {
+    method: "PUT", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ outputs: [{ machineId: "m1", cardId: "2", outputId: "3", ok: true }] })
+  });
+  const referencedMap = (await response.json()).map;
+  assert.equal(response.status, 200);
+  assert.deepEqual(referencedMap.monitoringReference.outputs, [{ machineId: "m1", cardId: "2", outputId: "3", ok: true }]);
+  assert.equal(Number.isNaN(new Date(referencedMap.monitoringReference.setAt).getTime()), false);
   response = await fetch(base + "/api/maps/" + createdMap.id, { method: "DELETE" });
   assert.equal(response.status, 204);
 

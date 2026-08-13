@@ -70,6 +70,18 @@ class MapStore {
     return normalizeMap(maps[index]);
   }
 
+  setReference(id, outputs) {
+    const maps = this.load();
+    const index = maps.findIndex((map) => map.id === String(id));
+    if (index < 0) throw notFound();
+    maps[index].monitoringReference = {
+      setAt: new Date().toISOString(),
+      outputs: normalizeReferenceOutputs(outputs)
+    };
+    this.save(maps);
+    return normalizeMap(maps[index]);
+  }
+
   backgroundPath(map) {
     if (!map || !map.backgroundExtension) return "";
     return path.join(this.filePath + ".assets", map.id + "." + map.backgroundExtension);
@@ -80,6 +92,12 @@ class MapStore {
 
 function normalizeMap(value) {
   const map = { id: String(value.id || ""), name: String(value.name || "").trim(), segments: normalizeSegments(value.segments) };
+  if (value.monitoringReference && typeof value.monitoringReference === "object") {
+    map.monitoringReference = {
+      setAt: normalizeDate(value.monitoringReference.setAt),
+      outputs: normalizeReferenceOutputs(value.monitoringReference.outputs)
+    };
+  }
   if (extensionForMimeType(value.backgroundMimeType) === value.backgroundExtension) {
     map.backgroundMimeType = value.backgroundMimeType;
     map.backgroundExtension = value.backgroundExtension;
@@ -114,6 +132,21 @@ function normalizeAssignment(value) {
   const outputId = String(value.outputId || "").slice(0, 50);
   if (!machineId || !cardId || !outputId) return null;
   return { machineId, machineName, cardId, outputId };
+}
+function normalizeReferenceOutputs(value) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 500).map((output) => {
+    if (!output || typeof output !== "object") return null;
+    const machineId = String(output.machineId || "").slice(0, 100);
+    const cardId = String(output.cardId || "").slice(0, 50);
+    const outputId = String(output.outputId || "").slice(0, 50);
+    if (!machineId || !cardId || !outputId) return null;
+    return { machineId, cardId, outputId, ok: output.ok === true };
+  }).filter(Boolean);
+}
+function normalizeDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
 }
 function clampNumber(value, min, max) { const number = Number(value); return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : min; }
 function extensionForMimeType(value) { return ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" })[String(value || "").toLowerCase()] || ""; }

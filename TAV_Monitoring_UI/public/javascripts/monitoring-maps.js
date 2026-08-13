@@ -15,17 +15,22 @@ var mapDialogTitle = document.getElementById("mapDialogTitle");
 var mapForm = document.getElementById("mapForm");
 var cancelMapButton = document.getElementById("cancelMapButton");
 var mapEditMode = document.getElementById("mapEditMode");
+var mapEditModeLabel = document.getElementById("mapEditModeLabel");
 var loadMapBackgroundButton = document.getElementById("loadMapBackgroundButton");
 var mapBackgroundFile = document.getElementById("mapBackgroundFile");
 var mapBackgroundImage = document.getElementById("mapBackgroundImage");
 var mapZonePlaceholder = document.getElementById("mapZonePlaceholder");
+var mapNovastarFilters = document.getElementById("mapNovastarFilters");
+var mapWarningsFilter = document.getElementById("mapWarningsFilter");
 var mapZone = document.getElementById("mapZone");
 var mapContent = document.getElementById("mapContent");
 var segmentContextMenu = document.getElementById("segmentContextMenu");
 var editSegmentCasesButton = document.getElementById("editSegmentCasesButton");
 var copySegmentButton = document.getElementById("copySegmentButton");
 var deleteSegmentButton = document.getElementById("deleteSegmentButton");
+var clearSegmentCaseButton = document.getElementById("clearSegmentCaseButton");
 var novastarOutputMenu = document.getElementById("novastarOutputMenu");
+var segmentClearAction = document.getElementById("segmentClearAction");
 var segmentEditActions = document.getElementById("segmentEditActions");
 var selectedSegmentId = "";
 var selectedCaseIndex = -1;
@@ -35,6 +40,8 @@ var lastNovastarAssignment = null;
 var mapZoom = 1;
 var mapPanX = 0;
 var mapPanY = 0;
+var hiddenMapNovastarTexts = {};
+var warningsOnlyMapIds = {};
 
 function applyMapTransform() {
   mapContent.style.transform = "translate(" + mapPanX + "px, " + mapPanY + "px) scale(" + mapZoom + ")";
@@ -51,9 +58,30 @@ function fitMapBackground() {
   if (mapBackgroundImage.hidden || !mapBackgroundImage.naturalWidth || !mapBackgroundImage.naturalHeight) return;
   var availableWidth = mapZone.clientWidth;
   var availableHeight = mapZone.clientHeight;
-  var scale = Math.min(availableWidth / mapBackgroundImage.naturalWidth, availableHeight / mapBackgroundImage.naturalHeight);
+  var scale = Math.min(1, availableWidth / mapBackgroundImage.naturalWidth, availableHeight / mapBackgroundImage.naturalHeight);
   mapBackgroundImage.style.width = Math.floor(mapBackgroundImage.naturalWidth * scale) + "px";
   mapBackgroundImage.style.height = Math.floor(mapBackgroundImage.naturalHeight * scale) + "px";
+  var maximumZoom = mapMaximumZoom();
+  if (mapZoom > maximumZoom) {
+    zoomMapAt(maximumZoom, mapZone.clientWidth / 2, mapZone.clientHeight / 2);
+  }
+}
+
+function mapMaximumZoom() {
+  if (mapBackgroundImage.hidden || !mapBackgroundImage.naturalWidth || !mapBackgroundImage.clientWidth) return 1;
+  return Math.max(1, Math.min(
+    mapBackgroundImage.naturalWidth / mapBackgroundImage.clientWidth,
+    mapBackgroundImage.naturalHeight / mapBackgroundImage.clientHeight
+  ));
+}
+
+function zoomMapAt(nextZoom, cursorX, cursorY) {
+  var contentX = (cursorX - mapPanX) / mapZoom;
+  var contentY = (cursorY - mapPanY) / mapZoom;
+  mapPanX = cursorX - contentX * nextZoom;
+  mapPanY = cursorY - contentY * nextZoom;
+  mapZoom = nextZoom;
+  applyMapTransform();
 }
 
 function selectedMap() { return monitoringMaps.find(function(item) { return item.id === selectedMapId; }); }
@@ -66,6 +94,7 @@ function segmentThicknessPx(segment) {
 function renderMapSegments() {
   mapZone.querySelectorAll(".map-segment").forEach(function(node) { node.remove(); });
   var map = selectedMap();
+  renderMapNovastarFilters(map);
   (map && map.segments || []).forEach(function(segment) {
     var node = document.createElement("div");
     node.className = "map-segment " + segment.orientation;
@@ -80,9 +109,26 @@ function renderMapSegments() {
       var assignment = segment.assignments && segment.assignments[index];
       cell.dataset.caseIndex = String(index);
       if (assignment) {
-        cell.textContent = outputAssignmentLabel(assignment);
+        var outputIsOk = assignmentOutputIsOk(assignment);
+        var cardNumber = document.createElement("span");
+        cardNumber.className = "assignment-card-number";
+        cardNumber.textContent = outputAssignmentCardNumber(assignment);
+        var outputNumber = document.createElement("span");
+        outputNumber.className = "assignment-output-number";
+        outputNumber.textContent = String(assignment.outputId || "");
+        cell.appendChild(cardNumber);
+        cell.appendChild(outputNumber);
+        var textIsVisible = warningsOnlyMapIds[map.id] === true
+          ? !outputIsOk
+          : mapNovastarTextIsVisible(map, assignment.machineId);
+        if (!textIsVisible) {
+          cell.classList.add("assignment-text-hidden");
+        }
         var assignedMachine = machines.find(function(machine) { return String(machine.id) === String(assignment.machineId); });
-        if (assignedMachine && /^#[0-9a-f]{6}$/i.test(assignedMachine.color || "")) cell.style.color = assignedMachine.color;
+        if (assignedMachine && /^#[0-9a-f]{6}$/i.test(assignedMachine.color || "")) {
+          cell.style.setProperty("--assigned-novastar-color", assignedMachine.color);
+        }
+        cell.classList.add(outputIsOk ? "output-ok" : "output-not-ok");
         cell.title = [assignment.machineName || assignment.machineId, assignment.cardId, assignment.outputId].join(" - ");
         cell.classList.add("assigned");
       }
@@ -93,9 +139,89 @@ function renderMapSegments() {
   mapZone.classList.toggle("editing", mapEditMode.checked && !!map);
 }
 
-function outputAssignmentLabel(assignment) {
-  var cardNumber = String(assignment.cardId || "").replace(/^O[-_.\s]*/i, "");
-  return cardNumber + "." + String(assignment.outputId || "");
+function renderMapNovastarFilters(map) {
+  mapNovastarFilters.innerHTML = "";
+  mapNovastarFilters.hidden = !map;
+  mapWarningsFilter.hidden = true;
+  if (!map) return;
+  var devices = [];
+  var knownIds = {};
+  (map.segments || []).forEach(function(segment) {
+    (segment.assignments || []).forEach(function(assignment) {
+      if (!assignment || knownIds[assignment.machineId]) return;
+      knownIds[assignment.machineId] = true;
+      var machine = machines.find(function(item) { return String(item.id) === String(assignment.machineId); });
+      devices.push({
+        id: String(assignment.machineId),
+        name: machine && machine.name || assignment.machineName || String(assignment.machineId),
+        color: machine && /^#[0-9a-f]{6}$/i.test(machine.color || "") ? machine.color : "#697184"
+      });
+    });
+  });
+  devices.forEach(function(device) {
+    var active = mapNovastarTextIsVisible(map, device.id);
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "map-novastar-filter" + (active ? " active" : "");
+    button.textContent = device.name;
+    button.title = (active ? "Masquer" : "Afficher") + " les sorties de " + device.name;
+    button.setAttribute("aria-pressed", String(active));
+    button.style.setProperty("--map-filter-color", device.color);
+    button.style.setProperty("--map-filter-text-color", readableTextColor(device.color));
+    button.addEventListener("click", function() {
+      delete warningsOnlyMapIds[map.id];
+      var hidden = hiddenMapNovastarTexts[map.id] || (hiddenMapNovastarTexts[map.id] = {});
+      if (active) hidden[device.id] = true;
+      else delete hidden[device.id];
+      renderMapSegments();
+    });
+    mapNovastarFilters.appendChild(button);
+  });
+  if (devices.length) {
+    var warningsActive = warningsOnlyMapIds[map.id] === true;
+    mapWarningsFilter.hidden = false;
+    mapWarningsFilter.classList.toggle("active", warningsActive);
+    mapWarningsFilter.title = warningsActive ? "Afficher toutes les sorties visibles" : "Afficher uniquement les sorties en probleme";
+    mapWarningsFilter.setAttribute("aria-pressed", String(warningsActive));
+    mapWarningsFilter.style.setProperty("--map-filter-color", "#d71920");
+    mapWarningsFilter.style.setProperty("--map-filter-text-color", "#ffffff");
+  }
+}
+
+function mapNovastarTextIsVisible(map, machineId) {
+  return !map || !hiddenMapNovastarTexts[map.id] || hiddenMapNovastarTexts[map.id][String(machineId)] !== true;
+}
+
+function readableTextColor(color) {
+  var red = parseInt(color.slice(1, 3), 16);
+  var green = parseInt(color.slice(3, 5), 16);
+  var blue = parseInt(color.slice(5, 7), 16);
+  return red * 299 + green * 587 + blue * 114 > 150000 ? "#111622" : "#ffffff";
+}
+
+mapWarningsFilter.addEventListener("click", function() {
+  var map = selectedMap();
+  if (!map) return;
+  if (warningsOnlyMapIds[map.id] === true) delete warningsOnlyMapIds[map.id];
+  else warningsOnlyMapIds[map.id] = true;
+  renderMapSegments();
+});
+
+function outputAssignmentCardNumber(assignment) {
+  return String(assignment.cardId || "").replace(/^O[-_.\s]*/i, "");
+}
+
+function assignmentOutputIsOk(assignment) {
+  var state = monitoringState[assignment.machineId];
+  if (!state || state.connected !== true) return false;
+  var card = (state.outputTables || []).find(function(item) {
+    return String(item.label) === String(assignment.cardId);
+  });
+  if (!card) return false;
+  var output = (card.ports || []).find(function(item) {
+    return String(item.label) === String(assignment.outputId);
+  });
+  return !!output && (output.state === "ok" || output.ok === true);
 }
 
 function promptCases(currentValue) {
@@ -132,7 +258,9 @@ function mapPoint(event) {
 function segmentById(id) { var map = selectedMap(); return map && (map.segments || []).find(function(segment) { return segment.id === id; }); }
 
 mapZone.addEventListener("pointerdown", function(event) {
-  if (event.button === 2 && !event.target.closest(".map-segment")) {
+  var pointedSegment = event.target.closest(".map-segment");
+  var startsPan = event.button === 2 || (!mapEditMode.checked && event.button === 0);
+  if (startsPan && !pointedSegment) {
     mapPanGesture = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -147,7 +275,7 @@ mapZone.addEventListener("pointerdown", function(event) {
   }
   if (!mapEditMode.checked || event.button !== 0) return;
   if (event.target.closest(".map-segment i")) return;
-  var segmentNode = event.target.closest(".map-segment");
+  var segmentNode = pointedSegment;
   if (segmentNode) {
     var rect = segmentNode.getBoundingClientRect();
     var tolerance = 8;
@@ -242,6 +370,12 @@ mapZone.addEventListener("click", async function(event) {
   var node = cell.closest(".map-segment");
   selectedSegmentId = node.dataset.segmentId;
   selectedCaseIndex = Number(cell.dataset.caseIndex);
+  if (!mapEditMode.checked) {
+    var segment = segmentById(selectedSegmentId);
+    var assignment = segment && segment.assignments && segment.assignments[selectedCaseIndex];
+    if (assignment) openMapAssignmentMonitoring(assignment);
+    return;
+  }
   if (!lastNovastarAssignment) {
     openSegmentMenu(event.clientX, event.clientY, false);
     return;
@@ -256,27 +390,40 @@ mapZone.addEventListener("click", async function(event) {
   await assignSelectedCase(next);
 });
 
+function openMapAssignmentMonitoring(assignment) {
+  if (!machines.some(function(machine) { return String(machine.id) === String(assignment.machineId); })) return;
+  openMonitoringCardDialog(String(assignment.machineId));
+  var referenceKey = ["output", assignment.cardId, assignment.outputId].join(":");
+  requestAnimationFrame(function() {
+    var outputCell = Array.from(monitoringCardDialogContent.querySelectorAll("[data-reference-key]")).find(function(node) {
+      return node.dataset.referenceKey === referenceKey;
+    });
+    if (!outputCell) return;
+    outputCell.classList.add("map-output-highlight");
+    outputCell.scrollIntoView({ block: "center", inline: "center" });
+  });
+}
+
 mapZone.addEventListener("wheel", function(event) {
   if (!selectedMap()) return;
   event.preventDefault();
   var rect = mapZone.getBoundingClientRect();
   var cursorX = event.clientX - rect.left;
   var cursorY = event.clientY - rect.top;
-  var contentX = (cursorX - mapPanX) / mapZoom;
-  var contentY = (cursorY - mapPanY) / mapZoom;
   var factor = Math.exp(-event.deltaY * 0.0015);
-  var nextZoom = Math.min(8, Math.max(0.5, mapZoom * factor));
+  var nextZoom = Math.min(mapMaximumZoom(), Math.max(1, mapZoom * factor));
   if (nextZoom === mapZoom) return;
-  mapPanX = cursorX - contentX * nextZoom;
-  mapPanY = cursorY - contentY * nextZoom;
-  mapZoom = nextZoom;
-  applyMapTransform();
+  zoomMapAt(nextZoom, cursorX, cursorY);
 }, { passive: false });
 
 mapZone.addEventListener("contextmenu", function(event) {
   var cell = event.target.closest(".map-segment i");
   var node = event.target.closest(".map-segment");
   if (!node) {
+    event.preventDefault();
+    return;
+  }
+  if (!mapEditMode.checked) {
     event.preventDefault();
     return;
   }
@@ -289,6 +436,10 @@ mapZone.addEventListener("contextmenu", function(event) {
 
 function openSegmentMenu(x, y, showEditActions) {
   renderNovastarOutputMenu();
+  var segment = segmentById(selectedSegmentId);
+  var assignment = segment && segment.assignments && segment.assignments[selectedCaseIndex];
+  segmentClearAction.hidden = !showEditActions || selectedCaseIndex < 0;
+  clearSegmentCaseButton.disabled = !assignment;
   segmentEditActions.hidden = !showEditActions;
   segmentContextMenu.style.left = Math.min(x, window.innerWidth - 240) + "px";
   segmentContextMenu.style.top = Math.min(y, window.innerHeight - 220) + "px";
@@ -468,6 +619,8 @@ function renderSelectedMap() {
   selectedMapName.textContent = map ? map.name : "Aucune map";
   mapListHint.textContent = map ? "Selection : " + map.name : "Ajoutez une map pour commencer.";
   mapEditMode.disabled = !map;
+  mapEditModeLabel.hidden = !map;
+  if (!map) mapEditMode.checked = false;
   loadMapBackgroundButton.hidden = !map || !mapEditMode.checked;
   if (map && map.backgroundUrl) {
     mapBackgroundImage.src = map.backgroundUrl + "?v=" + encodeURIComponent(map.backgroundVersion || "stored");
@@ -546,6 +699,24 @@ mapForm.addEventListener("submit", async function(event) {
 });
 document.addEventListener("click", function(event) { if (!mapContextMenu.hidden && !mapContextMenu.contains(event.target)) mapContextMenu.hidden = true; });
 document.addEventListener("click", function(event) { if (!segmentContextMenu.hidden && !segmentContextMenu.contains(event.target)) segmentContextMenu.hidden = true; });
+
+clearSegmentCaseButton.addEventListener("click", async function() {
+  var segment = segmentById(selectedSegmentId);
+  var map = selectedMap();
+  if (!segment || !map || selectedCaseIndex < 0 || selectedCaseIndex >= segment.cases || !segment.assignments) return;
+  var previousAssignment = segment.assignments[selectedCaseIndex];
+  if (!previousAssignment) return;
+  segmentContextMenu.hidden = true;
+  segment.assignments[selectedCaseIndex] = null;
+  try {
+    await saveMapSegments(map);
+    setStatus("Case effacee", "ok");
+  } catch (error) {
+    segment.assignments[selectedCaseIndex] = previousAssignment;
+    renderMapSegments();
+    setStatus(error.message, "error");
+  }
+});
 
 editSegmentCasesButton.addEventListener("click", async function() {
   segmentContextMenu.hidden = true; var segment = segmentById(selectedSegmentId); var map = selectedMap(); if (!segment || !map) return;
