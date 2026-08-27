@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "test:trap": "node ./tests/novastar-trap-receiver.test.js",
-    "listen:novastar-traps": "node ./tests/novastar-trap-test.js"
+    "listen:novastar-traps": "node ./tests/novastar-trap-test.js",
+    "simulate:novastar-trap": "node ./tests/simulate-novastar-trap.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

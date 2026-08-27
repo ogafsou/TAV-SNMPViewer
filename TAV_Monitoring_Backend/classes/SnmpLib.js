@@ -1,5 +1,5 @@
 const snmp = require("net-snmp");
-const logger = require("./Logger");
+const logger = require("./Logger").child("SnmpLib");
 
 const OIDS = {
   oidVersion: "1.3.6.1.4.1.319.10.1",
@@ -71,6 +71,8 @@ const OIDS = {
   screenSyncFrame: "1.3.6.1.4.1.319.10.10.40.2.7",
   screenDisplayMode: "1.3.6.1.4.1.319.10.10.40.2.8",
   screenSummary: "1.3.6.1.4.1.319.10.10.40.3"
+  ,trapDestination: "1.3.6.1.4.1.319.10.200.1"
+  ,trapReportEnable: "1.3.6.1.4.1.319.10.200.3"
 };
 
 class SNMPConnector {
@@ -182,6 +184,13 @@ class SNMPConnector {
     return this.set(oid, snmp.ObjectType.OctetString, String(value));
   }
 
+  async configureTrapReporting(address, port) {
+    const destination = String(address) + ":" + Number(port);
+    await this.setString(OIDS.trapDestination, destination);
+    await this.setInteger(OIDS.trapReportEnable, 1);
+    return { destination, enabled: true };
+  }
+
   async getString(oid) {
     return SNMPConnector.formatValue(await this.get(oid));
   }
@@ -199,13 +208,17 @@ class SNMPConnector {
 
   async readField({ key, oid, type = "string" }) {
     try {
-      const value = type === "number" ? await this.getNumber(oid) : await this.getString(oid);
+      const rawValue = await this.getString(oid);
       logger.debug("SNMP field read", { host: this.host, key, oid });
 
-      if (isBusinessErrorValue(value)) {
-        return { ok: true, value, oid, state: "notApplicable" };
+      if (isBusinessErrorValue(rawValue)) {
+        return { ok: false, value: rawValue, oid, state: "notApplicable", error: rawValue };
       }
 
+      const value = type === "number" ? numberValue(rawValue) : rawValue;
+      if (type === "number" && value === null) {
+        return { ok: false, value: null, oid, error: `Invalid numeric value: ${rawValue}` };
+      }
       return { ok: true, value, oid };
     } catch (error) {
       logger.warning("SNMP field read failed", { host: this.host, key, oid, error: error.message });
@@ -295,7 +308,7 @@ class SNMPConnector {
 
       return null;
     } catch (error) {
-      logger.warning("SNMP selector write failed; reading current context", {
+      logger.warning("SNMP selector write failed; current context will not be read", {
         host: this.host,
         oid,
         error: error.message
@@ -307,53 +320,41 @@ class SNMPConnector {
   async readInputSlot(slotId) {
     logger.debug("SNMP input slot read started", { host: this.host, slotId });
     const selectorError = await this.setSelector(OIDS.inputSlotSelector, "integer", slotId);
-    const fields = await this.readFields([
+    const fields = selectorError ? {} : await this.readFieldsSequential([
       { key: "status", oid: OIDS.inputSlotStatus, type: "number" },
       { key: "firmware", oid: OIDS.inputSlotFirmware },
       { key: "serial", oid: OIDS.inputSlotSerial },
       { key: "sourceCount", oid: OIDS.inputSlotSourceCount, type: "number" },
-      { key: "summary", oid: OIDS.inputSlotSummary },
-      { key: "sourceStatus", oid: OIDS.inputSourceStatus, type: "number" },
-      { key: "sourceWidth", oid: OIDS.inputSourceWidth, type: "number" },
-      { key: "sourceHeight", oid: OIDS.inputSourceHeight, type: "number" },
-      { key: "sourceFrameRate", oid: OIDS.inputSourceFrameRate },
-      { key: "sourceType", oid: OIDS.inputSourceType, type: "number" }
+      { key: "summary", oid: OIDS.inputSlotSummary }
     ]);
-    const inputSources = selectorError
-      ? []
-      : await this.readInputSources({
-        inputSlotId: slotId,
-        sourceCount: Number(fields.sourceCount && fields.sourceCount.value) || 0
-      });
 
     return {
-      slotId,
+      slotId: `I-${slotId + 1}`,
+      rawSlotId: slotId,
       selectorError,
       fields,
-      inputSources
+      inputSources: []
     };
   }
 
-  buildInputSourceSelector({ inputSlotId, sourceId }) {
-    return JSON.stringify({
-      inputSlotId: Number(inputSlotId),
-      sourceId: Number(sourceId)
-    });
+  buildInputSourceSelector({ globalSourceId }) {
+    return String(Number(globalSourceId));
   }
 
-  async readInputSource({ inputSlotId, sourceId }) {
-    logger.debug("SNMP input source read started", { host: this.host, inputSlotId, sourceId });
+  async readInputSource({ inputSlotId, sourceId, globalSourceId }) {
+    logger.debug("SNMP input source read started", { host: this.host, inputSlotId, sourceId, globalSourceId });
     const selectorError = await this.setSelector(
       OIDS.inputSourceSelector,
       "string",
-      this.buildInputSourceSelector({ inputSlotId, sourceId })
+      this.buildInputSourceSelector({ globalSourceId })
     );
 
     return {
       inputSlotId,
       sourceId,
+      rawSourceId: globalSourceId,
       selectorError,
-      fields: await this.readFields([
+      fields: selectorError ? {} : await this.readFieldsSequential([
         { key: "status", oid: OIDS.inputSourceStatus, type: "number" },
         { key: "width", oid: OIDS.inputSourceWidth, type: "number" },
         { key: "height", oid: OIDS.inputSourceHeight, type: "number" },
@@ -363,12 +364,16 @@ class SNMPConnector {
     };
   }
 
-  async readInputSources({ inputSlotId, sourceCount }) {
+  async readInputSources({ inputSlotId, sourceCount, globalSourceStart }) {
     const sources = [];
-    logger.info("SNMP input sources read started", { host: this.host, inputSlotId, sourceCount });
+    logger.info("SNMP input sources read started", { host: this.host, inputSlotId, sourceCount, globalSourceStart });
 
-    for (let sourceId = 1; sourceId <= sourceCount; sourceId += 1) {
-      const source = await this.readInputSource({ inputSlotId, sourceId });
+    for (let localIndex = 0; localIndex < sourceCount; localIndex += 1) {
+      const source = await this.readInputSource({
+        inputSlotId,
+        sourceId: localIndex + 1,
+        globalSourceId: globalSourceStart + localIndex
+      });
       sources.push(source);
 
       if (source.selectorError) {
@@ -385,16 +390,33 @@ class SNMPConnector {
     const slots = [];
     logger.info("SNMP input slots read started", { host: this.host, count, scanLimit });
 
-    for (let slotId = 1; slotId <= scanLimit && slots.length < count; slotId += 1) {
+    for (let slotId = 0; slotId < scanLimit && slots.length < count; slotId += 1) {
       const slot = await this.readInputSlot(slotId);
 
       if (slot.selectorError) {
         break;
       }
 
-      if (isPopulatedSlot(slot)) {
+      if (isPopulatedInputSlot(slot)) {
         slots.push(slot);
       }
+    }
+
+    let globalSourceStart = 0;
+    for (const slot of slots) {
+      const sourceCount = Number(slot.fields.sourceCount && slot.fields.sourceCount.value) || 0;
+      const selectorError = await this.setSelector(OIDS.inputSlotSelector, "integer", slot.rawSlotId);
+      if (selectorError) {
+        slot.selectorError = selectorError;
+        slot.inputSources = [];
+      } else {
+        slot.inputSources = await this.readInputSources({
+          inputSlotId: slot.rawSlotId,
+          sourceCount,
+          globalSourceStart
+        });
+      }
+      globalSourceStart += sourceCount;
     }
 
     return { count, slots };
@@ -405,9 +427,10 @@ class SNMPConnector {
     const selectorError = await this.setSelector(OIDS.outputSlotSelector, "integer", slotId);
 
     return {
-      slotId,
+      slotId: `O-${slotId + 1}`,
+      rawSlotId: slotId,
       selectorError,
-      fields: await this.readFields([
+      fields: selectorError ? {} : await this.readFieldsSequential([
         { key: "status", oid: OIDS.outputSlotStatus },
         { key: "firmware", oid: OIDS.outputSlotFirmware },
         { key: "serial", oid: OIDS.outputSlotSerial },
@@ -423,14 +446,14 @@ class SNMPConnector {
     const slots = [];
     logger.info("SNMP output slots read started", { host: this.host, count, scanLimit });
 
-    for (let slotId = 1; slotId <= scanLimit && slots.length < count; slotId += 1) {
+    for (let slotId = 0; slotId < scanLimit && slots.length < count; slotId += 1) {
       const slot = await this.readOutputSlot(slotId);
 
       if (slot.selectorError) {
         break;
       }
 
-      if (isPopulatedSlot(slot)) {
+      if (isPopulatedOutputSlot(slot)) {
         slots.push(slot);
       }
     }
@@ -440,8 +463,8 @@ class SNMPConnector {
 
   buildReceivingCardSelector({ outputSlotId, netPortId, recvCardId }) {
     return JSON.stringify({
-      outputSlotid: Number(outputSlotId),
-      netportId: Number(netPortId),
+      outputSlotId: Number(outputSlotId),
+      netPortId: Number(netPortId),
       recvCardId: Number(recvCardId)
     });
   }
@@ -454,49 +477,41 @@ class SNMPConnector {
       this.buildReceivingCardSelector(selection)
     );
 
+    // The summary already contains workStatus, tempStatus and voltStatus. The
+    // separate .30.5.x reads duplicated that information and multiplied the
+    // duration of a full 32-port scan, especially when a request was retried.
+    const fields = selectorError ? {} : await this.readFieldsSequential([
+      { key: "summary", oid: OIDS.recvCardSummary }
+    ]);
+    applyReceivingCardSummary(fields);
+
     return {
       ...selection,
       selectorError,
-      fields: await this.readFields([
-        { key: "netPortLinkStatus", oid: OIDS.netPortLinkStatus, type: "number" },
-        { key: "netPortBackupStatus", oid: OIDS.netPortBackupStatus, type: "number" },
-        { key: "backupNetPortLinkStatus", oid: OIDS.backupNetPortLinkStatus, type: "number" },
-        { key: "fiberLinkStatus", oid: OIDS.fiberLinkStatus },
-        { key: "summary", oid: OIDS.recvCardSummary },
-        { key: "workingStatus", oid: OIDS.recvCardWorkingStatus, type: "number" },
-        { key: "temperatureStatus", oid: OIDS.recvCardTemperatureStatus, type: "number" },
-        { key: "temperatureValue", oid: OIDS.recvCardTemperatureValue, type: "number" },
-        { key: "voltageStatus", oid: OIDS.recvCardVoltageStatus, type: "number" },
-        { key: "voltageValue", oid: OIDS.recvCardVoltageValue, type: "number" },
-        { key: "fpgaVersion", oid: OIDS.recvCardFpgaVersion },
-        { key: "mcuVersion", oid: OIDS.recvCardMcuVersion },
-        { key: "maxTemperature", oid: OIDS.recvCardMaxTemperature, type: "number" }
-      ])
+      fields
     };
   }
 
-  async readReceivingCards({ slots = [], recvCardsPerPort = 1 } = {}) {
+  async readReceivingCards({ slots = [] } = {}) {
     const cards = [];
     logger.info("SNMP receiving cards read started", {
       host: this.host,
       slots: slots.length,
-      recvCardsPerPort
+      recvCardId: 0
     });
 
     for (const slot of slots) {
       const netPortCount = Number(slot.fields.netPortCount && slot.fields.netPortCount.value) || 0;
 
-      for (let netPortId = 1; netPortId <= netPortCount; netPortId += 1) {
-        for (let recvCardId = 1; recvCardId <= recvCardsPerPort; recvCardId += 1) {
-          cards.push(await this.readReceivingCard({
-            outputSlotId: slot.slotId,
-            netPortId,
-            recvCardId
-          }));
+      for (let netPortId = 0; netPortId < netPortCount; netPortId += 1) {
+        cards.push(await this.readReceivingCard({
+          outputSlotId: slot.rawSlotId,
+          netPortId,
+          recvCardId: 0
+        }));
 
-          if (cards[cards.length - 1].selectorError) {
-            break;
-          }
+        if (cards[cards.length - 1].selectorError) {
+          break;
         }
       }
     }
@@ -562,8 +577,7 @@ class SNMPConnector {
     }));
     const receivingCards = options.includeReceivingCards
       ? await this.readReceivingCards({
-        slots: outputSlots.slots,
-        recvCardsPerPort: options.recvCardsPerPort || 1
+        slots: outputSlots.slots
       })
       : [];
     attachOutputPorts(outputSlots.slots, receivingCards);
@@ -600,6 +614,14 @@ class SNMPConnector {
 
     return String(value);
   }
+
+  async readFieldsSequential(definitions) {
+    const result = {};
+    for (const definition of definitions) {
+      result[definition.key] = await this.readField(definition);
+    }
+    return result;
+  }
 }
 
 SNMPConnector.OIDS = OIDS;
@@ -624,27 +646,66 @@ function parseJsonField(field) {
 }
 
 function isBusinessErrorValue(value) {
-  return typeof value === "string" && /^ERROR:\s*BizIdError$/i.test(value.trim());
+  return typeof value === "string" && /^ERROR:/i.test(value.trim());
 }
 
-function isPopulatedSlot(slot) {
-  return Object.values((slot && slot.fields) || {}).some((field) => (
-    field &&
-    field.ok === true &&
-    field.state !== "notApplicable" &&
-    field.value !== null &&
-    field.value !== undefined &&
-    String(field.value).trim() !== ""
-  ));
+function isPopulatedInputSlot(slot) {
+  return validTextField(slot && slot.fields && slot.fields.serial) &&
+    positiveNumberField(slot && slot.fields && slot.fields.sourceCount);
+}
+
+function isPopulatedOutputSlot(slot) {
+  return validTextField(slot && slot.fields && slot.fields.serial) &&
+    positiveNumberField(slot && slot.fields && slot.fields.netPortCount);
 }
 
 function attachOutputPorts(slots, receivingCards) {
   for (const slot of slots || []) {
     slot.outputPorts = (receivingCards || [])
-      .filter((card) => Number(card.outputSlotId) === Number(slot.slotId) && Number(card.recvCardId) === 1)
+      .filter((card) => Number(card.outputSlotId) === Number(slot.rawSlotId) && Number(card.recvCardId) === 0)
       .map((card) => ({
-        portId: card.netPortId,
-        status: card.fields && card.fields.netPortLinkStatus
+        portId: Number(card.netPortId) + 1,
+        rawPortId: card.netPortId,
+        fields: card.fields
       }));
   }
+}
+
+function applyReceivingCardSummary(fields) {
+  const summary = parseJsonField(fields.summary);
+  if (!summary) {
+    fields.status = { ok: false, value: null, oid: OIDS.recvCardSummary, error: "Invalid receiving card summary" };
+    return;
+  }
+
+  const temperatureStatus = numberValue(summary.tempStatus);
+  const active = temperatureStatus === 0 ? 1 : temperatureStatus === 2 ? 0 : null;
+  fields.status = active === null
+    ? { ok: false, value: null, oid: OIDS.recvCardSummary, error: `Unknown tempStatus: ${summary.tempStatus}` }
+    : { ok: true, value: active, oid: OIDS.recvCardSummary, source: "summary" };
+  fields.workingStatus = summaryField(summary.workStatus);
+  fields.temperatureStatus = summaryField(summary.tempStatus);
+  fields.temperatureValue = summaryField(summary.temp);
+  fields.voltageStatus = summaryField(summary.voltStatus);
+  fields.voltageValue = summaryField(summary.volt);
+  fields.fpgaVersion = summaryField(summary.fpgaVersion);
+  fields.mcuVersion = summaryField(summary.mcuVersion);
+  fields.maxTemperature = summaryField(summary.tempMax);
+}
+
+function summaryField(value) {
+  return { ok: value !== undefined && value !== null, value: value === undefined ? null : value, oid: OIDS.recvCardSummary, source: "summary" };
+}
+
+function numberValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function validTextField(field) {
+  return !!field && field.ok === true && typeof field.value === "string" && field.value.trim() !== "" && !isBusinessErrorValue(field.value);
+}
+
+function positiveNumberField(field) {
+  return !!field && field.ok === true && Number.isFinite(Number(field.value)) && Number(field.value) > 0;
 }

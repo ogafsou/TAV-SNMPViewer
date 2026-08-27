@@ -50,36 +50,48 @@ var warningsOnlyMapIds = {};
 function applyMapTransform() {
   mapContent.style.transform = "translate(" + mapPanX + "px, " + mapPanY + "px) scale(" + mapZoom + ")";
   if (resetMapViewButton) {
-    resetMapViewButton.hidden = Math.abs(mapZoom - 1) < 0.001 && Math.abs(mapPanX) < 0.5 && Math.abs(mapPanY) < 0.5;
+    var fitted = fittedMapTransform();
+    resetMapViewButton.hidden = Math.abs(mapZoom - fitted.zoom) < 0.001 &&
+      Math.abs(mapPanX - fitted.panX) < 0.5 && Math.abs(mapPanY - fitted.panY) < 0.5;
   }
 }
 
 function resetMapTransform() {
-  mapZoom = 1;
-  mapPanX = 0;
-  mapPanY = 0;
+  var fitted = fittedMapTransform();
+  mapZoom = fitted.zoom;
+  mapPanX = fitted.panX;
+  mapPanY = fitted.panY;
   applyMapTransform();
 }
 
-function fitMapBackground() {
+function fittedMapTransform() {
+  var contentWidth = mapContent.clientWidth || mapZone.clientWidth;
+  var contentHeight = mapContent.clientHeight || mapZone.clientHeight;
+  var zoom = Math.min(1, mapZone.clientWidth / contentWidth, mapZone.clientHeight / contentHeight);
+  return {
+    zoom: zoom,
+    panX: (mapZone.clientWidth - contentWidth * zoom) / 2,
+    panY: (mapZone.clientHeight - contentHeight * zoom) / 2
+  };
+}
+
+function fitMapBackground(resetView) {
   if (mapBackgroundImage.hidden || !mapBackgroundImage.naturalWidth || !mapBackgroundImage.naturalHeight) return;
-  var availableWidth = mapZone.clientWidth;
-  var availableHeight = mapZone.clientHeight;
-  var scale = Math.min(1, availableWidth / mapBackgroundImage.naturalWidth, availableHeight / mapBackgroundImage.naturalHeight);
-  mapBackgroundImage.style.width = Math.floor(mapBackgroundImage.naturalWidth * scale) + "px";
-  mapBackgroundImage.style.height = Math.floor(mapBackgroundImage.naturalHeight * scale) + "px";
+  mapContent.style.width = mapBackgroundImage.naturalWidth + "px";
+  mapContent.style.height = mapBackgroundImage.naturalHeight + "px";
+  mapBackgroundImage.style.width = "100%";
+  mapBackgroundImage.style.height = "100%";
+  var fitted = fittedMapTransform();
   var maximumZoom = mapMaximumZoom();
-  if (mapZoom > maximumZoom) {
-    zoomMapAt(maximumZoom, mapZone.clientWidth / 2, mapZone.clientHeight / 2);
+  if (resetView || mapZoom < fitted.zoom || mapZoom > maximumZoom) {
+    resetMapTransform();
+  } else {
+    applyMapTransform();
   }
 }
 
 function mapMaximumZoom() {
-  if (mapBackgroundImage.hidden || !mapBackgroundImage.naturalWidth || !mapBackgroundImage.clientWidth) return 1;
-  return Math.max(1, Math.min(
-    mapBackgroundImage.naturalWidth / mapBackgroundImage.clientWidth,
-    mapBackgroundImage.naturalHeight / mapBackgroundImage.clientHeight
-  ));
+  return Math.max(1, fittedMapTransform().zoom);
 }
 
 function zoomMapAt(nextZoom, cursorX, cursorY) {
@@ -98,7 +110,7 @@ if (resetMapViewButton) {
 }
 
 function segmentThicknessPx(segment) {
-  var axisLength = segment.orientation === "horizontal" ? mapZone.clientWidth : mapZone.clientHeight;
+  var axisLength = segment.orientation === "horizontal" ? mapContent.clientWidth : mapContent.clientHeight;
   return Math.max(1, segment.length * axisLength / Math.max(1, segment.cases));
 }
 
@@ -140,6 +152,10 @@ function renderMapSegments() {
           cell.style.setProperty("--assigned-novastar-color", assignedMachine.color);
         }
         cell.classList.add(outputIsOk ? "output-ok" : "output-not-ok");
+        var microKey = ["output", assignment.cardId, assignment.outputId].join(":");
+        if ((monitoringState[assignment.machineId] && monitoringState[assignment.machineId].microInterruptions || []).some(function(incident) { return incident.entityId === microKey; })) {
+          cell.classList.add("micro-interruption");
+        }
         cell.title = [assignment.machineName || assignment.machineId, assignment.cardId, assignment.outputId].join(" - ");
         cell.classList.add("assigned");
       }
@@ -261,8 +277,8 @@ async function saveMapSegments(map) {
 function mapPoint(event) {
   var rect = mapZone.getBoundingClientRect();
   return {
-    x: Math.min(1, Math.max(0, (event.clientX - rect.left - mapPanX) / mapZoom / rect.width)),
-    y: Math.min(1, Math.max(0, (event.clientY - rect.top - mapPanY) / mapZoom / rect.height))
+    x: Math.min(1, Math.max(0, (event.clientX - rect.left - mapPanX) / mapZoom / mapContent.clientWidth)),
+    y: Math.min(1, Math.max(0, (event.clientY - rect.top - mapPanY) / mapZoom / mapContent.clientHeight))
   };
 }
 
@@ -317,8 +333,8 @@ mapZone.addEventListener("pointermove", function(event) {
   if (segmentGesture.type === "move") {
     var segment = segmentGesture.segment;
     var thickness = segmentThicknessPx(segment);
-    var halfX = segment.orientation === "vertical" ? thickness / (2 * mapZone.clientWidth) : 0;
-    var halfY = segment.orientation === "horizontal" ? thickness / (2 * mapZone.clientHeight) : 0;
+    var halfX = segment.orientation === "vertical" ? thickness / (2 * mapContent.clientWidth) : 0;
+    var halfY = segment.orientation === "horizontal" ? thickness / (2 * mapContent.clientHeight) : 0;
     segment.x = Math.min(1 - (segment.orientation === "horizontal" ? segment.length : halfX), Math.max(halfX, segmentGesture.originalX + point.x - segmentGesture.start.x));
     segment.y = Math.min(1 - (segment.orientation === "vertical" ? segment.length : halfY), Math.max(halfY, segmentGesture.originalY + point.y - segmentGesture.start.y));
     renderMapSegments();
@@ -360,7 +376,7 @@ mapZone.addEventListener("pointerup", async function(event) {
       x: horizontal ? Math.min(gesture.start.x, gesture.current.x) : gesture.start.x,
       y: horizontal ? gesture.start.y : Math.min(gesture.start.y, gesture.current.y), length: length, cases: cases };
     var newThickness = segmentThicknessPx(newSegment);
-    var halfX = newThickness / (2 * mapZone.clientWidth); var halfY = newThickness / (2 * mapZone.clientHeight);
+    var halfX = newThickness / (2 * mapContent.clientWidth); var halfY = newThickness / (2 * mapContent.clientHeight);
     if (horizontal) newSegment.y = Math.min(1 - halfY, Math.max(halfY, newSegment.y));
     else newSegment.x = Math.min(1 - halfX, Math.max(halfX, newSegment.x));
     map.segments.push(newSegment);
@@ -422,7 +438,7 @@ mapZone.addEventListener("wheel", function(event) {
   var cursorX = event.clientX - rect.left;
   var cursorY = event.clientY - rect.top;
   var factor = Math.exp(-event.deltaY * 0.0015);
-  var nextZoom = Math.min(mapMaximumZoom(), Math.max(1, mapZoom * factor));
+  var nextZoom = Math.min(mapMaximumZoom(), Math.max(fittedMapTransform().zoom, mapZoom * factor));
   if (nextZoom === mapZoom) return;
   zoomMapAt(nextZoom, cursorX, cursorY);
 }, { passive: false });
@@ -503,6 +519,17 @@ function renderNovastarOutputMenu() {
     }
     device.cards.forEach(function(card) {
       var cardItem = nestedMenuItem("Carte " + card.id);
+      [
+        { label: "Toutes ->", direction: 1 },
+        { label: "Toutes <-", direction: -1 }
+      ].forEach(function(action) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "output-menu-button output-menu-all";
+        button.textContent = action.label;
+        button.addEventListener("click", function() { assignAllCardOutputs(card, action.direction); });
+        cardItem.menu.appendChild(button);
+      });
       card.outputs.forEach(function(output) {
         var button = document.createElement("button");
         button.type = "button";
@@ -612,8 +639,50 @@ async function assignSelectedCase(assignment) {
   }
 }
 
-mapBackgroundImage.addEventListener("load", fitMapBackground);
-window.addEventListener("resize", function() { fitMapBackground(); renderMapSegments(); });
+async function assignAllCardOutputs(card, direction) {
+  var segment = segmentById(selectedSegmentId);
+  var map = selectedMap();
+  if (!segment || !map || selectedCaseIndex < 0 || selectedCaseIndex >= segment.cases) return;
+
+  segment.assignments = Array.isArray(segment.assignments) ? segment.assignments : [];
+  while (segment.assignments.length < segment.cases) segment.assignments.push(null);
+  var previousAssignments = segment.assignments.slice();
+  var previousLastNovastarAssignment = lastNovastarAssignment;
+  var assignedKeys = assignedOutputKeys();
+  var availableOutputs = card.outputs.filter(function(output) {
+    return !assignedKeys.has(assignmentKey(output));
+  });
+  var outputIndex = 0;
+  var caseIndex = selectedCaseIndex;
+
+  while (outputIndex < availableOutputs.length && caseIndex >= 0 && caseIndex < segment.cases) {
+    if (!segment.assignments[caseIndex]) {
+      segment.assignments[caseIndex] = Object.assign({}, availableOutputs[outputIndex]);
+      outputIndex += 1;
+    }
+    caseIndex += direction;
+  }
+
+  segmentContextMenu.hidden = true;
+  if (!outputIndex) {
+    segment.assignments = previousAssignments;
+    setStatus("Aucune sortie non assignee disponible dans cette direction", "error");
+    return;
+  }
+
+  lastNovastarAssignment = Object.assign({}, availableOutputs[outputIndex - 1]);
+  try {
+    await saveMapSegments(map);
+    setStatus(outputIndex + " sortie" + (outputIndex > 1 ? "s" : "") + " assignee" + (outputIndex > 1 ? "s" : ""), "ok");
+  } catch (error) {
+    segment.assignments = previousAssignments;
+    lastNovastarAssignment = previousLastNovastarAssignment;
+    setStatus(error.message, "error");
+  }
+}
+
+mapBackgroundImage.addEventListener("load", function() { fitMapBackground(true); renderMapSegments(); });
+window.addEventListener("resize", function() { fitMapBackground(false); renderMapSegments(); });
 
 async function initializeMonitoringMaps() {
   if (!CURRENT_USER || CURRENT_USER.role !== "administrator" || CURRENT_USER.login.toLowerCase() !== "olivier") return;
@@ -645,13 +714,16 @@ function renderSelectedMap() {
     mapBackgroundImage.src = map.backgroundUrl + "?v=" + encodeURIComponent(map.backgroundVersion || "stored");
     mapBackgroundImage.hidden = false;
     mapZonePlaceholder.hidden = true;
-    if (mapBackgroundImage.complete) fitMapBackground();
+    if (mapBackgroundImage.complete) fitMapBackground(true);
   } else {
     mapBackgroundImage.removeAttribute("src");
     mapBackgroundImage.style.width = "";
     mapBackgroundImage.style.height = "";
+    mapContent.style.width = "100%";
+    mapContent.style.height = "100%";
     mapBackgroundImage.hidden = true;
     mapZonePlaceholder.hidden = false;
+    resetMapTransform();
   }
   renderMapSegments();
 }
@@ -803,8 +875,8 @@ copySegmentButton.addEventListener("click", async function() {
   segmentContextMenu.hidden = true; var source = segmentById(selectedSegmentId); var map = selectedMap(); if (!source || !map) return;
   var copy = Object.assign({}, source, { id: Date.now() + "-" + Math.random().toString(16).slice(2) });
   var thickness = segmentThicknessPx(copy);
-  if (copy.orientation === "horizontal") copy.y = Math.min(1 - thickness / (2 * mapZone.clientHeight), copy.y + thickness / mapZone.clientHeight);
-  else copy.x = Math.min(1 - thickness / (2 * mapZone.clientWidth), copy.x + thickness / mapZone.clientWidth);
+  if (copy.orientation === "horizontal") copy.y = Math.min(1 - thickness / (2 * mapContent.clientHeight), copy.y + thickness / mapContent.clientHeight);
+  else copy.x = Math.min(1 - thickness / (2 * mapContent.clientWidth), copy.x + thickness / mapContent.clientWidth);
   map.segments.push(copy);
   try { await saveMapSegments(map); setStatus("Segment copie", "ok"); } catch (error) { setStatus(error.message, "error"); }
 });

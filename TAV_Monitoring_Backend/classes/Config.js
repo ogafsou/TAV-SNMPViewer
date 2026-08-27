@@ -10,6 +10,14 @@ const DEFAULTS = {
   monitoring_reference_mode: true,
   ping_monitoring_reference: null,
   loglevel: "info",
+  logging: {
+    level: "info",
+    file_enabled: true,
+    file: "./logs/backend.log",
+    max_file_bytes: 10485760,
+    flush_interval_ms: 30000,
+    console_enabled: true
+  },
   max_parallel_scans: 8,
   io_reconciliation: {
     inventory_strategy: "union-api-first",
@@ -18,6 +26,16 @@ const DEFAULTS = {
     missing_state: "unknown",
     recovery_confirmation_scans: 2,
     inventory_removal_confirmation_scans: 3
+  },
+  novastar_traps: {
+    enabled: false,
+    listen_address: "0.0.0.0",
+    advertised_address: "",
+    port: 1162,
+    configure_devices: false,
+    event_log_file: "./logs/novastar-traps.jsonl",
+    max_log_bytes: 5242880,
+    deduplication_window_ms: 1000
   },
   alerts: {
     enabled: false,
@@ -60,11 +78,45 @@ function loadConfig(configPath) {
     users_file: String(configuredUsersFile),
     monitoring_reference_mode: merged.monitoring_reference_mode === true,
     ping_monitoring_reference: normalizePingReference(merged.ping_monitoring_reference),
-    loglevel: ["debug", "info", "warning", "error"].includes(String(merged.loglevel).toLowerCase())
-      ? String(merged.loglevel).toLowerCase() : DEFAULTS.loglevel,
+    loglevel: normalizeLogLevel(merged.logging && merged.logging.level || merged.loglevel),
+    logging: normalizeLogging(merged.logging, filePath, merged.loglevel),
     max_parallel_scans: numberInRange(merged.max_parallel_scans, 1, 32, DEFAULTS.max_parallel_scans),
     io_reconciliation: normalizeIoReconciliation(merged.io_reconciliation),
+    novastar_traps: normalizeNovaStarTraps(merged.novastar_traps, filePath),
     alerts: normalizeAlerts(merged.alerts)
+  };
+}
+
+function normalizeLogging(value, configPath, legacyLevel) {
+  const stored = value && typeof value === "object" ? value : {};
+  const merged = Object.assign({}, DEFAULTS.logging, stored);
+  return {
+    level: normalizeLogLevel(stored.level || legacyLevel || merged.level),
+    file_enabled: merged.file_enabled !== false,
+    file: path.resolve(path.dirname(configPath), String(merged.file || DEFAULTS.logging.file)),
+    max_file_bytes: numberInRange(merged.max_file_bytes, 1024, 1073741824, DEFAULTS.logging.max_file_bytes),
+    flush_interval_ms: numberInRange(merged.flush_interval_ms, 1000, 3600000, DEFAULTS.logging.flush_interval_ms),
+    console_enabled: merged.console_enabled !== false
+  };
+}
+
+function normalizeLogLevel(value) {
+  const level = String(value || "info").toLowerCase();
+  return ["debug", "info", "warning", "error"].includes(level) ? level : DEFAULTS.loglevel;
+}
+
+function normalizeNovaStarTraps(value, configPath) {
+  const merged = Object.assign({}, DEFAULTS.novastar_traps, value && typeof value === "object" ? value : {});
+  const advertised = String(merged.advertised_address || "").trim();
+  return {
+    enabled: merged.enabled === true,
+    listen_address: String(merged.listen_address || "0.0.0.0").trim(),
+    advertised_address: advertised,
+    port: numberInRange(merged.port, 1, 65535, DEFAULTS.novastar_traps.port),
+    configure_devices: merged.configure_devices === true && !!advertised,
+    event_log_file: path.resolve(path.dirname(configPath), String(merged.event_log_file || DEFAULTS.novastar_traps.event_log_file)),
+    max_log_bytes: numberInRange(merged.max_log_bytes, 1024, 104857600, DEFAULTS.novastar_traps.max_log_bytes),
+    deduplication_window_ms: numberInRange(merged.deduplication_window_ms, 0, 60000, DEFAULTS.novastar_traps.deduplication_window_ms)
   };
 }
 

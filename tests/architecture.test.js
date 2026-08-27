@@ -91,16 +91,16 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20260813-7/);
-  assert.match(view, /monitoring-renderers\.js\?v=20260724-1/);
+  assert.match(view, /style\.css\?v=20260818-1/);
+  assert.match(view, /monitoring-renderers\.js\?v=20260815-1/);
   assert.match(view, /utils\.js\?v=20260723-2/);
   assert.match(view, /auth\.js\?v=20260725-1/);
   assert.match(view, /machine-details\.js\?v=20260723-6/);
-  assert.match(view, /monitoring\.js\?v=20260724-2/);
-  assert.match(view, /configuration\.js\?v=20260724-4/);
-  assert.match(view, /application\.js\?v=20260723-12/);
-  assert.match(view, /monitoring-maps\.js\?v=20260813-3/);
-  assert.match(view, /map-monitoring\.js\?v=20260813-3/);
+  assert.match(view, /monitoring\.js\?v=20260816-1/);
+  assert.match(view, /configuration\.js\?v=20260816-4/);
+  assert.match(view, /application\.js\?v=20260816-3/);
+  assert.match(view, /monitoring-maps\.js\?v=20260818-2/);
+  assert.match(view, /map-monitoring\.js\?v=20260813-4/);
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
   assert.match(css, /#toggleMonitoringView\[hidden\],[\s\S]*?#refreshMonitoring\[hidden\]\s*\{\s*display:\s*none !important;/);
   assert.match(css, /\.topbar\s*\{[^}]*align-items:\s*center;[^}]*padding-bottom:\s*0;/s);
@@ -136,6 +136,7 @@ test("monitoring cards group system health in one compact section", () => {
 
   assert.match(renderer, /systemRow\("Sante", healthItems\)/);
   assert.match(renderer, /systemRow\("Equipements", equipmentItems\)/);
+  assert.doesNotMatch(renderer, /prefixed\(state\.receivingCards, "RC "\)/);
   assert.doesNotMatch(renderer, /pillGroup\("Sante"/);
   assert.doesNotMatch(renderer, /pillGroup\("Controleur"/);
   assert.doesNotMatch(renderer, /escapeHtml\(state\.label\)/);
@@ -202,6 +203,15 @@ test("configuration advanced equipment information is collapsed by default", () 
   assert.match(css, /\.machine-type-filters button\s*\{[^}]*background:\s*#697184 !important;[^}]*font-size:\s*9px;/s);
   assert.match(css, /\.machine-type-filters button\[aria-pressed="true"\]\s*\{[^}]*background:\s*var\(--accent\) !important;/s);
   assert.match(css, /\.machine-type-filters button\[aria-pressed="false"\],[\s\S]*?background:\s*#697184 !important;/s);
+});
+
+test("NovaStar SNMP options use the dialog theme and hide disabled scan frequency", () => {
+  const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
+  const configurationScript = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "javascripts", "configuration.js"), "utf8");
+
+  assert.match(css, /\.access-mode-field,[\s\S]*?\.novastar-snmp-options,[\s\S]*?fieldset\s*\{[^}]*background:\s*var\(--panel-raised\);/s);
+  assert.match(configurationScript, /document\.querySelectorAll\("\.snmp-scan-frequency"\)[\s\S]*?node\.hidden = !snmpEnabled \|\| !machineForm\.snmpScanEnabled\.checked;/s);
+  assert.match(configurationScript, /machineForm\.snmpScanEnabled\.addEventListener\("change", updateMachineFormFields\);/);
 });
 
 test("reference button previews expected state and uses a confirmed context-menu action", () => {
@@ -280,4 +290,12 @@ test("large monitoring maps open the assigned NovaStar output", () => {
   assert.match(mapMonitoring, /mapMonitoringDialogPanX/);
   assert.match(mapConfiguration, /resetMapViewButton\.addEventListener\("click", resetMapTransform\)/);
   assert.match(mapConfiguration, /new URLSearchParams\(window\.location\.search\)\.get\("mapId"\)/);
+  assert.match(mapConfiguration, /label: "Toutes ->", direction: 1/);
+  assert.match(mapConfiguration, /label: "Toutes <-", direction: -1/);
+  assert.match(mapConfiguration, /if \(!segment\.assignments\[caseIndex\]\)/);
+  assert.match(mapConfiguration, /caseIndex \+= direction/);
+  assert.match(mapConfiguration, /mapContent\.style\.width = mapBackgroundImage\.naturalWidth \+ "px"/);
+  assert.match(mapConfiguration, /mapContent\.style\.height = mapBackgroundImage\.naturalHeight \+ "px"/);
+  assert.match(mapConfiguration, /function fittedMapTransform\(\)/);
+  assert.match(mapConfiguration, /Math\.max\(fittedMapTransform\(\)\.zoom, mapZoom \* factor\)/);
 });

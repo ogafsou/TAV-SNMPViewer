@@ -5,11 +5,14 @@ const DefaultKiloviewApiConnector = require("../classes/KiloviewApiLib");
 const DefaultNetgearM4300SnmpConnector = require("../classes/NetgearM4300SnmpLib");
 const DefaultPingConnector = require("../classes/PingLib");
 const modelProfiles = require("../classes/ModelProfiles");
-const logger = require("../classes/Logger");
+const logger = require("../classes/Logger").child("DeviceMonitor");
 const { normalizeMachineType } = require("../classes/MachineStore");
 const { canonicalizeIo, combineIo } = require("./CanonicalIo");
+const novaStarSnmpLock = require("./NovaStarSnmpLock");
 
 const kiloviewScanLocks = new Map();
+const TRAP_DESTINATION_OID = "1.3.6.1.4.1.319.10.200.1";
+const TRAP_REPORT_ENABLE_OID = "1.3.6.1.4.1.319.10.200.3";
 
 function createDeviceMonitor(overrides, reconciliation) {
   const dependencies = Object.assign({
@@ -20,8 +23,12 @@ function createDeviceMonitor(overrides, reconciliation) {
     NetgearM4300SnmpConnector: DefaultNetgearM4300SnmpConnector,
     PingConnector: DefaultPingConnector
   }, overrides || {});
+  const configuredTrapDestinations = new Map();
+  const trapStatuses = new Map();
+  const snmpSnapshots = new Map();
 
-  async function monitor(machine) {
+  async function monitor(machine, options) {
+    options = options || {};
     const params = Object.assign({}, machine, { includeReceivingCards: true });
     const host = String(params.host || "").trim();
     const type = normalizeMachineType(params.type);
@@ -33,6 +40,7 @@ function createDeviceMonitor(overrides, reconciliation) {
     else if (type === "netgear-m4300") data = await collectNetgearM4300(params, host);
     else if (type === "other") data = await collectPing(params, host, type);
     else if (method === "api") data = await collectApi(params, host);
+    else if (method === "snmp+api" && options.skipSnmp === true) data = await collectApiWithCachedSnmp(params, host);
     else if (method === "snmp+api") data = await collectHybrid(params, host);
     else data = await collectSnmp(params, host);
     data.type = type;
@@ -84,26 +92,33 @@ function createDeviceMonitor(overrides, reconciliation) {
 
   async function collectSnmp(params, host) {
     const configuredModel = params.model ? modelProfiles.normalizeModel(params.model) : "";
-    const connector = new dependencies.SNMPConnector({
-      host,
-      readCommunity: String(params.readCommunity || "public"),
-      writeCommunity: String(params.writeCommunity || "public"),
-      timeout: clampNumber(params.timeout, 500, 10000, 2000),
-      retries: clampNumber(params.retries, 0, 5, 1)
+    const port = clampNumber(params.snmpPort, 1, 65535, 161);
+    return novaStarSnmpLock.withLock(host, port, {
+      machineId: String(params.id), operation: "scan"
+    }, async () => {
+      const connector = new dependencies.SNMPConnector({
+        host,
+        readCommunity: String(params.readCommunity || "public"),
+        writeCommunity: String(params.writeCommunity || "public"),
+        timeout: clampNumber(params.timeout, 500, 10000, 2000),
+        retries: clampNumber(params.retries, 0, 5, 1),
+        port
+      });
+      logger.debug("SNMP scan started", { host, port, machineId: String(params.id) });
+      const data = await connector.monitor({
+        includeReceivingCards: true,
+        recvCardsPerPort: clampNumber(params.recvCardsPerPort, 1, 12, 1),
+        maxInputSlots: optionalClampedNumber(params.maxInputSlots, 1, 32),
+        maxOutputSlots: optionalClampedNumber(params.maxOutputSlots, 1, 32),
+        maxScreens: optionalClampedNumber(params.maxScreens, 1, 16),
+        model: configuredModel,
+        modelProfile: modelProfiles.getProfile(configuredModel || "H9")
+      });
+      data.source = "snmp";
+      canonicalizeIo(data, "snmp");
+      logger.info("SNMP scan completed", { host, port, machineId: String(params.id) });
+      return data;
     });
-    logger.debug("SNMP scan started", { host });
-    const data = await connector.monitor({
-      includeReceivingCards: true,
-      recvCardsPerPort: clampNumber(params.recvCardsPerPort, 1, 12, 1),
-      maxInputSlots: optionalClampedNumber(params.maxInputSlots, 1, 32),
-      maxOutputSlots: optionalClampedNumber(params.maxOutputSlots, 1, 32),
-      maxScreens: optionalClampedNumber(params.maxScreens, 1, 16),
-      model: configuredModel,
-      modelProfile: modelProfiles.getProfile(configuredModel || "H9")
-    });
-    data.source = "snmp";
-    canonicalizeIo(data, "snmp");
-    return data;
   }
 
   async function collectApi(params, host) {
@@ -121,6 +136,7 @@ function createDeviceMonitor(overrides, reconciliation) {
       deviceId: clampNumber(params.apiDeviceId || params.deviceId, 0, 999, 0),
       timeout: clampNumber(params.timeout, 500, 15000, 5000)
     });
+    logger.info("NovaStar API scan started", { host, protocol });
     await connector.init();
     const data = await connector.monitor({
       model: configuredModel,
@@ -128,6 +144,7 @@ function createDeviceMonitor(overrides, reconciliation) {
     });
     data.source = "api";
     canonicalizeIo(data, "api");
+    logger.info("NovaStar API scan completed", { host, protocol });
     return data;
   }
 
@@ -138,6 +155,7 @@ function createDeviceMonitor(overrides, reconciliation) {
     if (!snmpData && !apiData) {
       throw new Error("SNMP: " + results[0].reason.message + "; API: " + results[1].reason.message);
     }
+    if (snmpData) snmpSnapshots.set(String(params.id), snmpData);
     const merged = buildHybridMonitor(snmpData, apiData);
     merged.source = "snmp+api";
     merged.sourceStatus = { snmp: snmpData ? "ok" : "error", api: apiData ? "ok" : "error" };
@@ -150,7 +168,74 @@ function createDeviceMonitor(overrides, reconciliation) {
     return merged;
   }
 
-  return { monitor };
+  async function collectApiWithCachedSnmp(params, host) {
+    const apiData = await collectApi(params, host);
+    const snmpData = params.snmpScanEnabled === false ? null : snmpSnapshots.get(String(params.id));
+    if (!snmpData) return apiData;
+    const merged = buildHybridMonitor(snmpData, apiData);
+    merged.source = "snmp+api";
+    merged.sourceStatus = { snmp: "cached", api: "ok" };
+    merged.sourceErrors = { snmp: "", api: "" };
+    merged.timestamp = new Date().toISOString();
+    combineIo(merged, [snmpData, apiData], reconciliation);
+    return merged;
+  }
+
+  async function configureTraps(machine, trapConfig) {
+    if (!trapConfig || !trapConfig.enabled || !trapConfig.configure_devices ||
+      normalizeMachineType(machine.type) !== "novastar-h" || machine.trapSnmpEnabled !== true) return null;
+    const host = String(machine.host || "").trim();
+    const port = clampNumber(machine.snmpPort, 1, 65535, 161);
+    const key = novaStarSnmpLock.keyFor(host, port);
+    const destination = trapConfig.advertised_address + ":" + trapConfig.port;
+    if (configuredTrapDestinations.get(key) === destination) return Object.assign({}, trapStatuses.get(String(machine.id)), { unchanged: true });
+    return novaStarSnmpLock.withLock(host, port, {
+      machineId: String(machine.id), operation: "trap-configuration"
+    }, async () => {
+      if (configuredTrapDestinations.get(key) === destination) return Object.assign({}, trapStatuses.get(String(machine.id)), { unchanged: true });
+      const connector = new dependencies.SNMPConnector({
+        host,
+        readCommunity: String(machine.readCommunity || "public"),
+        writeCommunity: String(machine.writeCommunity || "public"),
+        timeout: clampNumber(machine.timeout, 500, 10000, 2000),
+        retries: clampNumber(machine.retries, 0, 5, 1),
+        port
+      });
+      const machineId = String(machine.id);
+      const status = { machineId, host, port, setSucceeded: false, configured: false,
+        destination: "", reportingEnabled: false, verifiedAt: null, error: "" };
+      trapStatuses.set(machineId, status);
+      try {
+        await connector.configureTrapReporting(trapConfig.advertised_address, trapConfig.port);
+        status.setSucceeded = true;
+        const readDestination = await connector.getString(TRAP_DESTINATION_OID);
+        const readEnabled = await connector.getNumber(TRAP_REPORT_ENABLE_OID);
+        status.destination = String(readDestination || "");
+        status.reportingEnabled = Number(readEnabled) === 1;
+        status.configured = status.destination === destination && status.reportingEnabled;
+        status.verifiedAt = new Date().toISOString();
+        if (!status.configured) status.error = "Trap SNMP readback does not match the requested configuration";
+        else configuredTrapDestinations.set(key, destination);
+        logger.info("NovaStar trap configuration verified", { host, port, destination,
+          readDestination: status.destination, reportingEnabled: status.reportingEnabled,
+          configured: status.configured, machineId });
+        return Object.assign({}, status);
+      } catch (error) {
+        status.error = error.message;
+        logger.warning("NovaStar trap configuration or readback failed", {
+          host, port, destination, setSucceeded: status.setSucceeded, machineId, error: error.message
+        });
+        throw error;
+      }
+    });
+  }
+
+  function trapStatus(machineId) {
+    const status = trapStatuses.get(String(machineId));
+    return status ? Object.assign({}, status) : null;
+  }
+
+  return { monitor, configureTraps, trapStatus };
 }
 
 async function withKiloviewScanLock(host, scan) {

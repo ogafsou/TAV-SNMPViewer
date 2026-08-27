@@ -68,7 +68,7 @@ function buildMonitoringView(data) {
     });
   });
   const receivingCards = io.receivingCards.map((card) => {
-    const state = fieldsVisualState(card.fields);
+    const state = card.state === "unknown" ? fieldsVisualState(card.fields) : card.state;
     const label = card.id.replace(/^output:O-/, "").replace(/:receiving:/, ".").replace(/:/g, ".");
     return Object.assign(referenceItem(label, state, "", card.id, state), {
       name: "Receiving Card " + label,
@@ -102,7 +102,10 @@ function buildMonitoringView(data) {
   const usbPorts = (data.usbPorts || []).map((item) => iconStatusItem(String(item.usbId), item.status, "usb", "usb:" + item.usbId));
   const fans = (data.fans || []).map((item) => iconStatusItem(String(item.fanId), item.status, "fan", "fan:" + item.fanId));
   const powerSupplies = (data.powerSupplies || []).map((item) => iconStatusItem(String(item.powerId), item.status, "psu", "power:" + item.powerId));
-  const all = [{ state: controllerState }].concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies, receivingCards, netgearPorts);
+  // Receiving cards are SNMP probes used to resolve output-port states. They
+  // remain available in the detailed data, but must not duplicate ports in the
+  // overview or influence the global state a second time.
+  const all = [{ state: controllerState }].concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies, netgearPorts);
   const hasError = all.some((item) => item.state === "error");
   const hasWarning = all.some((item) => item.ok === false);
   const overall = hasError ? "error" : hasWarning ? "warning" : "ok";
@@ -157,10 +160,12 @@ function migrateReferenceSnapshot(snapshot) {
   if (!snapshot || !snapshot.controls) return snapshot;
   const controls = {};
   Object.entries(snapshot.controls).forEach(([key, value]) => {
+    if (key.startsWith("receiving:")) return;
     const parts = key.split(":");
     const canonicalKey = parts[0] === "receiving" && parts.length === 4
       ? `output:O-${parts[1]}:${parts[2]}:receiving:${parts[3]}`
       : key;
+    if (canonicalKey.includes(":receiving:")) return;
     controls[canonicalKey] = value;
   });
   return Object.assign({}, snapshot, { controls });
@@ -176,7 +181,7 @@ function buildReferenceSnapshot(view) {
 
 function collectReferenceItems(view) {
   return [].concat(view.controller || [], view.inputSlots || [], view.outputSlots || [], view.systemHealth || [],
-    view.mvrCards || [], view.screens || [], view.receivingCards || [], view.usbPorts || [], view.fans || [], view.powerSupplies || [],
+    view.mvrCards || [], view.screens || [], view.usbPorts || [], view.fans || [], view.powerSupplies || [],
     view.netgearPorts || [], ...(view.kiloviewGroups || []).map((group) => group.items || []));
 }
 

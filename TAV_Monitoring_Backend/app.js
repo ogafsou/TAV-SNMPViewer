@@ -3,20 +3,22 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const morgan = require("morgan");
 const { loadConfig, saveConfig } = require("./classes/Config");
-const { MachineStore, sanitizeMachine } = require("./classes/MachineStore");
+const { MachineStore, sanitizeMachine, normalizeMachineType } = require("./classes/MachineStore");
 const { MapStore } = require("./classes/MapStore");
 const logger = require("./classes/Logger");
+const appLogger = logger.child("BackendApp");
 const { createDeviceMonitor } = require("./services/DeviceMonitor");
 const MonitoringService = require("./services/MonitoringService");
 const NtfyClient = require("./services/NtfyClient");
 const AlertService = require("./services/AlertService");
 const PublicStatusService = require("./services/PublicStatusService");
+const TrapReceiverService = require("./services/TrapReceiverService");
 const { AuthService, sessionCookie, clearSessionCookie } = require("./classes/AuthService");
 
 function createBackend(options) {
   const settings = options || {};
   const config = settings.config || loadConfig(settings.configPath);
-  logger.setLevel(config.loglevel);
+  logger.configure(config.logging || { level: config.loglevel, file_enabled: false });
   const store = settings.store || new MachineStore(config.machinesFile);
   const mapsFile = config.mapsFile || path.resolve(path.dirname(config.configPath || "."), config.maps_file || "maps.json");
   const mapStore = settings.mapStore || new MapStore(mapsFile);
@@ -27,6 +29,7 @@ function createBackend(options) {
   const publicStatus = settings.publicStatus || new PublicStatusService({ config: config.alerts || {}, monitoring, store });
   if (!alerts) alerts = new AlertService({ config: config.alerts || {}, notifier, publicStatus });
   if (!settings.monitoring) monitoring.alerts = alerts;
+  const trapReceiver = settings.trapReceiver || new TrapReceiverService({ config: config.novastar_traps, store, monitoring });
   const auth = settings.auth === false ? null : (settings.auth || new AuthService({
     filePath: config.usersFile,
     initialPassword: process.env.TAV_ADMIN_PASSWORD || "administrator"
@@ -35,7 +38,7 @@ function createBackend(options) {
   app.disable("x-powered-by");
   app.use(bodyParser.raw({ type: ["image/png", "image/jpeg", "image/webp", "image/gif"], limit: "15mb" }));
   app.use(express.json({ limit: "2mb" }));
-  app.use(morgan(config.loglevel === "debug" ? "dev" : "combined"));
+  app.use(morgan(config.loglevel === "debug" ? "dev" : "combined", { stream: logger.morgan("HTTP") }));
 
   app.get("/api/health", (req, res) => res.json({ ok: true, service: "TAV_Monitoring_Backend" }));
   app.post("/api/auth/login", (req, res) => {
@@ -118,8 +121,13 @@ function createBackend(options) {
     monitor_interval_s: config.monitor_interval_s,
     monitoring_reference_mode: config.monitoring_reference_mode,
     ping_monitoring_reference: config.ping_monitoring_reference,
-    alerts: alerts.status()
+    alerts: alerts.status(),
+    novastar_traps: trapReceiver.status()
   }));
+  app.get("/api/novastar-traps/status", (req, res) => res.json(buildNovaStarTrapStatus(
+    trapReceiver, deviceMonitor, store
+  )));
+  app.get("/api/novastar-traps/events", (req, res) => res.json({ events: trapReceiver.recentEvents(req.query.limit) }));
   app.post("/api/alerts/test", requireRole("administrator"), asyncHandler(async (req, res) => {
     await alerts.sendTest();
     res.json({ ok: true, message: "Notification ntfy envoyee" });
@@ -149,6 +157,7 @@ function createBackend(options) {
   app.post("/api/machines", requireRole("editor", "administrator"), (req, res, next) => {
     try {
       const machine = store.create(req.body || {});
+      monitoring.refreshInterval();
       res.status(201).json({ machine: sanitizeMachine(machine), monitoring: null, saved: true });
       scanAfterSave(monitoring, machine, logger);
     } catch (error) { next(error); }
@@ -156,6 +165,7 @@ function createBackend(options) {
   app.patch("/api/machines/:id", requireRole("editor", "administrator"), (req, res, next) => {
     try {
       const machine = store.update(req.params.id, req.body || {});
+      monitoring.refreshInterval();
       res.json({ machine: sanitizeMachine(machine), monitoring: null, saved: true });
       scanAfterSave(monitoring, machine, logger);
     } catch (error) { next(error); }
@@ -164,6 +174,7 @@ function createBackend(options) {
     try {
       store.remove(req.params.id);
       monitoring.removeMachine(req.params.id);
+      monitoring.refreshInterval();
       res.status(204).end();
     } catch (error) { next(error); }
   });
@@ -187,11 +198,11 @@ function createBackend(options) {
 
   app.use((req, res) => res.status(404).json({ error: "Not found" }));
   app.use((error, req, res, next) => {
-    logger.error("Backend request failed", { method: req.method, url: req.originalUrl, error: error.message });
+    appLogger.error("Backend request failed", { method: req.method, url: req.originalUrl, error: error.message });
     res.status(error.status || 500).json({ error: error.message || "Internal server error" });
   });
 
-  return { app, config, store, mapStore, monitoring, alerts, notifier, publicStatus, auth };
+  return { app, config, store, mapStore, monitoring, alerts, notifier, publicStatus, auth, trapReceiver };
 }
 
 function requireRole() {
@@ -217,4 +228,28 @@ function asyncHandler(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
 
-module.exports = { createBackend };
+function buildNovaStarTrapStatus(trapReceiver, deviceMonitor, store) {
+  const receiver = trapReceiver.status();
+  const machines = store.load()
+    .filter((machine) => normalizeMachineType(machine.type) === "novastar-h")
+    .map((machine) => {
+      const verification = deviceMonitor.trapStatus && deviceMonitor.trapStatus(machine.id) || {};
+      return {
+        machineId: String(machine.id),
+        name: String(machine.name || ""),
+        host: String(machine.host || ""),
+        trapEnabled: machine.trapSnmpEnabled === true,
+        receiverActive: receiver.listening === true,
+        setSucceeded: verification.setSucceeded === true,
+        configured: verification.configured === true,
+        destination: String(verification.destination || ""),
+        reportingEnabled: verification.reportingEnabled === true,
+        verifiedAt: verification.verifiedAt || null,
+        lastTrapAt: trapReceiver.lastTrapAt ? trapReceiver.lastTrapAt(machine.id) : null,
+        error: String(verification.error || "")
+      };
+    });
+  return Object.assign({}, receiver, { machines });
+}
+
+module.exports = { createBackend, buildNovaStarTrapStatus };

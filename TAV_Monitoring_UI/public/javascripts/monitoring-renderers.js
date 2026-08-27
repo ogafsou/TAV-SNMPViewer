@@ -285,7 +285,7 @@ function buildReferencePreviewState(machine, baseState) {
     item.changed = false;
   }
 
-  ["controller", "inputSlots", "outputSlots", "systemHealth", "mvrCards", "screens", "receivingCards", "usbPorts", "fans", "powerSupplies", "netgearPorts"].forEach(function(key) {
+  ["controller", "inputSlots", "outputSlots", "systemHealth", "mvrCards", "screens", "usbPorts", "fans", "powerSupplies", "netgearPorts"].forEach(function(key) {
     (state[key] || []).forEach(apply);
   });
   (state.inputTables || []).forEach(function(group) { (group.ports || []).forEach(apply); });
@@ -567,10 +567,9 @@ function buildMonitoringState(data) {
     mvrCards.some(function(item) { return item.ok === false; }) ||
     usbPorts.some(function(item) { return item.ok === false; }) ||
     fans.some(function(item) { return item.ok === false; }) ||
-    powerSupplies.some(function(item) { return item.ok === false; }) ||
-    receivingCards.some(function(item) { return item.ok === false; });
+    powerSupplies.some(function(item) { return item.ok === false; });
   var allStatusItems = [{ state: controllerState }]
-    .concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies, receivingCards);
+    .concat(inputSlots, outputSlots, screens, outputPorts, systemHealth, mvrCards, usbPorts, fans, powerSupplies);
   var hasError = allStatusItems.some(function(item) { return item.state === "error"; });
   var overallState = hasError ? "error" : hasWarning ? "warning" : "ok";
 
@@ -790,8 +789,7 @@ function statusOverviewRow(state) {
   var equipmentItems = []
     .concat(prefixed(state.controller, "Ctrl "))
     .concat(prefixed(state.mvrCards, "MVR "))
-    .concat(prefixed(state.screens, "Ecran "))
-    .concat(prefixed(state.receivingCards, "RC "));
+    .concat(prefixed(state.screens, "Ecran "));
 
   function systemRow(label, items) {
     var safeItems = items && items.length ? items : [{ label: "-", ok: null }];
@@ -1034,7 +1032,7 @@ function ioStatusCell(item) {
   var className = item.state || (item.ok === true ? "ok" : item.ok === false ? "warning" : "inactive");
   var title = monitoringItemTooltip(item, className);
   var referenceAttribute = item.referenceKey ? ' data-reference-key="' + escapeHtml(item.referenceKey) + '"' : "";
-  return '<td class="' + className + referenceComparisonClass(item) + '"' + referenceAttribute + ' title="' + escapeHtml(title) + '">' +
+  return '<td class="' + className + referenceComparisonClass(item) + (item.microInterruption ? ' micro-interruption' : '') + '"' + referenceAttribute + ' title="' + escapeHtml(title) + '">' +
     (item.icon ? statusIcon(item.icon, className, item.label) : "") +
     '<span>' + escapeHtml(item.label) + '</span></td>';
 }
@@ -1068,6 +1066,7 @@ function monitoringItemTooltip(item, state) {
   if (item && item.changed && item.referenceState) {
     lines.push("Reference attendue : " + stateTitle(item.referenceState));
   }
+  if (item && item.microInterruption) lines.push("Microcoupure détectée : " + item.microInterruption.startedAt + " → " + item.microInterruption.recoveredAt);
   return lines.join("\n");
 }
 

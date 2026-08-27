@@ -11,6 +11,7 @@ var contextMachineId = "";
 var editingMachineId = "";
 var monitoringState = {};
 var monitoringRecords = {};
+var novaStarTrapStatuses = {};
 var machineTypeFilters = {
   "novastar-h": true,
   "kiloview": true,
@@ -80,6 +81,7 @@ var setReferenceMenuItem = document.getElementById("setReferenceMenuItem");
 var monitoringViewToggleButton = document.getElementById("toggleMonitoringView");
 var monitoringCardDialog = document.getElementById("monitoringCardDialog");
 var monitoringCardDialogContent = document.getElementById("monitoringCardDialogContent");
+var novaStarTrapStatusNode = document.getElementById("novaStarTrapStatus");
 
 document.getElementById("openAddDialog").addEventListener("click", openAddDialog);
 machineTypeFiltersNode.addEventListener("click", function(event) {
@@ -275,7 +277,10 @@ machineForm.addEventListener("submit", async function(event) {
     includeReceivingCards: machineForm.includeReceivingCards.checked,
     includePoe: machineForm.includePoe.checked,
     kiloviewBitrateThresholdMbps: String(formData.get("kiloviewBitrateThresholdMbps") || "1"),
-    snmpPort: String(formData.get("snmpPort") || "161")
+    snmpPort: String(formData.get("snmpPort") || "161"),
+    snmpScanEnabled: machineForm.snmpScanEnabled.checked,
+    snmpScanIntervalS: Math.max(4, Number(formData.get("snmpScanIntervalMinutes") || 10)) * 60,
+    trapSnmpEnabled: machineForm.trapSnmpEnabled.checked
   };
 
   if (machine.type === "kiloview") {
@@ -294,12 +299,18 @@ machineForm.addEventListener("submit", async function(event) {
     delete machine.maxInputSlots;
     delete machine.recvCardsPerPort;
     delete machine.includeReceivingCards;
+    delete machine.snmpScanEnabled;
+    delete machine.snmpScanIntervalS;
+    delete machine.trapSnmpEnabled;
   } else if (machine.type === "netgear-m4300") {
     delete machine.color;
     machine.accessMethod = "snmp";
     ["writeCommunity", "apiProtocol", "apiBaseUrl", "apiUsername", "apiPassword", "apiProjectId",
       "apiSecretKey", "apiEncryption", "apiDeviceId", "maxOutputSlots", "maxScreens", "maxInputSlots",
       "recvCardsPerPort", "includeReceivingCards", "kiloviewBitrateThresholdMbps"].forEach(function(key) { delete machine[key]; });
+    delete machine.snmpScanEnabled;
+    delete machine.snmpScanIntervalS;
+    delete machine.trapSnmpEnabled;
   } else if (machine.type === "other") {
     machine = { id: machine.id, type: machine.type, name: machine.name, host: machine.host, timeout: machine.timeout };
   }

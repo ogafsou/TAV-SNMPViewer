@@ -14,7 +14,7 @@
     "includeReceivingCards": false,
     "type": "novastar-h",
     "color": "#ffdb00",
-    "accessMethod": "api",
+    "accessMethod": "snmp",
     "apiProtocol": "legacy",
     "apiBaseUrl": "",
     "apiUsername": "admin",

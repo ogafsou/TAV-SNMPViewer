@@ -122,6 +122,7 @@ function updateAutoRefreshHint() {
 async function initializeApplication() {
   await loadBackendConfig();
   machines = await loadMachines();
+  await loadNovaStarTrapStatuses();
   renderMachines();
   renderSelectedMachine();
   renderMonitoringCards();
@@ -177,10 +178,29 @@ async function syncMonitoringSnapshot() {
     var snapshot = await response.json();
     if (!response.ok) throw new Error(snapshot.error || "Monitoring indisponible");
     applyMonitoringSnapshot(snapshot);
+    await loadNovaStarTrapStatuses();
     setBackendConnectionStatus(true);
   } catch (error) {
     setBackendConnectionStatus(false);
     setStatus("Synchronisation impossible", "error");
+  }
+}
+
+async function loadNovaStarTrapStatuses() {
+  try {
+    var response = await fetch("/api/novastar-traps/status");
+    var status = await response.json();
+    if (!response.ok) throw new Error(status.error || "Statut Trap SNMP indisponible");
+    novaStarTrapStatuses = {};
+    (status.machines || []).forEach(function(machineStatus) {
+      novaStarTrapStatuses[String(machineStatus.machineId)] = machineStatus;
+    });
+    if (typeof renderNovaStarTrapStatus === "function") renderNovaStarTrapStatus();
+    return true;
+  } catch (_) {
+    novaStarTrapStatuses = {};
+    if (typeof renderNovaStarTrapStatus === "function") renderNovaStarTrapStatus();
+    return false;
   }
 }
 
@@ -203,6 +223,19 @@ function applyMonitoringRecord(record) {
   }
   monitoringRecords[record.machineId] = record;
   monitoringState[record.machineId] = record.view || buildMonitoringState(record.raw || {});
+  applyMicroInterruptions(monitoringState[record.machineId], record.view && record.view.microInterruptions);
+}
+
+function applyMicroInterruptions(state, incidents) {
+  var byEntity = {};
+  (incidents || []).forEach(function(incident) { if (incident.entityId) byEntity[incident.entityId] = incident; });
+  ["inputTables", "outputTables"].forEach(function(tableName) {
+    (state && state[tableName] || []).forEach(function(group) {
+      (group.ports || []).forEach(function(port) {
+        port.microInterruption = byEntity[port.referenceKey] || null;
+      });
+    });
+  });
 }
 
 function setupWebSocket() {

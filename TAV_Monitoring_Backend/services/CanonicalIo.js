@@ -34,9 +34,9 @@ function canonicalizeIo(data, sourceName) {
   }
 
   for (const card of data.receivingCards || []) {
-    const position = slotPosition(card.outputSlotId);
-    const portId = numberOrText(card.netPortId);
-    const cardId = numberOrText(card.recvCardId);
+    const position = slotPosition(card.outputSlotId, card.outputSlotId);
+    const portId = Number.isFinite(Number(card.netPortId)) ? Number(card.netPortId) + 1 : numberOrText(card.netPortId);
+    const cardId = Number.isFinite(Number(card.recvCardId)) ? Number(card.recvCardId) + 1 : numberOrText(card.recvCardId);
     const parentId = `output:O-${position}:${portId}`;
     add(entities, observations, `${parentId}:receiving:${cardId}`, "receiving-card", String(cardId), parentId,
       card.fields, source, observedAt);
@@ -95,7 +95,7 @@ function buildDivergenceReport(inventory, observations, resolvedState, expectedS
     }
     if (missingSources.length) continue;
 
-    const fieldNames = uniqueValues(sources.flatMap((source) => Object.keys(bySource[source].fields || {})));
+    const fieldNames = comparableFieldNames(entity.kind, sources, bySource);
     for (const fieldName of fieldNames) {
       const missingFieldSources = sources.filter((source) => !hasOwn(bySource[source].fields, fieldName));
       if (missingFieldSources.length) {
@@ -160,7 +160,7 @@ function divergenceItem(entity, fieldName, reason, bySource, resolvedState, dete
 
 function compareFields(kind, fieldName, fields) {
   if (semanticField(fieldName)) {
-    const states = fields.map((fieldValue) => normalizedFieldState(fieldValue, kind));
+    const states = fields.map((fieldValue) => comparableFieldState(fieldValue, kind, fieldName));
     const knownStates = states.filter((state) => state !== "unknown");
     if (knownStates.length === states.length) {
       return knownStates.every((state) => state === knownStates[0])
@@ -184,7 +184,7 @@ function resolveIo(inventory, observations, policy) {
     const api = usable.find((item) => item.source === "api");
     const result = reconcileObservation(entity, snmp, api, rules);
     const chosen = result.observation;
-    const states = usable.map((item) => normalizedState(item.fields, entity.kind));
+    const states = usable.map((item) => comparableObservationState(item.fields, entity.kind));
     resolved[entity.id] = {
       state: result.state,
       source: chosen ? chosen.source : "none",
@@ -226,6 +226,12 @@ function reconcileObservation(entity, snmp, api, rules) {
   }
   const snmpState = normalizedState(snmp.fields, entity.kind);
   const apiState = normalizedState(api.fields, entity.kind);
+  const comparableSnmpState = comparableObservationState(snmp.fields, entity.kind);
+  const comparableApiState = comparableObservationState(api.fields, entity.kind);
+  if (comparableSnmpState === comparableApiState && comparableSnmpState !== "unknown") {
+    const preferred = entity.kind === "output" ? api : (operationalKind(entity.kind) ? snmp : api);
+    return decision(preferred, normalizedState(preferred.fields, entity.kind), "sources-agree", "high");
+  }
   if (snmpState === apiState) {
     const preferred = operationalKind(entity.kind) ? snmp : api;
     return decision(preferred, snmpState, "sources-agree", "high");
@@ -322,6 +328,23 @@ function usableFields(fields) {
 
 function operationalKind(kind) { return ["input", "output", "screen", "receiving-card"].includes(kind); }
 function semanticField(fieldName) { return /(status|signal|link)$/i.test(String(fieldName)); }
+function comparableFieldNames(kind, sources, bySource) {
+  if (kind === "output") return sources.every((source) => hasOwn(bySource[source].fields, "status")) ? ["status"] : [];
+  return uniqueValues(sources.flatMap((source) => Object.keys(bySource[source].fields || {})));
+}
+function comparableFieldState(fieldValue, kind, fieldName) {
+  if (kind === "output" && fieldName === "status") {
+    if (fieldValue === undefined || fieldValue === null || fieldValue.ok === false) return "unknown";
+    const numeric = Number(rawFieldValue(fieldValue));
+    if (numeric === 0) return "inactive";
+    if ([1, 2, 3].includes(numeric)) return "ok";
+  }
+  return normalizedFieldState(fieldValue, kind);
+}
+function comparableObservationState(fields, kind) {
+  if (kind === "output" && fields && fields.status) return comparableFieldState(fields.status, kind, "status");
+  return normalizedState(fields, kind);
+}
 function unique(items) { return Array.from(new Map(items.map((item) => [item.id, item])).values()); }
 function uniqueValues(items) { return Array.from(new Set(items)); }
 function countReason(items, reason) { return items.filter((item) => item.reason === reason).length; }

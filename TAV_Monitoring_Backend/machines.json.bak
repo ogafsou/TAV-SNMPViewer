@@ -13,7 +13,7 @@
     "recvCardsPerPort": "1",
     "includeReceivingCards": false,
     "type": "novastar-h",
-    "color": "#32c99a",
+    "color": "#ffdb00",
     "accessMethod": "api",
     "apiProtocol": "legacy",
     "apiBaseUrl": "",

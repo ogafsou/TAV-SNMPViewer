@@ -79,6 +79,25 @@
             </label>
           </fieldset>
 
+          <fieldset class="novastar-snmp-options novastar-only">
+            <legend>Options SNMP</legend>
+            <label class="toggle-row snmp-scan-option">
+              <input name="snmpScanEnabled" type="checkbox" checked />
+              <span>Scan SNMP</span>
+            </label>
+            <label class="snmp-scan-frequency">
+              <span>Frequence</span>
+              <span class="frequency-control">
+                <input name="snmpScanIntervalMinutes" type="number" min="4" max="1440" step="1" value="10" />
+                <span>minutes</span>
+              </span>
+            </label>
+            <label class="toggle-row">
+              <input name="trapSnmpEnabled" type="checkbox" />
+              <span>Trap SNMP</span>
+            </label>
+          </fieldset>
+
           <details class="advanced-settings snmp-device-settings">
             <summary>Parametres avances</summary>
             <div class="advanced-settings-grid">

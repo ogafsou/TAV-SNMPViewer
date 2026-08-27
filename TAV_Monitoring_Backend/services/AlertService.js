@@ -1,4 +1,4 @@
-const logger = require("../classes/Logger");
+const logger = require("../classes/Logger").child("AlertService");
 
 const COLLECTIONS = [
   "controller", "inputSlots", "outputSlots", "screens", "systemHealth",

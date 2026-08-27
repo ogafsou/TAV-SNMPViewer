@@ -25,6 +25,9 @@ function openAddDialog() {
   machineForm.includePoe.checked = false;
   machineForm.kiloviewBitrateThresholdMbps.value = "1";
   machineForm.snmpPort.value = "161";
+  machineForm.snmpScanEnabled.checked = true;
+  machineForm.snmpScanIntervalMinutes.value = "10";
+  machineForm.trapSnmpEnabled.checked = false;
   setAccessMethod("snmp");
   updateMachineFormFields();
   dialogBackdrop.hidden = false;
@@ -63,6 +66,9 @@ function openEditDialog(machine) {
   machineForm.includePoe.checked = machine.includePoe === true;
   machineForm.kiloviewBitrateThresholdMbps.value = machine.kiloviewBitrateThresholdMbps === undefined ? "1" : String(machine.kiloviewBitrateThresholdMbps);
   machineForm.snmpPort.value = machine.snmpPort || "161";
+  machineForm.snmpScanEnabled.checked = machine.snmpScanEnabled !== false;
+  machineForm.snmpScanIntervalMinutes.value = String(Math.max(4, Math.round(Number(machine.snmpScanIntervalS || 600) / 60)));
+  machineForm.trapSnmpEnabled.checked = machine.trapSnmpEnabled === true;
   updateMachineFormFields();
   dialogBackdrop.hidden = false;
   machineForm.name.focus();
@@ -139,6 +145,7 @@ function renderSelectedMachine() {
   var machine = getSelectedMachine();
 
   if (!machine) {
+    renderNovaStarTrapStatus();
     updateAdvancedInformationVisibility("");
     selectedMachineType.textContent = "Equipement";
     selectedMachineName.textContent = "Aucune machine";
@@ -175,6 +182,36 @@ function renderSelectedMachine() {
   }
   selectedMachineHint.textContent = "";
   scanButton.disabled = false;
+  renderNovaStarTrapStatus();
+}
+
+function renderNovaStarTrapStatus() {
+  if (!novaStarTrapStatusNode) return;
+  var machine = getSelectedMachine();
+  if (!machine || normalizeMachineType(machine.type) !== "novastar-h") {
+    novaStarTrapStatusNode.hidden = true;
+    novaStarTrapStatusNode.innerHTML = "";
+    return;
+  }
+  var status = novaStarTrapStatuses[String(machine.id)];
+  novaStarTrapStatusNode.hidden = false;
+  if (!status) {
+    novaStarTrapStatusNode.innerHTML = '<h3>Statut Trap SNMP</h3><p class="trap-status-message">Statut indisponible.</p>';
+    return;
+  }
+  var dateLabel = function(value) { return value ? new Date(value).toLocaleString("fr-FR") : "Jamais"; };
+  var badge = function(label, ok) {
+    return '<span class="trap-status-item ' + (ok ? "ok" : "inactive") + '"><strong>' +
+      escapeHtml(label) + '</strong><small>' + (ok ? "Oui" : "Non") + "</small></span>";
+  };
+  novaStarTrapStatusNode.innerHTML = '<h3>Statut Trap SNMP</h3><div class="trap-status-grid">' +
+    badge("Activé", status.trapEnabled) + badge("Récepteur actif", status.receiverActive) +
+    badge("SET réussi", status.setSucceeded) + badge("Configuration confirmée", status.configured) +
+    '<span class="trap-status-item"><strong>Destination relue</strong><small>' + escapeHtml(status.destination || "-") + '</small></span>' +
+    badge("Reporting actif", status.reportingEnabled) +
+    '<span class="trap-status-item"><strong>Vérifié le</strong><small>' + escapeHtml(dateLabel(status.verifiedAt)) + '</small></span>' +
+    '<span class="trap-status-item"><strong>Dernier trap reçu</strong><small>' + escapeHtml(dateLabel(status.lastTrapAt)) + '</small></span>' +
+    '</div>' + (status.error ? '<p class="trap-status-error">' + escapeHtml(status.error) + "</p>" : "");
 }
 
 function updateAdvancedInformationVisibility(type, hasScan) {
@@ -273,6 +310,7 @@ function updateMachineFormFields() {
   var isSnmpDevice = isNovaStar || isNetgear;
   var apiEnabled = isNovaStar && method !== "snmp";
   var apiProtocol = machineForm.apiProtocol.value === "legacy" ? "legacy" : "openapi";
+  var snmpEnabled = isNovaStar && method !== "api";
 
   document.querySelectorAll(".novastar-only").forEach(function(node) {
     node.hidden = !isNovaStar;
@@ -285,6 +323,7 @@ function updateMachineFormFields() {
     node.hidden = !isSnmpDevice || (isNovaStar && method === "api") || (node.classList.contains("novastar-only") && !isNovaStar);
   });
   document.querySelectorAll(".snmp-device-settings").forEach(function(node) { node.hidden = !isSnmpDevice; });
+  document.querySelectorAll(".novastar-snmp-options").forEach(function(node) { node.hidden = !snmpEnabled; });
   document.querySelectorAll(".netgear-only").forEach(function(node) { node.hidden = !isNetgear; });
   document.querySelectorAll(".kiloview-only").forEach(function(node) { node.hidden = !isKiloview; });
   document.querySelectorAll(".api-field").forEach(function(node) {
@@ -300,7 +339,13 @@ function updateMachineFormFields() {
   machineForm.apiBaseUrl.placeholder = apiProtocol === "openapi"
     ? "Automatique: http://IP:8000/open/api"
     : "Automatique: http://IP";
+  machineForm.snmpScanIntervalMinutes.disabled = !snmpEnabled || !machineForm.snmpScanEnabled.checked;
+  document.querySelectorAll(".snmp-scan-frequency").forEach(function(node) {
+    node.hidden = !snmpEnabled || !machineForm.snmpScanEnabled.checked;
+  });
 }
+
+machineForm.snmpScanEnabled.addEventListener("change", updateMachineFormFields);
 
 var novastarColorButton = document.getElementById("novastarColorButton");
 var novastarColorPalette = document.getElementById("novastarColorPalette");

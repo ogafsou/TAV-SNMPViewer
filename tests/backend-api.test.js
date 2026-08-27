@@ -47,6 +47,16 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   assert.equal(created.saved, true);
   assert.equal(created.monitoring, null);
 
+  response = await fetch(base + "/api/novastar-traps/status");
+  const trapStatus = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(trapStatus.machines.length, 1);
+  assert.equal(trapStatus.machines[0].machineId, "m1");
+  assert.equal(trapStatus.machines[0].trapEnabled, false);
+  assert.equal(trapStatus.machines[0].lastTrapAt, null);
+  assert.equal(JSON.stringify(trapStatus).includes("secret-read"), false);
+  assert.equal(JSON.stringify(trapStatus).includes("secret-write"), false);
+
   response = await fetch(base + "/api/machines/m1/scan", { method: "POST" });
   assert.equal(response.status, 200);
   assert.equal((await response.json()).view.connected, true);

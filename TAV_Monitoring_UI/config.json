@@ -7,5 +7,16 @@
   "backend_rest_url_tav": "https://tav-rg-lt16.vdoconnect.net",
   "backend_ws_url_tav": "ws://tav-rg-lt16.vdoconnect.net/ws",
   "rest_refresh_s": 30,
-  "bkgnd_transparency": "40%"
+  "bkgnd_transparency": "40%",
+  "logging": {
+    "level": "info",
+    "file_enabled": true,
+    "file": "./logs/ui.log",
+    "max_file_bytes": 10485760,
+    "flush_interval_ms": 30000,
+    "console_enabled": true,
+    "browser_logs_enabled": true,
+    "browser_batch_interval_ms": 5000,
+    "browser_max_events_per_minute": 300
+  }
 }

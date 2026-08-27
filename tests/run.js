@@ -7,3 +7,5 @@ require("./backend-websocket.test");
 require("./auth.test");
 require("./frontend-proxy.test");
 require("./public-status.test");
+require("./novastar-traps.test");
+require("./logger.test");

@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const http = require("http");
 const https = require("https");
 const LegacyNovaStarApiConnector = require("./NovaStarApiLib-backup");
-const logger = require("./Logger");
+const logger = require("./Logger").child("NovaStarApiLib");
 
 class NovaStarOpenApiConnector extends LegacyNovaStarApiConnector {
   constructor(options = {}) {

@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const http = require("http");
 const https = require("https");
 const { URL } = require("url");
-const logger = require("./Logger");
+const logger = require("./Logger").child("NovaStarApiLibBackup");
 
 const LOGIN_KEY = "mHAxsLYz";
 const USER_NOT_LOGIN_STATUS = 106;

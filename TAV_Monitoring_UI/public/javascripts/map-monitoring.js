@@ -80,6 +80,12 @@ function mapMonitoringAssignmentIsOk(assignment, referenceOutputs) {
   return !!output && (output.state === "ok" || output.ok === true);
 }
 
+function mapMonitoringHasMicroInterruption(assignment) {
+  var state = monitoringState[assignment.machineId];
+  var key = ["output", assignment.cardId, assignment.outputId].join(":");
+  return !!(state && state.microInterruptions || []).some(function(incident) { return incident.entityId === key; });
+}
+
 function mapMonitoringOutputKey(output) {
   return [output.machineId, output.cardId, output.outputId].map(String).join("|");
 }
@@ -169,6 +175,7 @@ function createMapMonitoringStage(map, large, referenceOutputs) {
         ? "assigned " + (mapMonitoringAssignmentIsOk(assignment, referenceOutputs) ? "output-ok" : "output-not-ok")
         : "output-unassigned";
       if (assignment) {
+        if (mapMonitoringHasMicroInterruption(assignment)) cell.classList.add("micro-interruption");
         var assignedMachine = machines.find(function(machine) {
           return String(machine.id) === String(assignment.machineId);
         });

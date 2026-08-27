@@ -1,79 +1,78 @@
 [
   {
-    "id": "1784794356983-d149401df1e87",
-    "name": "aaa",
+    "id": "1787760257288-9fc3a1b0a6ef7",
+    "name": "PC",
     "segments": [
       {
-        "id": "1784794366199-3935e80b307cb8",
+        "id": "1787760272745-96339be11f477",
         "orientation": "horizontal",
-        "x": 0.3072916666666667,
-        "y": 0.10512820512820513,
-        "length": 0.41059027777777773,
+        "x": 0.3874684465183022,
+        "y": 0.3879904484099749,
+        "length": 0.23229166666666662,
         "cases": 25,
         "assignments": [
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "1"
           },
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "2"
           },
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "3"
           },
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "4"
           },
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "5"
           },
-          {
-            "machineId": "1784794563290",
-            "machineName": "test",
-            "cardId": "O-3",
-            "outputId": "6"
-          },
+          null,
+          null,
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "7"
           },
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
             "outputId": "8"
           },
+          null,
           {
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
-            "outputId": "9"
+            "outputId": "10"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "11"
           },
           {
             "machineId": "1784794563290",
@@ -91,52 +90,250 @@
             "machineId": "1784794563290",
             "machineName": "test",
             "cardId": "O-3",
-            "outputId": "10"
+            "outputId": "14"
           },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "15"
+          },
+          null,
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "16"
+          },
+          null
+        ]
+      },
+      {
+        "id": "1787760275228-6775d429cc0328",
+        "orientation": "vertical",
+        "x": 0.6270517798516355,
+        "y": 0.42322981011210253,
+        "length": 0.14561170212765956,
+        "cases": 8,
+        "assignments": [
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "1"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "2"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "3"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "4"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "5"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "6"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "7"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "8"
+          }
+        ]
+      },
+      {
+        "id": "1787760607584-5b7fc466ff3978",
+        "orientation": "vertical",
+        "x": 0.3357861630620587,
+        "y": 0.3408798830497257,
+        "length": 0.3085106382978723,
+        "cases": 33,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
           null,
           null,
           null
         ]
       },
       {
-        "id": "1786611268252-a1d7d3a8e03a7",
+        "id": "1787760643243-b781215e253938",
         "orientation": "vertical",
-        "x": 0.24739583333333334,
-        "y": 0.1807044410413476,
-        "length": 0.5604900459418071,
-        "cases": 15,
+        "x": 0.658434928162617,
+        "y": 0.3595519246935254,
+        "length": 0.09290026243382388,
+        "cases": 8,
         "assignments": [
-          {
-            "machineId": "1783432154855",
-            "machineName": "H5-Main",
-            "cardId": "O-3",
-            "outputId": "1"
-          },
-          {
-            "machineId": "1783432154855",
-            "machineName": "H5-Main",
-            "cardId": "O-3",
-            "outputId": "2"
-          },
-          {
-            "machineId": "1783432154855",
-            "machineName": "H5-Main",
-            "cardId": "O-3",
-            "outputId": "5"
-          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
           null,
           {
-            "machineId": "1783432154855",
-            "machineName": "H5-Main",
-            "cardId": "O-3",
-            "outputId": "3"
-          },
-          {
-            "machineId": "1783432154855",
-            "machineName": "H5-Main",
-            "cardId": "O-3",
-            "outputId": "4"
-          },
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-4",
+            "outputId": "9"
+          }
+        ]
+      },
+      {
+        "id": "1787760646736-977fffaa04732",
+        "orientation": "vertical",
+        "x": 0.6441010745396203,
+        "y": 0.3778504612335211,
+        "length": 0.03237433387845373,
+        "cases": 2,
+        "assignments": [
+          null,
+          null
+        ]
+      },
+      {
+        "id": "1787760654170-70ec5faa71d81",
+        "orientation": "vertical",
+        "x": 0.66436032686441,
+        "y": 0.5263062286548432,
+        "length": 0.15093085106382975,
+        "cases": 10,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "1787760670714-226e6348dd8f98",
+        "orientation": "vertical",
+        "x": 0.6761832435310767,
+        "y": 0.5263062286548432,
+        "length": 0.15093085106382975,
+        "cases": 10,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "1787760683689-d826f2a6eb9948",
+        "orientation": "vertical",
+        "x": 0.6675314121925955,
+        "y": 0.3595519246935254,
+        "length": 0.09290026243382388,
+        "cases": 8,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "id": "1787760687938-522797254ff0f8",
+        "orientation": "vertical",
+        "x": 0.34310939538529106,
+        "y": 0.3408798830497257,
+        "length": 0.3085106382978723,
+        "cases": 33,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
           null,
           null,
           null,
@@ -150,48 +347,24 @@
       }
     ],
     "monitoringReference": {
-      "setAt": "2026-08-13T09:09:10.316Z",
+      "setAt": "2026-08-26T16:08:37.272Z",
       "outputs": [
-        {
-          "machineId": "1783432154855",
-          "cardId": "O-3",
-          "outputId": "1",
-          "ok": false
-        },
-        {
-          "machineId": "1783432154855",
-          "cardId": "O-3",
-          "outputId": "2",
-          "ok": true
-        },
-        {
-          "machineId": "1783432154855",
-          "cardId": "O-3",
-          "outputId": "3",
-          "ok": false
-        },
-        {
-          "machineId": "1783432154855",
-          "cardId": "O-3",
-          "outputId": "4",
-          "ok": false
-        },
-        {
-          "machineId": "1783432154855",
-          "cardId": "O-3",
-          "outputId": "5",
-          "ok": true
-        },
         {
           "machineId": "1784794563290",
           "cardId": "O-3",
           "outputId": "1",
-          "ok": false
+          "ok": true
         },
         {
           "machineId": "1784794563290",
           "cardId": "O-3",
           "outputId": "10",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "11",
           "ok": true
         },
         {
@@ -209,6 +382,24 @@
         {
           "machineId": "1784794563290",
           "cardId": "O-3",
+          "outputId": "14",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "15",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "16",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
           "outputId": "2",
           "ok": true
         },
@@ -216,24 +407,18 @@
           "machineId": "1784794563290",
           "cardId": "O-3",
           "outputId": "3",
-          "ok": false
-        },
-        {
-          "machineId": "1784794563290",
-          "cardId": "O-3",
-          "outputId": "4",
-          "ok": false
-        },
-        {
-          "machineId": "1784794563290",
-          "cardId": "O-3",
-          "outputId": "5",
           "ok": true
         },
         {
           "machineId": "1784794563290",
           "cardId": "O-3",
-          "outputId": "6",
+          "outputId": "4",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "5",
           "ok": true
         },
         {
@@ -250,14 +435,143 @@
         },
         {
           "machineId": "1784794563290",
-          "cardId": "O-3",
-          "outputId": "9",
+          "cardId": "O-4",
+          "outputId": "1",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "2",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "3",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "4",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "5",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "6",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "7",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "8",
           "ok": true
         }
       ]
     },
     "backgroundMimeType": "image/png",
     "backgroundExtension": "png",
-    "backgroundUrl": "/api/maps/1784794356983-d149401df1e87/background"
+    "backgroundUrl": "/api/maps/1787760257288-9fc3a1b0a6ef7/background"
+  },
+  {
+    "id": "1787760725571-f4ea72646ec2e",
+    "name": "SL",
+    "segments": [
+      {
+        "id": "1787760738455-a9bd9efeb12618",
+        "orientation": "horizontal",
+        "x": 0.33822459374242053,
+        "y": 0.2887864823348694,
+        "length": 0.37375697307785594,
+        "cases": 8,
+        "assignments": [
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "1"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "2"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "3"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "4"
+          },
+          {
+            "machineId": "1784794563290",
+            "machineName": "test",
+            "cardId": "O-3",
+            "outputId": "5"
+          },
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "monitoringReference": {
+      "setAt": "2026-08-26T16:12:35.525Z",
+      "outputs": [
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "1",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "2",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "3",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "4",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "5",
+          "ok": true
+        }
+      ]
+    },
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps/1787760725571-f4ea72646ec2e/background"
   }
 ]

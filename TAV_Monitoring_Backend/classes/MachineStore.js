@@ -102,6 +102,18 @@ function normalizeMachine(value) {
   }
   if (machine.apiProjectId !== undefined) machine.apiProjectId = String(machine.apiProjectId || "").trim();
   if (machine.apiEncryption !== undefined) machine.apiEncryption = machine.apiEncryption === true;
+  if (machine.type === "novastar-h") {
+    const method = String(machine.accessMethod || "snmp").toLowerCase();
+    const supportsSnmp = method === "snmp" || method === "snmp+api";
+    machine.snmpScanEnabled = supportsSnmp && machine.snmpScanEnabled !== false;
+    machine.trapSnmpEnabled = supportsSnmp && machine.trapSnmpEnabled === true;
+    const interval = Number(machine.snmpScanIntervalS);
+    machine.snmpScanIntervalS = Number.isInteger(interval) ? Math.min(86400, Math.max(240, interval)) : 600;
+  } else {
+    delete machine.snmpScanEnabled;
+    delete machine.snmpScanIntervalS;
+    delete machine.trapSnmpEnabled;
+  }
   delete machine.model;
   return machine;
 }

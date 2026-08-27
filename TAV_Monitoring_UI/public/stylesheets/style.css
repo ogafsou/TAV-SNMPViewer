@@ -1000,6 +1000,15 @@ button:disabled {
   background: #454d5f;
   color: #d8dce6;
 }
+.io-status-table td.micro-interruption,
+.map-segment i.micro-interruption,
+.map-monitoring-segment i.micro-interruption {
+  position: relative;
+  z-index: 3;
+  outline: 3px solid #ff2028 !important;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 1px #fff, 0 0 8px rgba(255, 32, 40, .9) !important;
+}
 
 .monitoring-card-dialog .io-status-table td.map-output-highlight {
   position: relative;
@@ -1177,6 +1186,26 @@ button:disabled {
   min-height: 74px;
 }
 
+.trap-status-panel {
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.trap-status-panel h3 { margin: 0 0 10px; font-size: 15px; }
+.trap-status-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.trap-status-item { padding: 8px; border: 1px solid var(--line); border-radius: 6px; }
+.trap-status-item strong, .trap-status-item small { display: block; }
+.trap-status-item small { margin-top: 4px; color: var(--muted); overflow-wrap: anywhere; }
+.trap-status-item.ok { border-color: #32c99a; }
+.trap-status-item.inactive { opacity: .72; }
+.trap-status-error { margin: 10px 0 0; color: var(--danger, #d33); }
+
+@media (max-width: 900px) { .trap-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
 .metric,
 .field {
   border: 1px solid var(--line);
@@ -1255,7 +1284,7 @@ button:disabled {
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 10px;
-  background: #fbfcfd;
+  background: var(--panel);
   color: var(--ink);
   font: 12px/1.45 Consolas, "Courier New", monospace;
   white-space: pre;
@@ -1263,7 +1292,7 @@ button:disabled {
 
 .field.bad {
   border-color: rgba(180, 35, 24, 0.28);
-  background: #fff7f6;
+  background: var(--panel);
 }
 
 .data-section {
@@ -1539,6 +1568,33 @@ select:focus {
   min-height: 30px;
 }
 
+.novastar-snmp-options {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(190px, 1fr) minmax(220px, 1fr);
+  gap: 8px 16px;
+  grid-column: 1 / -1;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 0;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.novastar-snmp-options legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.frequency-control {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
 .advanced-settings {
   grid-column: 1 / -1;
   border: 1px solid var(--line);
@@ -1702,6 +1758,7 @@ button:hover:not(:disabled) {
 .advanced-settings-grid,
 .machine-form-row,
 .access-mode-field,
+.novastar-snmp-options,
 .io-status-group,
 .pill-group,
 .monitoring-overview-row,
@@ -1893,10 +1950,10 @@ td,
 .map-content {
   position: absolute;
   z-index: 1;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   transform-origin: 0 0;
   will-change: transform;
 }

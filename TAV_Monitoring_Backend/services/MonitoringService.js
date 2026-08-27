@@ -1,5 +1,5 @@
 const EventEmitter = require("events");
-const logger = require("../classes/Logger");
+const logger = require("../classes/Logger").child("MonitoringService");
 const {
   buildMonitoringView,
   buildOfflineView,
@@ -20,6 +20,10 @@ class MonitoringService extends EventEmitter {
     this.scans = new Map();
     this.revision = 0;
     this.timer = null;
+    this.snmpWorkers = new Map();
+    this.pendingTrapLosses = new Map();
+    this.activeMicroInterruptions = new Map();
+    this.recentTrapFingerprints = new Map();
   }
 
   start() {
@@ -33,39 +37,77 @@ class MonitoringService extends EventEmitter {
     this.stop();
     if (this.config.monitor_interval_s > 0) {
       this.timer = setInterval(() => {
-        this.scanAll().catch((error) => logger.error("Scheduled scan failed", { error: error.message }));
+        this.scanAll({ periodic: true }).catch((error) => logger.error("Scheduled scan failed", { error: error.message }));
       }, this.config.monitor_interval_s * 1000);
       if (this.timer.unref) this.timer.unref();
     }
+    this.refreshSnmpWorkers();
   }
 
   stop() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    this.snmpWorkers.forEach((worker) => clearInterval(worker.timer));
+    this.snmpWorkers.clear();
   }
 
-  async scanAll() {
+  refreshSnmpWorkers() {
+    this.snmpWorkers.forEach((worker) => clearInterval(worker.timer));
+    this.snmpWorkers.clear();
+    this.store.load().filter(isPeriodicNovaStarSnmp).forEach((machine) => {
+      const worker = { running: null, timer: null };
+      const run = () => {
+        if (worker.running) {
+          logger.warning("NovaStar SNMP worker tick skipped; previous scan still running", {
+            machineId: machine.id,
+            host: machine.host,
+            port: Number(machine.snmpPort || 161),
+            intervalSeconds: machine.snmpScanIntervalS
+          });
+          return worker.running;
+        }
+        worker.running = this.scanMachine(machine.id, true, { snmpPeriodic: true })
+          .catch((error) => logger.error("Scheduled NovaStar SNMP scan failed", { machineId: machine.id, error: error.message }))
+          .finally(() => { worker.running = null; });
+        return worker.running;
+      };
+      worker.timer = setInterval(run, machine.snmpScanIntervalS * 1000);
+      if (worker.timer.unref) worker.timer.unref();
+      this.snmpWorkers.set(machine.id, worker);
+      logger.info("NovaStar SNMP worker scheduled", {
+        machineId: machine.id,
+        host: machine.host,
+        intervalSeconds: machine.snmpScanIntervalS
+      });
+    });
+  }
+
+  async scanAll(options) {
+    options = options || {};
     const machines = this.store.load();
-    const queue = machines.slice();
+    const queue = options.periodic === true ? machines.filter((machine) => !isSnmpOnlyNovaStar(machine)) : machines.slice();
     const workers = Array.from({ length: Math.min(this.config.max_parallel_scans, Math.max(queue.length, 1)) }, async () => {
-      while (queue.length) await this.scanMachine(queue.shift().id);
+      while (queue.length) await this.scanMachine(queue.shift().id, false, options);
     });
     await Promise.all(workers);
     return this.snapshot();
   }
 
-  scanMachine(id, forceAfterCurrent) {
+  scanMachine(id, forceAfterCurrent, options) {
     const machineId = String(id);
-    if (this.scans.has(machineId)) {
-      const current = this.scans.get(machineId);
-      return forceAfterCurrent ? current.then(() => this.scanMachine(machineId, false)) : current;
+    const lane = options && options.periodic === true && !options.snmpPeriodic ? "api" : "full";
+    const scanKey = machineId + ":" + lane;
+    if (this.scans.has(scanKey)) {
+      const current = this.scans.get(scanKey);
+      return forceAfterCurrent ? current.then(() => this.scanMachine(machineId, false, options)) : current;
     }
-    const task = this.performScan(machineId).finally(() => this.scans.delete(machineId));
-    this.scans.set(machineId, task);
+    const task = this.performScan(machineId, options).finally(() => this.scans.delete(scanKey));
+    this.scans.set(scanKey, task);
     return task;
   }
 
-  async performScan(id) {
+  async performScan(id, options) {
+    const scanStartedAt = new Date().toISOString();
     const machine = this.store.find(id);
     if (!machine) {
       const error = new Error("Machine not found");
@@ -73,10 +115,23 @@ class MonitoringService extends EventEmitter {
       throw error;
     }
     const previous = this.records.get(id);
+    const method = String(machine.accessMethod || "snmp").toLowerCase();
+    const snmpDisabled = machine.type === "novastar-h" && machine.snmpScanEnabled === false;
+    if (this.deviceMonitor.configureTraps) {
+      await this.deviceMonitor.configureTraps(machine, this.config.novastar_traps).catch((error) => {
+        logger.warning("NovaStar trap configuration failed", { machineId: id, host: machine.host, error: error.message });
+      });
+    }
+    if (snmpDisabled && method === "snmp") {
+      logger.info("NovaStar SNMP scan skipped by machine configuration", { machineId: id, host: machine.host });
+      return previous || null;
+    }
     let raw;
     let baseView;
     try {
-      raw = await this.deviceMonitor.monitor(machine);
+      raw = await this.deviceMonitor.monitor(machine, {
+        skipSnmp: snmpDisabled || (options && options.periodic === true && !options.snmpPeriodic)
+      });
       baseView = buildMonitoringView(raw);
     } catch (error) {
       raw = { machineId: id, host: machine.host, type: machine.type, timestamp: new Date().toISOString(), error: error.message };
@@ -84,6 +139,8 @@ class MonitoringService extends EventEmitter {
     }
     if (!this.store.find(id)) return null;
     const view = machine.type === "other" ? baseView : applyReferenceMode(machine, baseView, this.config.monitoring_reference_mode);
+    this.clearMicroInterruptionsBefore(id, scanStartedAt);
+    view.microInterruptions = this.microInterruptionsFor(id);
     const rawChanges = diffTelemetry(previous && previous.raw, raw);
     const significant = !previous || structuralFingerprint(previous.view) !== structuralFingerprint(view);
     const hasChanges = !previous || Object.keys(rawChanges).length > 0 || significant;
@@ -160,6 +217,7 @@ class MonitoringService extends EventEmitter {
       if (!record) return;
       const base = record.raw && record.raw.error ? buildOfflineView(machine, record.raw.error, record.raw.timestamp) : buildMonitoringView(record.raw);
       record.view = machine.type === "other" ? base : applyReferenceMode(machine, base, this.config.monitoring_reference_mode);
+      record.view.microInterruptions = this.microInterruptionsFor(machine.id);
       record.revision = ++this.revision;
       this.publish({ type: "monitoring.changed", revision: record.revision, machineId: machine.id, monitoring: record });
     });
@@ -167,6 +225,7 @@ class MonitoringService extends EventEmitter {
 
   removeMachine(id) {
     this.records.delete(String(id));
+    this.activeMicroInterruptions.delete(String(id));
     this.revision += 1;
     this.publish({ type: "machine.deleted", revision: this.revision, machineId: String(id) });
   }
@@ -182,6 +241,70 @@ class MonitoringService extends EventEmitter {
   publish(message) {
     this.emit("message", message);
   }
+
+  handleTrapEvent(event) {
+    if (!event || !event.machineId) return null;
+    const now = Date.parse(event.receivedAt) || Date.now();
+    const fingerprint = [event.machineId, event.trapOid, event.entityId, event.transition, JSON.stringify(event.payload)].join("|");
+    const previousAt = this.recentTrapFingerprints.get(fingerprint) || 0;
+    const windowMs = this.config.novastar_traps && this.config.novastar_traps.deduplication_window_ms || 0;
+    if (now - previousAt <= windowMs) return null;
+    this.recentTrapFingerprints.set(fingerprint, now);
+    if (!event.decoded || !event.entityId) return null;
+    const key = event.machineId + "|" + event.entityId;
+    if (event.transition === "loss") {
+      this.pendingTrapLosses.set(key, event);
+      return null;
+    }
+    if (event.transition !== "recovery") return null;
+    const loss = this.pendingTrapLosses.get(key);
+    if (!loss) return null;
+    this.pendingTrapLosses.delete(key);
+    const incident = {
+      id: key + "|" + event.receivedAt,
+      machineId: event.machineId,
+      entityId: event.entityId,
+      kind: event.kind,
+      startedAt: loss.receivedAt,
+      recoveredAt: event.receivedAt,
+      durationMs: Math.max(0, (Date.parse(event.receivedAt) || now) - (Date.parse(loss.receivedAt) || now)),
+      trapOid: event.trapOid
+    };
+    const active = this.activeMicroInterruptions.get(event.machineId) || new Map();
+    active.set(event.entityId, incident);
+    this.activeMicroInterruptions.set(event.machineId, active);
+    const record = this.records.get(event.machineId);
+    if (record) {
+      record.view.microInterruptions = this.microInterruptionsFor(event.machineId);
+      record.revision = ++this.revision;
+      this.publish({ type: "monitoring.changed", revision: record.revision, machineId: event.machineId, monitoring: record });
+    }
+    logger.warning("NovaStar micro-interruption detected", incident);
+    return incident;
+  }
+
+  microInterruptionsFor(machineId) {
+    return Array.from((this.activeMicroInterruptions.get(String(machineId)) || new Map()).values());
+  }
+
+  clearMicroInterruptionsBefore(machineId, scanStartedAt) {
+    const active = this.activeMicroInterruptions.get(String(machineId));
+    if (!active) return;
+    active.forEach((incident, entityId) => {
+      if (String(incident.recoveredAt) < String(scanStartedAt)) active.delete(entityId);
+    });
+    if (!active.size) this.activeMicroInterruptions.delete(String(machineId));
+  }
+}
+
+function isPeriodicNovaStarSnmp(machine) {
+  const method = String(machine.accessMethod || "snmp").toLowerCase();
+  return machine.type === "novastar-h" && machine.snmpScanEnabled !== false &&
+    (method === "snmp" || method === "snmp+api");
+}
+
+function isSnmpOnlyNovaStar(machine) {
+  return machine.type === "novastar-h" && String(machine.accessMethod || "snmp").toLowerCase() === "snmp";
 }
 
 module.exports = MonitoringService;
