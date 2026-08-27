@@ -8,6 +8,8 @@
   "backend_ws_url_tav": "ws://tav-rg-lt16.vdoconnect.net/ws",
   "rest_refresh_s": 30,
   "bkgnd_transparency": "40%",
+  "monitoring_problem_sound": "",
+  "monitoring_recovery_sound": "",
   "logging": {
     "level": "info",
     "file_enabled": true,

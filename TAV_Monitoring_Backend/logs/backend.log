@@ -1855,3 +1855,461 @@
 2026-08-26 16:21:33.695 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760725571-f4ea72646ec2e/background [36m304 [0m2.011 ms - -[0m
 2026-08-26 16:21:34.862 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.042 ms - 72654[0m
 2026-08-26 16:21:34.878 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.907 ms - -[0m
+2026-08-27 09:33:52.582 | BACKEND | BackendServer                    | INFO    | TAV Monitoring Backend listening {"port":3001}
+2026-08-27 09:33:52.594 | BACKEND | TrapReceiverService              | ERROR   | NovaStar trap receiver failed {"error":"advertised_address is not assigned to this backend host: 192.168.69.22","port":1162}
+2026-08-27 09:33:52.697 | BACKEND | MonitoringService                | INFO    | NovaStar SNMP worker scheduled {"machineId":"1783432154855","host":"127.0.0.1:8080","intervalSeconds":600}
+2026-08-27 09:33:52.697 | BACKEND | MonitoringService                | INFO    | NovaStar SNMP worker scheduled {"machineId":"1783432208742","host":"192.168.69.85","intervalSeconds":600}
+2026-08-27 09:33:52.697 | BACKEND | MonitoringService                | INFO    | NovaStar SNMP worker scheduled {"machineId":"1784794563290","host":"127.0.0.1:8080","intervalSeconds":600}
+2026-08-27 09:33:52.698 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock requested {"machineId":"1783432154855","operation":"scan","lockKey":"127.0.0.1:8080:161","requestId":1,"waiting":1}
+2026-08-27 09:33:52.698 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock requested {"machineId":"1783432208742","operation":"scan","lockKey":"192.168.69.85:161","requestId":2,"waiting":1}
+2026-08-27 09:33:52.712 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock requested {"machineId":"1784794563290","operation":"scan","lockKey":"127.0.0.1:8080:161","requestId":3,"waiting":2}
+2026-08-27 09:33:52.713 | BACKEND | NovaStarApiLibBackup             | DEBUG   | NovaStar API connector created {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"username":"admin"}
+2026-08-27 09:33:52.713 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan started {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:33:52.714 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:33:52.715 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:33:52.719 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock acquired {"machineId":"1783432154855","operation":"scan","lockKey":"127.0.0.1:8080:161","requestId":1,"waitedMs":21,"waiting":1,"active":1}
+2026-08-27 09:33:52.720 | BACKEND | SnmpLib                          | DEBUG   | SNMP connector created {"host":"127.0.0.1:8080","port":161,"timeout":2000,"retries":1}
+2026-08-27 09:33:52.720 | BACKEND | DeviceMonitor                    | DEBUG   | SNMP scan started {"host":"127.0.0.1:8080","port":161,"machineId":"1783432154855"}
+2026-08-27 09:33:52.721 | BACKEND | SnmpLib                          | INFO    | SNMP monitor started {"host":"127.0.0.1:8080"}
+2026-08-27 09:33:52.722 | BACKEND | SnmpLib                          | INFO    | SNMP controller read started {"host":"127.0.0.1:8080"}
+2026-08-27 09:33:52.722 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.723 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.1"}
+2026-08-27 09:33:52.723 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.724 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.0"}
+2026-08-27 09:33:52.724 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.725 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.1"}
+2026-08-27 09:33:52.725 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.726 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.2"}
+2026-08-27 09:33:52.726 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.726 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.3"}
+2026-08-27 09:33:52.727 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.727 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.4"}
+2026-08-27 09:33:52.728 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.728 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.5"}
+2026-08-27 09:33:52.729 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.729 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.6"}
+2026-08-27 09:33:52.730 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.730 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.7"}
+2026-08-27 09:33:52.730 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.731 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.8"}
+2026-08-27 09:33:52.731 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.732 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.9"}
+2026-08-27 09:33:52.732 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.732 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.10"}
+2026-08-27 09:33:52.733 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.733 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.11"}
+2026-08-27 09:33:52.734 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.734 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.12"}
+2026-08-27 09:33:52.734 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.735 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.13"}
+2026-08-27 09:33:52.735 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.735 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.14"}
+2026-08-27 09:33:52.736 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.736 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.15"}
+2026-08-27 09:33:52.736 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.737 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.16"}
+2026-08-27 09:33:52.737 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.737 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.17"}
+2026-08-27 09:33:52.737 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock acquired {"machineId":"1783432208742","operation":"scan","lockKey":"192.168.69.85:161","requestId":2,"waitedMs":39,"waiting":0,"active":1}
+2026-08-27 09:33:52.738 | BACKEND | SnmpLib                          | DEBUG   | SNMP connector created {"host":"192.168.69.85","port":161,"timeout":2000,"retries":1}
+2026-08-27 09:33:52.738 | BACKEND | DeviceMonitor                    | DEBUG   | SNMP scan started {"host":"192.168.69.85","port":161,"machineId":"1783432208742"}
+2026-08-27 09:33:52.738 | BACKEND | SnmpLib                          | INFO    | SNMP monitor started {"host":"192.168.69.85"}
+2026-08-27 09:33:52.738 | BACKEND | SnmpLib                          | INFO    | SNMP controller read started {"host":"192.168.69.85"}
+2026-08-27 09:33:52.739 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.739 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.1"}
+2026-08-27 09:33:52.739 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.740 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.0"}
+2026-08-27 09:33:52.740 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.740 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.1"}
+2026-08-27 09:33:52.740 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.741 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.2"}
+2026-08-27 09:33:52.741 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.741 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.3"}
+2026-08-27 09:33:52.741 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.742 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.4"}
+2026-08-27 09:33:52.742 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.742 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.5"}
+2026-08-27 09:33:52.742 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.743 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.6"}
+2026-08-27 09:33:52.743 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.743 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.7"}
+2026-08-27 09:33:52.744 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.744 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.8"}
+2026-08-27 09:33:52.744 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.744 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.9"}
+2026-08-27 09:33:52.745 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.745 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.10"}
+2026-08-27 09:33:52.745 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.745 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.11"}
+2026-08-27 09:33:52.746 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.746 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.12"}
+2026-08-27 09:33:52.746 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.746 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.13"}
+2026-08-27 09:33:52.747 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.747 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.14"}
+2026-08-27 09:33:52.747 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.747 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.15"}
+2026-08-27 09:33:52.748 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.748 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.16"}
+2026-08-27 09:33:52.748 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"192.168.69.85","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.748 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.17"}
+2026-08-27 09:33:52.764 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.1"}
+2026-08-27 09:33:52.764 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.765 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.766 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.0"}
+2026-08-27 09:33:52.766 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.0","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.767 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.0","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.767 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.1"}
+2026-08-27 09:33:52.768 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.768 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.769 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.2"}
+2026-08-27 09:33:52.769 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.2","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.770 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.2","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.770 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.3"}
+2026-08-27 09:33:52.770 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.3","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.771 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.3","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.771 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.4"}
+2026-08-27 09:33:52.772 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.4","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.772 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.4","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.773 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.5"}
+2026-08-27 09:33:52.773 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.5","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.773 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.5","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.774 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.6"}
+2026-08-27 09:33:52.774 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.6","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.774 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.6","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.775 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.7"}
+2026-08-27 09:33:52.775 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.7","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.776 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.7","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.776 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.8"}
+2026-08-27 09:33:52.776 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.8","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.777 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.8","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.777 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.9"}
+2026-08-27 09:33:52.777 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.9","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.778 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.9","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.778 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.10"}
+2026-08-27 09:33:52.778 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.10","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.778 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.10","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.779 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.11"}
+2026-08-27 09:33:52.779 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.11","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.779 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.11","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.779 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.12"}
+2026-08-27 09:33:52.780 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.12","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.780 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.12","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.780 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.13"}
+2026-08-27 09:33:52.780 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.13","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.781 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.13","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.781 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.14"}
+2026-08-27 09:33:52.781 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.14","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.781 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.14","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.782 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.15"}
+2026-08-27 09:33:52.782 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.15","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.782 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.15","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.783 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.16"}
+2026-08-27 09:33:52.783 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.16","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.783 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.16","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.783 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.17"}
+2026-08-27 09:33:52.784 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.17","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.784 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.17","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.784 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock released {"machineId":"1783432154855","operation":"scan","lockKey":"127.0.0.1:8080:161","requestId":1,"heldMs":65,"waiting":1,"active":0,"outcome":"failed"}
+2026-08-27 09:33:52.784 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock acquired {"machineId":"1784794563290","operation":"scan","lockKey":"127.0.0.1:8080:161","requestId":3,"waitedMs":72,"waiting":0,"active":1}
+2026-08-27 09:33:52.785 | BACKEND | SnmpLib                          | DEBUG   | SNMP connector created {"host":"127.0.0.1:8080","port":161,"timeout":2000,"retries":1}
+2026-08-27 09:33:52.785 | BACKEND | DeviceMonitor                    | DEBUG   | SNMP scan started {"host":"127.0.0.1:8080","port":161,"machineId":"1784794563290"}
+2026-08-27 09:33:52.785 | BACKEND | SnmpLib                          | INFO    | SNMP monitor started {"host":"127.0.0.1:8080"}
+2026-08-27 09:33:52.785 | BACKEND | SnmpLib                          | INFO    | SNMP controller read started {"host":"127.0.0.1:8080"}
+2026-08-27 09:33:52.786 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.786 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.1"}
+2026-08-27 09:33:52.786 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.787 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.0"}
+2026-08-27 09:33:52.787 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.787 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.1"}
+2026-08-27 09:33:52.787 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.788 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.2"}
+2026-08-27 09:33:52.788 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.788 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.3"}
+2026-08-27 09:33:52.788 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.789 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.4"}
+2026-08-27 09:33:52.789 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.789 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.5"}
+2026-08-27 09:33:52.790 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.790 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.6"}
+2026-08-27 09:33:52.790 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.790 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.7"}
+2026-08-27 09:33:52.791 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.791 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.8"}
+2026-08-27 09:33:52.791 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.791 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.9"}
+2026-08-27 09:33:52.792 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.792 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.10"}
+2026-08-27 09:33:52.792 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.792 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.11"}
+2026-08-27 09:33:52.793 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.793 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.12"}
+2026-08-27 09:33:52.793 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.793 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.13"}
+2026-08-27 09:33:52.794 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.794 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.14"}
+2026-08-27 09:33:52.794 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.794 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.15"}
+2026-08-27 09:33:52.795 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.795 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.16"}
+2026-08-27 09:33:52.795 | BACKEND | SnmpLib                          | DEBUG   | SNMP session opening {"host":"127.0.0.1:8080","port":161,"community":"[redacted]"}
+2026-08-27 09:33:52.796 | BACKEND | SnmpLib                          | DEBUG   | SNMP GET request {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.17"}
+2026-08-27 09:33:52.822 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API login completed {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"userName":"admin"}
+2026-08-27 09:33:52.822 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor started {"baseUrl":"http://127.0.0.1:8080"}
+2026-08-27 09:33:52.825 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.1"}
+2026-08-27 09:33:52.825 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.826 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.827 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.0"}
+2026-08-27 09:33:52.827 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.0","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.828 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.0","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.828 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.1"}
+2026-08-27 09:33:52.829 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.829 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.1","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.830 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.2"}
+2026-08-27 09:33:52.830 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.2","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.831 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.2","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.831 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.3"}
+2026-08-27 09:33:52.831 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.3","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.832 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.3","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.832 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.4"}
+2026-08-27 09:33:52.833 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.4","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.833 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.4","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.834 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.5"}
+2026-08-27 09:33:52.834 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.5","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.834 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.5","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.835 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.6"}
+2026-08-27 09:33:52.835 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.6","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.835 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.6","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.836 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.7"}
+2026-08-27 09:33:52.836 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.7","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.836 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.7","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.837 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.8"}
+2026-08-27 09:33:52.837 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.8","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.838 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.8","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.838 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.9"}
+2026-08-27 09:33:52.838 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.9","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.839 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.9","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.839 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.10"}
+2026-08-27 09:33:52.839 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.10","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.840 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.10","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.840 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.11"}
+2026-08-27 09:33:52.840 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.11","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.841 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.11","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.841 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.12"}
+2026-08-27 09:33:52.841 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.12","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.841 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.12","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.842 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.13"}
+2026-08-27 09:33:52.842 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.13","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.842 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.13","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.842 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.14"}
+2026-08-27 09:33:52.843 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.14","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.843 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.14","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.843 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.15"}
+2026-08-27 09:33:52.843 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.15","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.844 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.15","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.844 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.16"}
+2026-08-27 09:33:52.844 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.16","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.845 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.16","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.845 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"127.0.0.1:8080","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.17"}
+2026-08-27 09:33:52.845 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"127.0.0.1:8080","oid":"1.3.6.1.4.1.319.10.10.1.17","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.845 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"127.0.0.1:8080","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.17","error":"getaddrinfo ENOTFOUND 127.0.0.1:8080"}
+2026-08-27 09:33:52.846 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock released {"machineId":"1784794563290","operation":"scan","lockKey":"127.0.0.1:8080:161","requestId":3,"heldMs":62,"waiting":0,"active":0,"outcome":"failed"}
+2026-08-27 09:33:52.856 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor completed {"baseUrl":"http://127.0.0.1:8080","inputSlots":2,"outputSlots":2,"outputPorts":32}
+2026-08-27 09:33:52.860 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan completed {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:33:56.764 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.1"}
+2026-08-27 09:33:56.765 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.1","error":"Request timed out"}
+2026-08-27 09:33:56.765 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.1","error":"Request timed out"}
+2026-08-27 09:33:56.766 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.0"}
+2026-08-27 09:33:56.766 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.0","error":"Request timed out"}
+2026-08-27 09:33:56.767 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.0","error":"Request timed out"}
+2026-08-27 09:33:56.767 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.1"}
+2026-08-27 09:33:56.768 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.1","error":"Request timed out"}
+2026-08-27 09:33:56.769 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.1","error":"Request timed out"}
+2026-08-27 09:33:56.769 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.2"}
+2026-08-27 09:33:56.770 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.2","error":"Request timed out"}
+2026-08-27 09:33:56.770 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.2","error":"Request timed out"}
+2026-08-27 09:33:56.771 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.3"}
+2026-08-27 09:33:56.771 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.3","error":"Request timed out"}
+2026-08-27 09:33:56.772 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.3","error":"Request timed out"}
+2026-08-27 09:33:56.772 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.4"}
+2026-08-27 09:33:56.772 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.4","error":"Request timed out"}
+2026-08-27 09:33:56.773 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.4","error":"Request timed out"}
+2026-08-27 09:33:56.774 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.5"}
+2026-08-27 09:33:56.774 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.5","error":"Request timed out"}
+2026-08-27 09:33:56.774 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.5","error":"Request timed out"}
+2026-08-27 09:33:56.775 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.6"}
+2026-08-27 09:33:56.775 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.6","error":"Request timed out"}
+2026-08-27 09:33:56.776 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.6","error":"Request timed out"}
+2026-08-27 09:33:56.776 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.7"}
+2026-08-27 09:33:56.777 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.7","error":"Request timed out"}
+2026-08-27 09:33:56.777 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.7","error":"Request timed out"}
+2026-08-27 09:33:56.778 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.8"}
+2026-08-27 09:33:56.778 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.8","error":"Request timed out"}
+2026-08-27 09:33:56.779 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.8","error":"Request timed out"}
+2026-08-27 09:33:56.779 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.9"}
+2026-08-27 09:33:56.779 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.9","error":"Request timed out"}
+2026-08-27 09:33:56.780 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.9","error":"Request timed out"}
+2026-08-27 09:33:56.780 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.10"}
+2026-08-27 09:33:56.781 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.10","error":"Request timed out"}
+2026-08-27 09:33:56.781 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.10","error":"Request timed out"}
+2026-08-27 09:33:56.782 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.11"}
+2026-08-27 09:33:56.782 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.11","error":"Request timed out"}
+2026-08-27 09:33:56.783 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.11","error":"Request timed out"}
+2026-08-27 09:33:56.783 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.12"}
+2026-08-27 09:33:56.783 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.12","error":"Request timed out"}
+2026-08-27 09:33:56.784 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.12","error":"Request timed out"}
+2026-08-27 09:33:56.784 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.13"}
+2026-08-27 09:33:56.784 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.13","error":"Request timed out"}
+2026-08-27 09:33:56.785 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.13","error":"Request timed out"}
+2026-08-27 09:33:56.785 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.14"}
+2026-08-27 09:33:56.785 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.14","error":"Request timed out"}
+2026-08-27 09:33:56.786 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.14","error":"Request timed out"}
+2026-08-27 09:33:56.787 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.15"}
+2026-08-27 09:33:56.787 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.15","error":"Request timed out"}
+2026-08-27 09:33:56.787 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.15","error":"Request timed out"}
+2026-08-27 09:33:56.788 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.16"}
+2026-08-27 09:33:56.788 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.16","error":"Request timed out"}
+2026-08-27 09:33:56.789 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.16","error":"Request timed out"}
+2026-08-27 09:33:56.789 | BACKEND | SnmpLib                          | DEBUG   | SNMP session closed {"host":"192.168.69.85","operation":"get","oid":"1.3.6.1.4.1.319.10.10.1.17"}
+2026-08-27 09:33:56.789 | BACKEND | SnmpLib                          | WARNING | SNMP GET failed {"host":"192.168.69.85","oid":"1.3.6.1.4.1.319.10.10.1.17","error":"Request timed out"}
+2026-08-27 09:33:56.790 | BACKEND | SnmpLib                          | WARNING | SNMP field read failed {"host":"192.168.69.85","key":"[redacted]","oid":"1.3.6.1.4.1.319.10.10.1.17","error":"Request timed out"}
+2026-08-27 09:33:56.790 | BACKEND | NovaStarSnmpLock                 | INFO    | NovaStar SNMP lock released {"machineId":"1783432208742","operation":"scan","lockKey":"192.168.69.85:161","requestId":2,"heldMs":4053,"waiting":0,"active":0,"outcome":"failed"}
+2026-08-27 09:34:13.073 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [33m401 [0m2.440 ms - 35[0m
+2026-08-27 09:34:15.155 | BACKEND | HTTP                             | INFO    | [0mPOST /api/auth/login [32m200 [0m48.995 ms - 95[0m
+2026-08-27 09:34:15.170 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.797 ms - 95[0m
+2026-08-27 09:34:15.517 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [36m304 [0m1.083 ms - -[0m
+2026-08-27 09:34:15.554 | BACKEND | HTTP                             | INFO    | [0mGET /api/config [36m304 [0m1.329 ms - -[0m
+2026-08-27 09:34:15.575 | BACKEND | HTTP                             | INFO    | [0mGET /api/machines [36m304 [0m2.459 ms - -[0m
+2026-08-27 09:34:15.584 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m1.095 ms - -[0m
+2026-08-27 09:34:15.607 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m3.400 ms - 90032[0m
+2026-08-27 09:34:15.653 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.992 ms - -[0m
+2026-08-27 09:34:15.672 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m11.168 ms - -[0m
+2026-08-27 09:34:15.686 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background [36m304 [0m3.035 ms - -[0m
+2026-08-27 09:34:15.690 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m0.835 ms - -[0m
+2026-08-27 09:34:15.692 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760725571-f4ea72646ec2e/background [36m304 [0m3.563 ms - -[0m
+2026-08-27 09:34:15.704 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background?v=stored [36m304 [0m2.075 ms - -[0m
+2026-08-27 09:34:17.432 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.504 ms - 95[0m
+2026-08-27 09:34:17.482 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.730 ms - 95[0m
+2026-08-27 09:34:17.572 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [36m304 [0m0.776 ms - -[0m
+2026-08-27 09:34:17.639 | BACKEND | HTTP                             | INFO    | [0mGET /api/config [36m304 [0m0.748 ms - -[0m
+2026-08-27 09:34:17.662 | BACKEND | HTTP                             | INFO    | [0mGET /api/machines [36m304 [0m1.385 ms - -[0m
+2026-08-27 09:34:17.669 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.868 ms - -[0m
+2026-08-27 09:34:17.693 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m3.632 ms - 90032[0m
+2026-08-27 09:34:17.703 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.769 ms - -[0m
+2026-08-27 09:34:17.709 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m0.814 ms - -[0m
+2026-08-27 09:34:17.717 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background [36m304 [0m3.754 ms - -[0m
+2026-08-27 09:34:17.718 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760725571-f4ea72646ec2e/background [36m304 [0m1.816 ms - -[0m
+2026-08-27 09:34:17.720 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m1.117 ms - -[0m
+2026-08-27 09:34:17.774 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background?v=stored [36m304 [0m1.161 ms - -[0m
+2026-08-27 09:34:22.747 | BACKEND | NovaStarApiLibBackup             | DEBUG   | NovaStar API connector created {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"username":"admin"}
+2026-08-27 09:34:22.747 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan started {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:34:22.748 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:34:22.749 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:34:22.753 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API login completed {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"userName":"admin"}
+2026-08-27 09:34:22.753 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor started {"baseUrl":"http://127.0.0.1:8080"}
+2026-08-27 09:34:22.759 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor completed {"baseUrl":"http://127.0.0.1:8080","inputSlots":2,"outputSlots":2,"outputPorts":32}
+2026-08-27 09:34:22.760 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan completed {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:34:23.394 | BACKEND | AlertService                     | INFO    | ntfy problem notification sent {"machineId":"1784794563290","severity":"warning","issues":1}
+2026-08-27 09:34:24.368 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m1.226 ms - 95[0m
+2026-08-27 09:34:24.411 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.645 ms - 95[0m
+2026-08-27 09:34:24.582 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [36m304 [0m0.647 ms - -[0m
+2026-08-27 09:34:24.604 | BACKEND | HTTP                             | INFO    | [0mGET /api/config [36m304 [0m0.787 ms - -[0m
+2026-08-27 09:34:24.616 | BACKEND | HTTP                             | INFO    | [0mGET /api/machines [36m304 [0m0.794 ms - -[0m
+2026-08-27 09:34:24.624 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.921 ms - -[0m
+2026-08-27 09:34:24.646 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.576 ms - 72649[0m
+2026-08-27 09:34:24.656 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.828 ms - -[0m
+2026-08-27 09:34:24.661 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m0.813 ms - -[0m
+2026-08-27 09:34:24.667 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background [36m304 [0m0.931 ms - -[0m
+2026-08-27 09:34:24.673 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m1.441 ms - -[0m
+2026-08-27 09:34:24.675 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760725571-f4ea72646ec2e/background [36m304 [0m5.176 ms - -[0m
+2026-08-27 09:34:24.683 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760725571-f4ea72646ec2e/background?v=stored [36m304 [0m1.419 ms - -[0m
+2026-08-27 09:34:27.027 | BACKEND | AlertService                     | INFO    | ntfy problem notification sent {"machineId":"1784150076768","severity":"error","issues":1}
+2026-08-27 09:34:27.880 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760725571-f4ea72646ec2e/export [32m200 [0m142.236 ms - 1680187[0m
+2026-08-27 09:34:29.440 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.440 ms - 95[0m
+2026-08-27 09:34:52.589 | BACKEND | HTTP                             | INFO    | [0mDELETE /api/maps/1787760725571-f4ea72646ec2e [32m204 [0m41.491 ms - -[0m
+2026-08-27 09:34:52.665 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background?v=stored [36m304 [0m1.290 ms - -[0m
+2026-08-27 09:34:52.749 | BACKEND | NovaStarApiLibBackup             | DEBUG   | NovaStar API connector created {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"username":"admin"}
+2026-08-27 09:34:52.749 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan started {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:34:52.751 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:34:52.752 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:34:52.755 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API login completed {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"userName":"admin"}
+2026-08-27 09:34:52.756 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor started {"baseUrl":"http://127.0.0.1:8080"}
+2026-08-27 09:34:52.762 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor completed {"baseUrl":"http://127.0.0.1:8080","inputSlots":2,"outputSlots":2,"outputPorts":32}
+2026-08-27 09:34:52.764 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan completed {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:34:54.440 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.449 ms - 95[0m
+2026-08-27 09:34:54.595 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.080 ms - 72649[0m
+2026-08-27 09:34:54.610 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.754 ms - -[0m
+2026-08-27 09:34:58.206 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.411 ms - 95[0m
+2026-08-27 09:34:58.254 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.589 ms - 95[0m
+2026-08-27 09:34:58.366 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [36m304 [0m0.383 ms - -[0m
+2026-08-27 09:34:58.459 | BACKEND | HTTP                             | INFO    | [0mGET /api/config [36m304 [0m0.526 ms - -[0m
+2026-08-27 09:34:58.476 | BACKEND | HTTP                             | INFO    | [0mGET /api/machines [36m304 [0m1.375 ms - -[0m
+2026-08-27 09:34:58.498 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.867 ms - -[0m
+2026-08-27 09:34:58.515 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.215 ms - 72649[0m
+2026-08-27 09:34:58.537 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.926 ms - -[0m
+2026-08-27 09:34:58.544 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [32m200 [0m0.762 ms - 5726[0m
+2026-08-27 09:34:58.552 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background [36m304 [0m1.755 ms - -[0m
+2026-08-27 09:34:58.555 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m1.251 ms - -[0m
+2026-08-27 09:34:58.568 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background?v=stored [36m304 [0m0.917 ms - -[0m
+2026-08-27 09:35:03.305 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.479 ms - 95[0m
+2026-08-27 09:35:06.350 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.435 ms - 95[0m
+2026-08-27 09:35:06.387 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.585 ms - 95[0m
+2026-08-27 09:35:06.557 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [36m304 [0m0.534 ms - -[0m
+2026-08-27 09:35:06.574 | BACKEND | HTTP                             | INFO    | [0mGET /api/config [36m304 [0m0.667 ms - -[0m
+2026-08-27 09:35:06.602 | BACKEND | HTTP                             | INFO    | [0mGET /api/machines [36m304 [0m1.340 ms - -[0m
+2026-08-27 09:35:06.609 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.705 ms - -[0m
+2026-08-27 09:35:06.622 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.499 ms - 72649[0m
+2026-08-27 09:35:06.640 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.995 ms - -[0m
+2026-08-27 09:35:06.646 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m0.774 ms - -[0m
+2026-08-27 09:35:06.653 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background [36m304 [0m1.187 ms - -[0m
+2026-08-27 09:35:06.655 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m1.251 ms - -[0m
+2026-08-27 09:35:06.666 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background?v=stored [36m304 [0m1.729 ms - -[0m
+2026-08-27 09:35:11.415 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.396 ms - 95[0m
+2026-08-27 09:35:13.550 | BACKEND | HTTP                             | INFO    | [0mPOST /api/maps/import [32m201 [0m9.224 ms - 1228[0m
+2026-08-27 09:35:13.584 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823313547-bbbe8adffd075/background?v=stored [32m200 [0m17.379 ms - 1680610[0m
+2026-08-27 09:35:21.162 | BACKEND | HTTP                             | INFO    | [0mPOST /api/maps [32m201 [0m2.189 ms - 71[0m
+2026-08-27 09:35:21.414 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.448 ms - 95[0m
+2026-08-27 09:35:22.752 | BACKEND | NovaStarApiLibBackup             | DEBUG   | NovaStar API connector created {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"username":"admin"}
+2026-08-27 09:35:22.753 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan started {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:35:22.754 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:35:22.756 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:35:22.762 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API login completed {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"userName":"admin"}
+2026-08-27 09:35:22.763 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor started {"baseUrl":"http://127.0.0.1:8080"}
+2026-08-27 09:35:22.772 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor completed {"baseUrl":"http://127.0.0.1:8080","inputSlots":2,"outputSlots":2,"outputPorts":32}
+2026-08-27 09:35:22.774 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan completed {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:35:27.573 | BACKEND | HTTP                             | INFO    | [0mPUT /api/maps/1787823321160-2c88f0fa7b9b8/background [32m200 [0m3.049 ms - 200[0m
+2026-08-27 09:35:27.589 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823321160-2c88f0fa7b9b8/background?v=1787823327576 [32m200 [0m8.880 ms - 194196[0m
+2026-08-27 09:35:31.203 | BACKEND | HTTP                             | INFO    | [0mPUT /api/maps/1787823321160-2c88f0fa7b9b8/background [32m200 [0m2.866 ms - 199[0m
+2026-08-27 09:35:31.222 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823321160-2c88f0fa7b9b8/background?v=1787823331206 [32m200 [0m7.683 ms - 534455[0m
+2026-08-27 09:35:31.415 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.409 ms - 95[0m
+2026-08-27 09:35:34.573 | BACKEND | HTTP                             | INFO    | [0mPUT /api/maps/1787823321160-2c88f0fa7b9b8/background [32m200 [0m2.696 ms - 199[0m
+2026-08-27 09:35:34.592 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823321160-2c88f0fa7b9b8/background?v=1787823334575 [32m200 [0m10.106 ms - 838649[0m
+2026-08-27 09:35:36.416 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m1.663 ms - 95[0m
+2026-08-27 09:35:36.570 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.139 ms - 72649[0m
+2026-08-27 09:35:36.582 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.696 ms - -[0m
+2026-08-27 09:35:39.415 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.428 ms - 95[0m
+2026-08-27 09:35:39.439 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.556 ms - 95[0m
+2026-08-27 09:35:39.676 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [36m304 [0m0.591 ms - -[0m
+2026-08-27 09:35:39.699 | BACKEND | HTTP                             | INFO    | [0mGET /api/config [36m304 [0m0.688 ms - -[0m
+2026-08-27 09:35:39.723 | BACKEND | HTTP                             | INFO    | [0mGET /api/machines [36m304 [0m1.263 ms - -[0m
+2026-08-27 09:35:39.743 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m1.010 ms - -[0m
+2026-08-27 09:35:39.759 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.526 ms - 72649[0m
+2026-08-27 09:35:39.790 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.751 ms - -[0m
+2026-08-27 09:35:39.799 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [32m200 [0m2.103 ms - 7116[0m
+2026-08-27 09:35:39.817 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps [36m304 [0m2.562 ms - -[0m
+2026-08-27 09:35:39.819 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787760257288-9fc3a1b0a6ef7/background [36m304 [0m6.338 ms - -[0m
+2026-08-27 09:35:39.828 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823321160-2c88f0fa7b9b8/background [32m200 [0m10.363 ms - 838649[0m
+2026-08-27 09:35:39.834 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823313547-bbbe8adffd075/background [32m200 [0m2.201 ms - 1680610[0m
+2026-08-27 09:35:39.854 | BACKEND | HTTP                             | INFO    | [0mGET /api/maps/1787823321160-2c88f0fa7b9b8/background?v=stored [32m200 [0m2.222 ms - 838649[0m
+2026-08-27 09:35:49.510 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.496 ms - 95[0m
+2026-08-27 09:35:52.750 | BACKEND | NovaStarApiLibBackup             | DEBUG   | NovaStar API connector created {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"username":"admin"}
+2026-08-27 09:35:52.750 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan started {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:35:52.751 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:35:52.752 | BACKEND | NovaStarApiLibBackup             | DEBUG   | Native DES unavailable, using pure JS DES helper {"error":"error:0308010C:digital envelope routines::unsupported"}
+2026-08-27 09:35:52.756 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API login completed {"baseUrl":"http://127.0.0.1:8080","deviceId":0,"userName":"admin"}
+2026-08-27 09:35:52.756 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor started {"baseUrl":"http://127.0.0.1:8080"}
+2026-08-27 09:35:52.760 | BACKEND | NovaStarApiLibBackup             | INFO    | NovaStar API monitor completed {"baseUrl":"http://127.0.0.1:8080","inputSlots":2,"outputSlots":2,"outputPorts":32}
+2026-08-27 09:35:52.762 | BACKEND | DeviceMonitor                    | INFO    | NovaStar API scan completed {"host":"127.0.0.1:8080","protocol":"legacy"}
+2026-08-27 09:36:09.695 | BACKEND | HTTP                             | INFO    | [0mGET /api/monitoring [32m200 [0m1.189 ms - 72649[0m
+2026-08-27 09:36:09.705 | BACKEND | HTTP                             | INFO    | [0mGET /api/novastar-traps/status [36m304 [0m0.686 ms - -[0m
+2026-08-27 09:36:19.510 | BACKEND | HTTP                             | INFO    | [0mGET /api/auth/me [32m200 [0m0.449 ms - 95[0m

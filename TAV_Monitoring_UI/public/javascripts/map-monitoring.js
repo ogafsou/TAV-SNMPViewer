@@ -2,6 +2,7 @@ var mapMonitoringMaps = [];
 var mapMonitoringGrid = document.getElementById("mapMonitoringGrid");
 var mapMonitoringEmpty = document.getElementById("mapMonitoringEmpty");
 var mapMonitoringCount = document.getElementById("mapMonitoringCount");
+var mapMonitoringFilters = document.getElementById("mapMonitoringFilters");
 var mapMonitoringDialog = document.getElementById("mapMonitoringDialog");
 var mapMonitoringDialogTitle = document.getElementById("mapMonitoringDialogTitle");
 var mapMonitoringDialogStage = document.getElementById("mapMonitoringDialogStage");
@@ -16,6 +17,9 @@ var mapMonitoringDialogZoom = 1;
 var mapMonitoringDialogPanX = 0;
 var mapMonitoringDialogPanY = 0;
 var mapMonitoringDialogPanGesture = null;
+var selectedMonitoringMapIds = null;
+var previousMonitoringOutputStates = null;
+var monitoringSoundTimer = null;
 
 function mapMonitoringViewIsInitial() {
   return Math.abs(mapMonitoringDialogZoom - 1) < 0.001 &&
@@ -40,10 +44,7 @@ function resetMapMonitoringDialogTransform() {
 }
 
 function mapMonitoringDialogMaximumZoom() {
-  var canvas = mapMonitoringDialogStage && mapMonitoringDialogStage.querySelector(".map-monitoring-canvas");
-  var image = canvas && canvas.querySelector("img");
-  if (!canvas || !image || !image.naturalWidth || !canvas.clientWidth) return 1;
-  return Math.max(1, Math.min(image.naturalWidth / canvas.clientWidth, image.naturalHeight / canvas.clientHeight));
+  return 5;
 }
 
 function zoomMapMonitoringDialogAt(nextZoom, cursorX, cursorY) {
@@ -186,6 +187,13 @@ function createMapMonitoringStage(map, large, referenceOutputs) {
         cell.dataset.cardId = String(assignment.cardId);
         cell.dataset.outputId = String(assignment.outputId);
         cell.title = [assignment.machineName || assignment.machineId, assignment.cardId, assignment.outputId].join(" - ");
+        var cardLabel = document.createElement("span");
+        cardLabel.className = "assignment-card-number";
+        cardLabel.textContent = String(assignment.cardId || "");
+        var outputLabel = document.createElement("span");
+        outputLabel.className = "assignment-output-number";
+        outputLabel.textContent = String(assignment.outputId || "");
+        cell.appendChild(cardLabel); cell.appendChild(outputLabel);
       }
       node.appendChild(cell);
     }
@@ -238,10 +246,17 @@ function sizeMapMonitoringSegments(stage) {
 
 function renderMapMonitoringCards() {
   if (!mapMonitoringGrid) return;
+  if (!selectedMonitoringMapIds) selectedMonitoringMapIds = new Set();
   mapMonitoringGrid.innerHTML = "";
-  mapMonitoringCount.textContent = mapMonitoringMaps.length + " map" + (mapMonitoringMaps.length > 1 ? "s" : "");
-  mapMonitoringEmpty.hidden = mapMonitoringMaps.length !== 0;
-  mapMonitoringMaps.forEach(function(map) {
+  var visibleMaps = mapMonitoringMaps.filter(function(map) { return selectedMonitoringMapIds.has(String(map.id)); });
+  var columns = visibleMaps.length <= 1 ? 1 : (visibleMaps.length === 2 ? 2 : Math.ceil(Math.sqrt(visibleMaps.length)));
+  var rows = Math.max(1, Math.ceil(visibleMaps.length / columns));
+  mapMonitoringGrid.style.setProperty("--map-grid-columns", String(columns));
+  mapMonitoringGrid.style.setProperty("--map-grid-rows", String(rows));
+  mapMonitoringCount.textContent = visibleMaps.length + " map" + (visibleMaps.length > 1 ? "s" : "");
+  mapMonitoringEmpty.hidden = visibleMaps.length !== 0;
+  mapMonitoringEmpty.textContent = mapMonitoringMaps.length ? "Aucune map sélectionnée." : "Aucune map configurée.";
+  visibleMaps.forEach(function(map) {
     var status = mapMonitoringStatus(map);
     var previewingReference = mapReferencePreviewId === map.id && !!map.monitoringReference;
     var card = document.createElement("article");
@@ -274,6 +289,66 @@ function renderMapMonitoringCards() {
     card.appendChild(createMapMonitoringStage(map, false, previewingReference ? map.monitoringReference.outputs : null));
     mapMonitoringGrid.appendChild(card);
   });
+  scheduleMonitoringSounds(visibleMaps);
+}
+
+function initializeMapSelection() {
+  var parameters = new URLSearchParams(window.location.search);
+  var requested = parameters.get("maps");
+  selectedMonitoringMapIds = new Set(requested === null
+    ? mapMonitoringMaps.map(function(map) { return String(map.id); })
+    : requested.split(",").filter(Boolean));
+  renderMapMonitoringFilters();
+}
+
+function renderMapMonitoringFilters() {
+  if (!mapMonitoringFilters) return;
+  mapMonitoringFilters.innerHTML = "";
+  mapMonitoringMaps.forEach(function(map) {
+    var label = document.createElement("label"), checkbox = document.createElement("input");
+    checkbox.type = "checkbox"; checkbox.value = String(map.id);
+    checkbox.checked = selectedMonitoringMapIds.has(String(map.id));
+    var text = document.createElement("span"); text.textContent = map.name;
+    label.appendChild(checkbox); label.appendChild(text); mapMonitoringFilters.appendChild(label);
+  });
+}
+
+function updateMapSelectionUrl() {
+  var parameters = new URLSearchParams(window.location.search);
+  parameters.set("maps", mapMonitoringMaps.filter(function(map) {
+    return selectedMonitoringMapIds.has(String(map.id));
+  }).map(function(map) { return map.id; }).join(","));
+  window.history.replaceState(null, "", window.location.pathname + "?" + parameters.toString() + window.location.hash);
+}
+
+function scheduleMonitoringSounds(visibleMaps) {
+  if (monitoringRefreshInProgress) return;
+  window.clearTimeout(monitoringSoundTimer);
+  monitoringSoundTimer = window.setTimeout(function() { evaluateMonitoringSounds(visibleMaps); }, 150);
+}
+
+function evaluateMonitoringSounds(visibleMaps) {
+  var current = {};
+  visibleMaps.forEach(function(map) {
+    mapMonitoringCurrentOutputs(map).forEach(function(output) { current[map.id + "|" + mapMonitoringOutputKey(output)] = output.ok; });
+  });
+  if (previousMonitoringOutputStates) {
+    var problem = false, recovery = false;
+    Object.keys(current).forEach(function(key) {
+      if (!(key in previousMonitoringOutputStates)) return;
+      if (previousMonitoringOutputStates[key] === true && current[key] === false) problem = true;
+      if (previousMonitoringOutputStates[key] === false && current[key] === true) recovery = true;
+    });
+    if (problem) playMonitoringSound(document.body.dataset.monitoringProblemSound);
+    if (recovery) playMonitoringSound(document.body.dataset.monitoringRecoverySound);
+  }
+  previousMonitoringOutputStates = current;
+}
+
+function playMonitoringSound(source) {
+  if (!source) return;
+  var audio = new Audio(source);
+  audio.play().catch(function() {});
 }
 
 function openMapMonitoring(mapId) {
@@ -319,10 +394,18 @@ async function initializeMapMonitoring() {
     return;
   }
   mapMonitoringMaps = Array.isArray(result) ? result : [];
+  initializeMapSelection();
   renderMapMonitoringCards();
 }
 
 if (mapMonitoringGrid) {
+  if (mapMonitoringFilters) mapMonitoringFilters.addEventListener("change", function(event) {
+    if (!event.target.matches('input[type="checkbox"]')) return;
+    if (event.target.checked) selectedMonitoringMapIds.add(event.target.value);
+    else selectedMonitoringMapIds.delete(event.target.value);
+    previousMonitoringOutputStates = null;
+    updateMapSelectionUrl(); renderMapMonitoringCards();
+  });
   mapMonitoringGrid.addEventListener("click", function(event) {
     var referenceButton = event.target.closest(".map-reference-button");
     if (referenceButton) {

@@ -37,6 +37,7 @@ function createBackend(options) {
   const app = express();
   app.disable("x-powered-by");
   app.use(bodyParser.raw({ type: ["image/png", "image/jpeg", "image/webp", "image/gif"], limit: "15mb" }));
+  app.use(bodyParser.raw({ type: "application/x-maptav", limit: "25mb" }));
   app.use(express.json({ limit: "2mb" }));
   app.use(morgan(config.loglevel === "debug" ? "dev" : "combined", { stream: logger.morgan("HTTP") }));
 
@@ -87,6 +88,23 @@ function createBackend(options) {
   });
   app.post("/api/maps", requireMapAdministrator, (req, res, next) => {
     try { res.status(201).json({ map: mapStore.create(req.body || {}) }); } catch (error) { next(error); }
+  });
+  app.get("/api/maps/:id/export", requireMapAdministrator, (req, res, next) => {
+    try {
+      const map = mapStore.find(req.params.id);
+      if (!map) { const error = new Error("Map introuvable"); error.status = 404; throw error; }
+      const filename = String(map.name || "Map").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_") + ".MapTav";
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodeURIComponent(filename));
+      res.send(mapStore.exportArchive(map.id));
+    } catch (error) { next(error); }
+  });
+  app.post("/api/maps/import", requireMapAdministrator, (req, res, next) => {
+    try {
+      if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Fichier MapTav vide" });
+      const result = mapStore.importArchive(req.body, store.load().map((machine) => machine.id));
+      res.status(201).json(result);
+    } catch (error) { next(error); }
   });
   app.patch("/api/maps/:id", requireMapAdministrator, (req, res, next) => {
     try { res.json({ map: mapStore.update(req.params.id, req.body || {}) }); } catch (error) { next(error); }

@@ -1,7 +1,7 @@
 <section id="monitoringMapsTab" class="tab-panel<%= page === 'monitoring-maps' ? ' active' : '' %>"<% if (page !== 'monitoring-maps') { %> hidden<% } %>>
   <section class="configuration-layout">
     <aside class="machine-sidebar">
-      <div class="add-zone"><button id="addMapButton" type="button">Add</button></div>
+      <div class="add-zone map-file-actions"><button id="addMapButton" type="button">Add</button><button id="importMapButton" type="button">Import</button><input id="importMapFile" type="file" accept=".MapTav,.maptav,application/zip" hidden /></div>
       <div class="machine-list-zone">
         <div class="section-title compact"><h2>Maps</h2><span id="mapCount">0</span></div>
         <select id="mapList" class="machine-list" size="12" aria-label="Liste des maps"></select>
@@ -9,7 +9,7 @@
       </div>
     </aside>
     <section class="monitor-zone map-view-zone">
-      <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2></div>
+      <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2><button id="exportMapButton" type="button" hidden>Export</button></div>
       <div class="map-editor-toolbar">
         <button id="resetMapViewButton" class="map-view-icon-button map-reset-view-button" type="button" aria-label="Réinitialiser la vue" title="Réinitialiser la vue" hidden>
           <img src="/images/resetview.png" alt="" />

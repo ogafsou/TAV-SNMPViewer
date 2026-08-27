@@ -488,7 +488,7 @@
     "backgroundUrl": "/api/maps/1787760257288-9fc3a1b0a6ef7/background"
   },
   {
-    "id": "1787760725571-f4ea72646ec2e",
+    "id": "1787823313547-bbbe8adffd075",
     "name": "SL",
     "segments": [
       {
@@ -572,6 +572,14 @@
     },
     "backgroundMimeType": "image/png",
     "backgroundExtension": "png",
-    "backgroundUrl": "/api/maps/1787760725571-f4ea72646ec2e/background"
+    "backgroundUrl": "/api/maps/1787823313547-bbbe8adffd075/background"
+  },
+  {
+    "id": "1787823321160-2c88f0fa7b9b8",
+    "name": "sss",
+    "segments": [],
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps/1787823321160-2c88f0fa7b9b8/background"
   }
 ]

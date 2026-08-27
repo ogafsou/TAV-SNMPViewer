@@ -8,6 +8,9 @@ var mapList = document.getElementById("mapList");
 var mapListHint = document.getElementById("mapListHint");
 var selectedMapName = document.getElementById("selectedMapName");
 var addMapButton = document.getElementById("addMapButton");
+var importMapButton = document.getElementById("importMapButton");
+var importMapFile = document.getElementById("importMapFile");
+var exportMapButton = document.getElementById("exportMapButton");
 var mapContextMenu = document.getElementById("mapContextMenu");
 var editMapButton = document.getElementById("editMapButton");
 var deleteMapButton = document.getElementById("deleteMapButton");
@@ -91,7 +94,7 @@ function fitMapBackground(resetView) {
 }
 
 function mapMaximumZoom() {
-  return Math.max(1, fittedMapTransform().zoom);
+  return Math.max(5, fittedMapTransform().zoom);
 }
 
 function zoomMapAt(nextZoom, cursorX, cursorY) {
@@ -710,6 +713,7 @@ function renderSelectedMap() {
   mapEditModeLabel.hidden = !map;
   if (!map) mapEditMode.checked = false;
   loadMapBackgroundButton.hidden = !map || !mapEditMode.checked;
+  if (exportMapButton) exportMapButton.hidden = !map;
   if (map && map.backgroundUrl) {
     mapBackgroundImage.src = map.backgroundUrl + "?v=" + encodeURIComponent(map.backgroundVersion || "stored");
     mapBackgroundImage.hidden = false;
@@ -737,6 +741,36 @@ function openMapDialog(map) {
 }
 
 addMapButton.addEventListener("click", function() { openMapDialog(null); });
+if (exportMapButton) exportMapButton.addEventListener("click", function() {
+  var map = selectedMap();
+  if (!map) return;
+  var link = document.createElement("a");
+  link.href = "/api/maps/" + encodeURIComponent(map.id) + "/export";
+  link.download = map.name + ".MapTav";
+  document.body.appendChild(link); link.click(); link.remove();
+});
+if (importMapButton && importMapFile) {
+  importMapButton.addEventListener("click", function() { importMapFile.click(); });
+  importMapFile.addEventListener("change", async function() {
+    var file = importMapFile.files && importMapFile.files[0];
+    if (!file) return;
+    importMapButton.disabled = true;
+    try {
+      var response = await fetch("/api/maps/import", {
+        method: "POST", headers: { "Content-Type": "application/x-maptav" }, body: file
+      });
+      var result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Import impossible");
+      monitoringMaps.push(result.map); selectedMapId = result.map.id; resetMapTransform();
+      renderMapList(); renderSelectedMap();
+      if (result.missingMachineIds && result.missingMachineIds.length) {
+        window.alert("Map importée. Références NovaStar introuvables conservées : " + result.missingMachineIds.join(", "));
+        setStatus("Map importée avec des références NovaStar introuvables", "error");
+      } else setStatus("Map importée", "ok");
+    } catch (error) { setStatus(error.message || "Import impossible", "error"); }
+    finally { importMapButton.disabled = false; importMapFile.value = ""; }
+  });
+}
 cancelMapButton.addEventListener("click", function() { mapDialog.close(); });
 mapEditMode.addEventListener("change", function() { loadMapBackgroundButton.hidden = !mapEditMode.checked || !selectedMapId; renderMapSegments(); });
 loadMapBackgroundButton.addEventListener("click", function() { mapBackgroundFile.click(); });

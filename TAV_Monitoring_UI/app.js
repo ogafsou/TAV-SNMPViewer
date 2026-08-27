@@ -66,6 +66,8 @@ function createFrontend(options) {
         backend_url: config.backend_rest_url,
         rest_refresh_s: config.rest_refresh_s,
         bkgnd_opacity: config.bkgnd_opacity === undefined ? 1 : config.bkgnd_opacity,
+        monitoring_problem_sound: config.monitoring_problem_sound || "",
+        monitoring_recovery_sound: config.monitoring_recovery_sound || "",
         browser_logs_enabled: !!(config.logging && config.logging.browser_logs_enabled),
         browser_batch_interval_ms: config.logging && config.logging.browser_batch_interval_ms || 5000
       });

@@ -17,6 +17,8 @@ function loadConfig(configPath) {
     rest_refresh_s: Number.isFinite(refresh) && refresh >= 0 ? Math.floor(refresh) : 60,
     bkgnd_transparency: transparency + "%",
     bkgnd_opacity: (100 - transparency) / 100,
+    monitoring_problem_sound: String(stored.monitoring_problem_sound || "").trim(),
+    monitoring_recovery_sound: String(stored.monitoring_recovery_sound || "").trim(),
     logging
   };
 }

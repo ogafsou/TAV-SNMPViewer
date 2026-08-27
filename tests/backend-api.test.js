@@ -135,6 +135,24 @@ test("backend exposes sanitized CRUD, scans, snapshots and references", async (t
   assert.equal(response.status, 200);
   assert.deepEqual(referencedMap.monitoringReference.outputs, [{ machineId: "m1", cardId: "2", outputId: "3", ok: true }]);
   assert.equal(Number.isNaN(new Date(referencedMap.monitoringReference.setAt).getTime()), false);
+
+  response = await fetch(base + "/api/maps/" + createdMap.id + "/export");
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "application/zip");
+  const exportedMap = Buffer.from(await response.arrayBuffer());
+  assert.equal(exportedMap.readUInt32LE(0), 0x04034b50);
+  response = await fetch(base + "/api/maps/import", {
+    method: "POST", headers: { "content-type": "application/x-maptav" }, body: exportedMap
+  });
+  const importedMap = await response.json();
+  assert.equal(response.status, 201);
+  assert.notEqual(importedMap.map.id, createdMap.id);
+  assert.equal(importedMap.map.name, "Regie centrale_01");
+  assert.deepEqual(importedMap.missingMachineIds, []);
+  assert.deepEqual(importedMap.map.segments, referencedMap.segments);
+  response = await fetch(base + "/api/maps/" + importedMap.map.id + "/background");
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()), pngBytes);
+  await fetch(base + "/api/maps/" + importedMap.map.id, { method: "DELETE" });
   response = await fetch(base + "/api/maps/" + createdMap.id, { method: "DELETE" });
   assert.equal(response.status, 204);
 

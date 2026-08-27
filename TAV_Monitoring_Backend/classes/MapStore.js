@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { createArchive, readArchive } = require("./MapArchive");
 
 class MapStore {
   constructor(filePath) { this.filePath = filePath; }
@@ -21,9 +22,51 @@ class MapStore {
 
   create(input) {
     const maps = this.load();
-    const map = normalizeMap({ id: String(Date.now()) + "-" + Math.random().toString(16).slice(2), name: input && input.name });
+    const map = normalizeMap({ id: createId(), name: input && input.name });
     validateMap(map);
     maps.push(map); this.save(maps); return map;
+  }
+
+  exportArchive(id) {
+    const map = this.find(id);
+    if (!map) throw notFound();
+    const exported = normalizeMap(Object.assign({}, map, { id: "" }));
+    delete exported.id;
+    delete exported.backgroundUrl;
+    const entries = { "map.json": Buffer.from(JSON.stringify({ format: "TAV Monitoring Map", version: 1, map: exported }, null, 2), "utf8") };
+    const background = this.backgroundPath(map);
+    if (background && fs.existsSync(background)) entries["background." + map.backgroundExtension] = fs.readFileSync(background);
+    return createArchive(entries);
+  }
+
+  importArchive(buffer, machineIds) {
+    let entries;
+    try { entries = readArchive(buffer); } catch (error) { if (!error.status) error.status = 400; throw error; }
+    if (!entries["map.json"]) throw invalidImport();
+    let manifest;
+    try { manifest = JSON.parse(entries["map.json"].toString("utf8")); } catch (_) { throw invalidImport(); }
+    if (!manifest || manifest.format !== "TAV Monitoring Map" || manifest.version !== 1 || !manifest.map) throw invalidImport();
+    const maps = this.load();
+    const imported = normalizeMap(Object.assign({}, manifest.map, {
+      id: createId(),
+      name: uniqueName(manifest.map.name, maps)
+    }));
+    validateMap(imported);
+    const backgroundName = imported.backgroundExtension && "background." + imported.backgroundExtension;
+    if (backgroundName && !entries[backgroundName]) {
+      delete imported.backgroundMimeType; delete imported.backgroundExtension; delete imported.backgroundUrl;
+    }
+    maps.push(imported);
+    this.save(maps);
+    if (backgroundName && entries[backgroundName]) {
+      const target = this.backgroundPath(imported);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, entries[backgroundName], { mode: 0o600 });
+    }
+    const known = new Set((machineIds || []).map(String));
+    const missingMachineIds = Array.from(new Set(imported.segments.flatMap((segment) => segment.assignments)
+      .filter(Boolean).map((assignment) => String(assignment.machineId)).filter((id) => !known.has(id))));
+    return { map: normalizeMap(imported), missingMachineIds };
   }
 
   update(id, patch) {
@@ -151,6 +194,16 @@ function normalizeDate(value) {
 function clampNumber(value, min, max) { const number = Number(value); return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : min; }
 function extensionForMimeType(value) { return ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" })[String(value || "").toLowerCase()] || ""; }
 function validateMap(map) { if (!map.name) { const error = new Error("Le nom de la map est obligatoire"); error.status = 400; throw error; } }
+function createId() { return String(Date.now()) + "-" + Math.random().toString(16).slice(2); }
+function uniqueName(value, maps) {
+  const base = String(value || "").trim();
+  const names = new Set(maps.map((map) => String(map.name).toLowerCase()));
+  if (!names.has(base.toLowerCase())) return base;
+  let suffix = 1;
+  while (names.has((base + "_" + String(suffix).padStart(2, "0")).toLowerCase())) suffix += 1;
+  return base + "_" + String(suffix).padStart(2, "0");
+}
+function invalidImport() { const error = new Error("Fichier MapTav invalide"); error.status = 400; return error; }
 function notFound() { const error = new Error("Map introuvable"); error.status = 404; return error; }
 
 module.exports = { MapStore };

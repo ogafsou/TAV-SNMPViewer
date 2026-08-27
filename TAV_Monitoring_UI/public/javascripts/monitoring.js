@@ -30,6 +30,7 @@ async function refreshMonitoring(manual) {
   } finally {
     refreshMonitoringButton.disabled = false;
     monitoringRefreshInProgress = false;
+    refreshMonitoringMapSegments();
     if (refreshSucceeded) setStatus("Monitoring OK", "ok");
     updateAutoRefreshHint();
   }
