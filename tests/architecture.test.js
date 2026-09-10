@@ -92,7 +92,7 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
   assert.match(view, /style\.css\?v=20260827-1/);
-  assert.match(view, /monitoring-renderers\.js\?v=20260815-1/);
+  assert.match(view, /monitoring-renderers\.js\?v=20260831-1/);
   assert.match(view, /utils\.js\?v=20260723-2/);
   assert.match(view, /auth\.js\?v=20260725-1/);
   assert.match(view, /machine-details\.js\?v=20260723-6/);
@@ -116,6 +116,9 @@ test("Kiloview summary separates actual status text from reference comparison ba
 
   assert.match(renderer, /\(items \|\| \[\]\)\.some\(function\(item\) \{ return item\.changed === true; \}\)/);
   assert.match(renderer, /changed \? ' reference-changed' : ''/);
+  assert.match(renderer, /Valeur courante :/);
+  assert.match(renderer, /Valeur de reference :/);
+  assert.match(renderer, /Tolerance :/);
   assert.match(css, /\.kiloview-summary-table td\.ok\s*\{[^}]*color:\s*#1f9d55;[^}]*background:\s*transparent;/s);
   assert.match(css, /\.kiloview-summary-table td\.warning\s*\{[^}]*color:\s*#e8a600;[^}]*background:\s*transparent;/s);
   assert.match(css, /\.kiloview-summary-table td\.error,[^}]*color:\s*#d92d20;[^}]*background:\s*transparent;/s);
@@ -154,7 +157,7 @@ test("monitoring cards group system health in one compact section", () => {
   assert.match(css, /\.monitoring-card\.never-connected\s*\{[^}]*color:\s*var\(--ink\);[^}]*filter:\s*none;/s);
   assert.doesNotMatch(renderer, /"Nom : "/);
   assert.doesNotMatch(renderer, /"Statut : "/);
-  assert.match(renderer, /Reference attendue : " \+ stateTitle\(item\.referenceState\)/);
+  assert.match(renderer, /Etat de reference : " \+ stateTitle\(item\.referenceState\)/);
   assert.match(css, /table th,[\s\S]*?table td:first-child,[\s\S]*?\.io-status-group > span\s*\{[^}]*font-family:\s*Poppins/);
   assert.match(css, /\.io-status-table th\s*\{[^}]*vertical-align:\s*middle;/s);
 });

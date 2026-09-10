@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/stylesheets/style.css?v=20260827-1" />
   </head>
-  <body data-rest-refresh-s="<%= rest_refresh_s || 0 %>" data-backend-url="<%= backend_url %>" data-browser-logs-enabled="<%= browser_logs_enabled %>" data-browser-log-batch-ms="<%= browser_batch_interval_ms %>" data-monitoring-problem-sound="<%= monitoring_problem_sound %>" data-monitoring-recovery-sound="<%= monitoring_recovery_sound %>" style="--map-background-opacity:<%= bkgnd_opacity %>">
+  <body data-rest-refresh-s="<%= rest_refresh_s || 0 %>" data-backend-url="<%= backend_url %>" data-browser-logs-enabled="<%= browser_logs_enabled %>" data-browser-log-batch-ms="<%= browser_batch_interval_ms %>" data-monitoring-problem-sound="<%= typeof monitoring_problem_sound === "undefined" ? "" : monitoring_problem_sound %>" data-monitoring-recovery-sound="<%= typeof monitoring_recovery_sound === "undefined" ? "" : monitoring_recovery_sound %>" style="--map-background-opacity:<%= bkgnd_opacity %>">
     <script src="/javascripts/browser-logger.js?v=20260816-2"></script>
     <main class="app-shell">
       <%- include("partials/shared/header") %>
@@ -29,7 +29,7 @@
 
     <script src="/javascripts/auth.js?v=20260725-1"></script>
     <script src="/javascripts/utils.js?v=20260723-2"></script>
-    <script src="/javascripts/monitoring-renderers.js?v=20260815-1"></script>
+    <script src="/javascripts/monitoring-renderers.js?v=20260831-1"></script>
     <script src="/javascripts/machine-details.js?v=20260723-6"></script>
     <script src="/javascripts/monitoring.js?v=20260816-1"></script>
     <script src="/javascripts/configuration.js?v=20260816-4"></script>

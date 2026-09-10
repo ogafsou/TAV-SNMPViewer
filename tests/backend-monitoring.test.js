@@ -267,7 +267,10 @@ test("Kiloview bitrate reference comparison uses the configured Mbps threshold",
   assert.equal(applyReferenceMode(machine, buildMonitoringView(kiloviewData(13000)), true).state, "ok");
   const overThreshold = applyReferenceMode(machine, buildMonitoringView(kiloviewData(13001)), true);
   assert.equal(overThreshold.state, "warning");
-  assert.equal(overThreshold.kiloviewGroups.find((group) => group.title === "Video").items.find((item) => item.referenceKey === "kiloview:videoBitrate").changed, true);
+  const bitrateItem = overThreshold.kiloviewGroups.find((group) => group.title === "Video").items.find((item) => item.referenceKey === "kiloview:videoBitrate");
+  assert.equal(bitrateItem.changed, true);
+  assert.equal(bitrateItem.referenceExpectedValue, "12000 Kbit/s");
+  assert.equal(bitrateItem.referenceToleranceMbps, 1);
 });
 
 test("NETGEAR M4300 monitoring maps link, optical speed and optional PoE", () => {

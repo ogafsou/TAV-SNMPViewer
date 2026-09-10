@@ -864,9 +864,14 @@ function kiloviewStatusSummary(groups) {
   }
   function cell(items) {
     var state = itemState(items);
-    var label = state === "ok" ? "OK" : state === "warning" ? "Warn." : "Err.";
+    var label = state === "ok" ? "OK" : state === "warning" ? "Warn." : state === "inactive" ? "-" : "Err.";
     var changed = (items || []).some(function(item) { return item.changed === true; });
-    return '<td class="' + escapeHtml(state) + (changed ? ' reference-changed' : '') + '">' + label + '</td>';
+    var changedItems = (items || []).filter(function(item) { return item.changed === true; });
+    var title = changedItems.map(function(item) {
+      return monitoringItemTooltip(item, item.state || (item.ok === false ? "warning" : "ok"));
+    }).join("\n\n");
+    return '<td class="' + escapeHtml(state) + (changed ? ' reference-changed' : '') + '"' +
+      (title ? ' title="' + escapeHtml(title) + '"' : '') + '>' + label + '</td>';
   }
 
   var systemItems = groupItems(["Systeme"]);
@@ -1063,11 +1068,39 @@ function stateTitle(state) {
 
 function monitoringItemTooltip(item, state) {
   var lines = [monitoringItemIdentity(item) + (state ? " - " + stateTitle(state) : "")];
-  if (item && item.changed && item.referenceState) {
-    lines.push("Reference attendue : " + stateTitle(item.referenceState));
+  if (item && item.changed) {
+    var currentValue = item.value === undefined || item.value === null || item.value === "" ? "-" : String(item.value);
+    var expectedValue = item.referenceExpectedValue === undefined || item.referenceExpectedValue === null || item.referenceExpectedValue === ""
+      ? null : String(item.referenceExpectedValue);
+    lines.push("Valeur courante : " + currentValue);
+    if (expectedValue !== null) lines.push("Valeur de reference : " + expectedValue);
+    else if (item.referenceState) lines.push("Etat de reference : " + stateTitle(item.referenceState));
+    if (item.referenceKey === "kiloview:videoBitrate" && expectedValue !== null) {
+      var currentMbps = monitoringBitrateMbps(currentValue);
+      var expectedMbps = monitoringBitrateMbps(expectedValue);
+      if (currentMbps !== null && expectedMbps !== null) {
+        lines.push("Ecart : " + formatMonitoringNumber(Math.abs(currentMbps - expectedMbps)) + " Mbit/s");
+      }
+      if (item.referenceToleranceMbps !== undefined) {
+        lines.push("Tolerance : " + formatMonitoringNumber(Number(item.referenceToleranceMbps)) + " Mbit/s");
+      }
+    }
   }
   if (item && item.microInterruption) lines.push("Microcoupure détectée : " + item.microInterruption.startedAt + " → " + item.microInterruption.recoveredAt);
   return lines.join("\n");
+}
+
+function monitoringBitrateMbps(value) {
+  var match = String(value || "").trim().match(/(-?\d+(?:[.,]\d+)?)\s*(kbit\/s|kbps|mbit\/s|mbps|mbs)?/i);
+  if (!match) return null;
+  var amount = Number(match[1].replace(",", "."));
+  if (!Number.isFinite(amount)) return null;
+  return /^k/i.test(match[2] || "") ? amount / 1000 : amount;
+}
+
+function formatMonitoringNumber(value) {
+  if (!Number.isFinite(value)) return "-";
+  return String(Math.round(value * 1000) / 1000).replace(".", ",");
 }
 
 function monitoringItemIdentity(item) {

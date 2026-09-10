@@ -202,6 +202,13 @@ function markReferenceChanges(view, reference, current, machine) {
       let expected = reference.controls[item.referenceKey];
       try { expected = JSON.parse(expected); } catch (_) {}
       item.referenceState = expected && typeof expected === "object" ? expected.state : expected;
+      if (expected && typeof expected === "object" && Object.prototype.hasOwnProperty.call(expected, "value")) {
+        item.referenceExpectedValue = expected.value;
+      }
+      if (item.referenceKey === "kiloview:videoBitrate") {
+        const configured = Number(machine && machine.kiloviewBitrateThresholdMbps);
+        item.referenceToleranceMbps = Number.isFinite(configured) && configured >= 0 ? configured : 1;
+      }
     }
   };
   collectReferenceItems(view).forEach(mark);
