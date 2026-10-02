@@ -41,22 +41,26 @@ function buildMonitoringView(data) {
       if (state === "ok") state = "inactive";
       const item = Object.assign(referenceItem(slot.label, state, "rj45", slot.id + ":-", { state, icon: "rj45" }), {
         name: "Output " + slot.label,
-        value: "Aucun port actif"
+        value: "Détail des ports indisponible"
       });
       items.push(item);
       outputTables.push({ label: slot.label, ports: [Object.assign({}, item, { label: "-" })] });
       return items;
     }
-    const cells = ports.map((port) => {
+    const groups = new Map();
+    ports.forEach((port) => {
       const state = port.state === "unknown" ? rawPortState(port.fields.status) : port.state;
-      const item = Object.assign(referenceItem(slot.label + "." + port.label, state, "rj45", port.id, { state, icon: "rj45" }), {
+      const icon = interfaceIcon({ type: { value: port.interfaceType } }) || interfaceIcon(port.fields) || "rj45";
+      const item = Object.assign(referenceItem(slot.label + "." + port.label, state, icon, port.id, { state, icon }), {
         name: "Output " + slot.label + "." + port.label,
         value: fieldValue(port.fields.status) || stateTitle(state)
       });
       items.push(item);
-      return Object.assign({}, item, { label: port.label });
+      const label = port.groupLabel ? slot.label + " / " + port.groupLabel : slot.label;
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(Object.assign({}, item, { label: port.portLabel || port.label }));
     });
-    outputTables.push({ label: slot.label, ports: cells });
+    groups.forEach((cells, label) => outputTables.push({ label, ports: cells }));
     return items;
   }, []);
 
@@ -334,7 +338,7 @@ function iconStatusItem(label, field, icon, key) {
   });
 }
 function fieldVisualState(field) {
-  if (!field || field.value === "" || field.value === null || field.value === undefined || field.state === "notApplicable") return "inactive";
+  if (!field || field.value === "" || field.value === null || field.value === undefined || field.state === "notApplicable" || field.state === "inactive") return "inactive";
   if (field.error || looksLikeError(field.value)) return "error";
   if (field.ok === false || looksLikeProblem(field.value)) return "warning";
   return "ok";

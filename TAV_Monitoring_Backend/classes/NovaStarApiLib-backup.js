@@ -273,7 +273,7 @@ function buildInputSource(intf, resolution) {
       width: field(resolution.width || ""),
       height: field(resolution.height || ""),
       frameRate: field(formatRefresh(resolution.refresh)),
-      type: field(interfaceTypeName(intf.interfaceType)),
+      type: field(inputInterfaceTypeName(intf.interfaceType)),
       rawType: field(intf.interfaceType),
       used: field(intf.isUsed),
       overload: statusField(intf.overLoadState)
@@ -281,10 +281,40 @@ function buildInputSource(intf, resolution) {
   };
 }
 
+function outputInterfaces(slot) {
+  const senders = Array.isArray(slot.senderInterfaceStatus) ? slot.senderInterfaceStatus : [];
+  if (senders.length) return senders.flatMap((item) => {
+    if (!item) return [];
+    if (item.type === 0) return [{ portId: Number(item.id) + 1, status: item.status, typeName: "RJ45" }];
+    if (item.type !== 1) return [];
+    // Child IDs are local to each optical connector. Do not conflate them
+    // with SNMP's flat netPortId without a verified device-specific mapping.
+    return (item.subsetStatus || []).filter((child) => child && child.type === 0).map((child) => ({
+      portId: `OPT${Number(item.id) + 1}:${Number(child.id) + 1}`,
+      groupLabel: `OPT ${Number(item.id) + 1}`,
+      portLabel: String(Number(child.id) + 1),
+      status: child.status,
+      typeName: "RJ45",
+      fiberStatus: item.status
+    }));
+  });
+  return (slot.interfaces || []).filter(Boolean).map((intf) => ({
+    portId: Number(intf.interfaceId) + 1,
+    status: Number(slot.cardCategory) === 18 && Number(intf.interfaceType) === 25 && Number(intf.isUsed) === 0
+      ? 0
+      : intf.iSignal,
+    typeName: outputInterfaceTypeName(slot, intf)
+  }));
+}
+
+function outputInterfaceTypeName(slot, intf) {
+  if (Number(slot.cardCategory) === 8 && Number(intf.interfaceType) === 6) return "HDMI (6)";
+  if (Number(slot.cardCategory) === 18 && Number(intf.interfaceType) === 25) return "SDI (25)";
+  return interfaceTypeName(intf.interfaceType);
+}
+
 function buildOutputSlot(slot) {
-  const statuses = Array.isArray(slot.senderInterfaceStatus)
-    ? slot.senderInterfaceStatus.filter((item) => item && item.type === 0)
-    : [];
+  const statuses = outputInterfaces(slot);
 
   return {
     slotId: `O-${Number(slot.slotId) + 1}`,
@@ -307,27 +337,28 @@ function buildOutputSlot(slot) {
       }))
     },
     outputPorts: statuses.map((item) => ({
-      portId: Number(item.id) + 1,
+      portId: item.portId,
+      groupLabel: item.groupLabel,
+      portLabel: item.portLabel,
+      interfaceType: item.typeName,
       status: item.status,
-      type: item.type
+      fields: { status: field(item.status), type: field(item.typeName) }
     }))
   };
 }
 
 function buildOutputPorts(slot) {
-  const statuses = Array.isArray(slot.senderInterfaceStatus)
-    ? slot.senderInterfaceStatus.filter((item) => item && item.type === 0)
-    : [];
+  const statuses = outputInterfaces(slot);
 
   return statuses.map((item) => ({
     outputSlotId: `O-${Number(slot.slotId) + 1}`,
-    netPortId: Number(item.id) + 1,
+    netPortId: item.portId,
     recvCardId: "-",
     fields: {
       netPortLinkStatus: linkStatusField(item.status),
       netPortBackupStatus: field(""),
       backupNetPortLinkStatus: field(""),
-      fiberLinkStatus: field(slot.linkstatus ? slot.linkstatus[`link${item.id}`] : ""),
+      fiberLinkStatus: field(item.fiberStatus === undefined ? "" : item.fiberStatus),
       summary: field(JSON.stringify(item)),
       workingStatus: linkStatusField(item.status),
       temperatureStatus: field(""),
@@ -465,7 +496,9 @@ function binaryActiveField(value) {
 function inactiveOrActiveField(value) {
   const number = Number(value);
   if (value === undefined || value === null || value === "") return field("");
-  return field(number === 1 ? "Actif" : number === 0 ? "Inactif" : `Anomalie (${value})`, number === 0 || number === 1);
+  const result = field(number === 1 ? "Actif" : number === 0 ? "Inactif" : `Anomalie (${value})`, number === 0 || number === 1);
+  if (number === 0) result.state = "inactive";
+  return result;
 }
 
 function powerSignalField(value) {
@@ -546,6 +579,14 @@ function interfaceTypeName(value) {
     13: "MVR"
   };
   return names[value] ? `${names[value]} (${value})` : String(value);
+}
+
+function inputInterfaceTypeName(value) {
+  const inputNames = {
+    6: "HDMI 2.0",
+    9: "3G-SDI"
+  };
+  return inputNames[value] ? `${inputNames[value]} (${value})` : interfaceTypeName(value);
 }
 
 function normalizeBaseUrl(value) {

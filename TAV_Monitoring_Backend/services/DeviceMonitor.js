@@ -271,9 +271,13 @@ function buildHybridMonitor(snmpData, apiData) {
   const base = Object.assign({}, apiData || {}, snmpData || {});
   base.controller = mergePreferred(snmpData && snmpData.controller, apiData && apiData.controller);
   if (apiData && apiData.controller) {
-    ["temperatureStatus", "voltageStatus", "cpuStatus", "memoryStatus", "memoryValue", "ethernetStatus"].forEach((key) => {
+    ["temperatureStatus", "voltageStatus", "cpuStatus", "memoryStatus", "memoryValue", "ethernetStatus", "genlockFrame"].forEach((key) => {
       base.controller[key] = mergePreferred(apiData.controller[key], snmpData && snmpData.controller && snmpData.controller[key]);
     });
+    const apiGenlock = apiData.controller.genlockStatus;
+    if (isField(apiGenlock) && !apiGenlock.error && isPresent(apiGenlock.value)) {
+      base.controller.genlockStatus = apiGenlock;
+    }
   }
   ["outputPorts", "mvrCards", "usbPorts", "fans", "powerSupplies"].forEach((key) => {
     base[key] = apiData && Array.isArray(apiData[key]) ? apiData[key] : [];

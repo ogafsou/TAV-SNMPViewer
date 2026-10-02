@@ -25,6 +25,9 @@ function canonicalizeIo(data, sourceName) {
       const portId = numberOrText(port.portId);
       add(entities, observations, `${slotId}:${portId}`, "output", String(portId), slotId,
         port.fields || { status: field(port.status) }, source, observedAt);
+      Object.assign(entities[entities.length - 1], {
+        groupLabel: port.groupLabel, portLabel: port.portLabel, interfaceType: port.interfaceType
+      });
     }
   }
 
@@ -271,6 +274,9 @@ function selectIo(data) {
     id: entity.id,
     label: entity.label,
     parentId: entity.parentId,
+    groupLabel: entity.groupLabel,
+    portLabel: entity.portLabel,
+    interfaceType: entity.interfaceType,
     fields: resolved[entity.id] && resolved[entity.id].fields || {},
     state: resolved[entity.id] && resolved[entity.id].state || "unknown",
     source: resolved[entity.id] && resolved[entity.id].source || "none",

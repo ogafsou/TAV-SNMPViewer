@@ -7,7 +7,7 @@ const { MachineStore } = require("../TAV_Monitoring_Backend/classes/MachineStore
 const MonitoringService = require("../TAV_Monitoring_Backend/services/MonitoringService");
 const SNMPConnector = require("../TAV_Monitoring_Backend/classes/SnmpLib");
 const { buildMonitoringView, applyReferenceMode, buildReferenceSnapshot } = require("../TAV_Monitoring_Backend/services/MonitoringState");
-const { createDeviceMonitor } = require("../TAV_Monitoring_Backend/services/DeviceMonitor");
+const { createDeviceMonitor, buildHybridMonitor } = require("../TAV_Monitoring_Backend/services/DeviceMonitor");
 const { canonicalizeIo, combineIo } = require("../TAV_Monitoring_Backend/services/CanonicalIo");
 
 function data(frame, uptime) {
@@ -121,6 +121,29 @@ test("hybrid reconciliation keeps both observations and prefers SNMP for operati
   assert.equal(missingFromApi.reason, "missing-observation");
   assert.equal(missingFromApi.observations.api.present, false);
   assert.equal(hybrid.resolvedState["input:I-3:2"].agreement, false);
+});
+
+test("hybrid monitoring prefers API Genlock status and frame", () => {
+  const snmp = data("50 Hz", "1");
+  snmp.controller.genlockStatus = { ok: true, value: "Normal" };
+  snmp.controller.genlockFrame = { ok: true, value: "50 Hz" };
+  const api = data("0 Hz", "1");
+  api.controller.genlockStatus = { ok: false, value: "Anomalie (2)" };
+  api.controller.genlockFrame = { ok: true, value: "0 Hz" };
+
+  const hybrid = buildHybridMonitor(snmp, api);
+
+  assert.deepEqual(hybrid.controller.genlockStatus, api.controller.genlockStatus);
+  assert.deepEqual(hybrid.controller.genlockFrame, api.controller.genlockFrame);
+  assert.equal(buildMonitoringView(hybrid).systemHealth.find(item => item.label === "Genlock").state, "warning");
+});
+
+test("hybrid monitoring falls back to SNMP when API Genlock collection fails", () => {
+  const snmp = data("50 Hz", "1");
+  const api = data("", "1");
+  api.controller.genlockStatus = { ok: false, value: null, error: "API unavailable" };
+
+  assert.deepEqual(buildHybridMonitor(snmp, api).controller.genlockStatus, snmp.controller.genlockStatus);
 });
 
 test("divergence report compares semantic states before raw API and SNMP values", () => {

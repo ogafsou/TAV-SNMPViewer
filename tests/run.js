@@ -1,6 +1,7 @@
 require("./architecture.test");
 require("./backend-api.test");
 require("./backend-monitoring.test");
+require("./novastar-output-ports.test");
 require("./backend-openapi.test");
 require("./backend-alerts.test");
 require("./backend-websocket.test");
