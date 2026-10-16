@@ -1,0 +1,1141 @@
+[
+  {
+    "id": "1792170975672-b8606796d622c",
+    "name": "PC",
+    "segments": [
+      {
+        "id": "1787760272745-96339be11f477",
+        "orientation": "horizontal",
+        "reversed": false,
+        "x": 0.3874684465183022,
+        "y": 0.3879904484099749,
+        "length": 0.23229166666666662,
+        "cases": 25,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "1"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 19,
+            "end": 0,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "1"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1787760275228-6775d429cc0328",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.6270517798516355,
+        "y": 0.42322981011210253,
+        "length": 0.14561170212765956,
+        "cases": 8,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760607584-5b7fc466ff3978",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.3357861630620587,
+        "y": 0.3408798830497257,
+        "length": 0.3085106382978723,
+        "cases": 33,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760643243-b781215e253938",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.658434928162617,
+        "y": 0.3595519246935254,
+        "length": 0.09290026243382388,
+        "cases": 8,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760646736-977fffaa04732",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.6441010745396203,
+        "y": 0.3778504612335211,
+        "length": 0.03237433387845373,
+        "cases": 2,
+        "assignments": [
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760654170-70ec5faa71d81",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.66436032686441,
+        "y": 0.5263062286548432,
+        "length": 0.15093085106382975,
+        "cases": 10,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760670714-226e6348dd8f98",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.6761832435310767,
+        "y": 0.5263062286548432,
+        "length": 0.15093085106382975,
+        "cases": 10,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760683689-d826f2a6eb9948",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.6675314121925955,
+        "y": 0.3595519246935254,
+        "length": 0.09290026243382388,
+        "cases": 8,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      },
+      {
+        "id": "1787760687938-522797254ff0f8",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.34310939538529106,
+        "y": 0.3408798830497257,
+        "length": 0.3085106382978723,
+        "cases": 33,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      }
+    ],
+    "monitoringReference": {
+      "setAt": "2026-08-26T16:08:37.272Z",
+      "outputs": [
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "1",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "10",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "11",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "12",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "13",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "14",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "15",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "16",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "2",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "3",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "4",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "5",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "7",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "8",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "1",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "2",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "3",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "4",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "5",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "6",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "7",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-4",
+          "outputId": "8",
+          "ok": true
+        }
+      ]
+    },
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps-v2/1792170975672-b8606796d622c/background"
+  },
+  {
+    "id": "1792170975764-c6cbc54139af5",
+    "name": "SL",
+    "segments": [
+      {
+        "id": "1787760738455-a9bd9efeb12618",
+        "orientation": "horizontal",
+        "reversed": false,
+        "x": 0.33822459374242053,
+        "y": 0.2887864823348694,
+        "length": 0.37375697307785594,
+        "cases": 8,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": []
+      }
+    ],
+    "monitoringReference": {
+      "setAt": "2026-08-26T16:12:35.525Z",
+      "outputs": [
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "1",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "2",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "3",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "4",
+          "ok": true
+        },
+        {
+          "machineId": "1784794563290",
+          "cardId": "O-3",
+          "outputId": "5",
+          "ok": true
+        }
+      ]
+    },
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps-v2/1792170975764-c6cbc54139af5/background"
+  },
+  {
+    "id": "1792170975821-e6b3cf3030a5",
+    "name": "sss",
+    "segments": [],
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps-v2/1792170975821-e6b3cf3030a5/background"
+  },
+  {
+    "id": "1792171355781-d72e1d77d819b",
+    "name": "Lyon",
+    "segments": [
+      {
+        "id": "1792171456038-03aea6b005fc58",
+        "orientation": "horizontal",
+        "reversed": false,
+        "x": 0.13929669032480455,
+        "y": 0.07947236991257503,
+        "length": 0.7008695652173913,
+        "cases": 48,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 20,
+            "end": 39,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "2"
+            }
+          },
+          {
+            "role": "main",
+            "start": 40,
+            "end": 47,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "3"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 19,
+            "end": 0,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "1"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 39,
+            "end": 20,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "2"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 47,
+            "end": 40,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "3"
+            }
+          },
+          {
+            "role": "main",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "1"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1792171612944-3b2e1c8d49d778",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.85906505748703,
+        "y": 0.23076754136783414,
+        "length": 0.6464347826086956,
+        "cases": 40,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "4"
+            }
+          },
+          {
+            "role": "main",
+            "start": 20,
+            "end": 39,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "5"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "4"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 39,
+            "end": 20,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "5"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1792171805862-2165b4b11c3ac8",
+        "orientation": "vertical",
+        "reversed": false,
+        "x": 0.9446772311681398,
+        "y": 0.22968616132315436,
+        "length": 0.647676296674898,
+        "cases": 40,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 39,
+            "end": 20,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "6"
+            }
+          },
+          {
+            "role": "main",
+            "start": 19,
+            "end": 0,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "7"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "7"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 20,
+            "end": 39,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "6"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1792173268422-96a5373d0bc1e8",
+        "orientation": "vertical",
+        "reversed": true,
+        "x": 0.13584766618268218,
+        "y": 0.22381662972688038,
+        "length": 0.6464347826086957,
+        "cases": 40,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "4"
+            }
+          },
+          {
+            "role": "main",
+            "start": 20,
+            "end": 39,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "5"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "4"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 39,
+            "end": 20,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "5"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1792173283383-5b977137eee93",
+        "orientation": "vertical",
+        "reversed": true,
+        "x": 0.04930145827150523,
+        "y": 0.22794843341291587,
+        "length": 0.647676296674898,
+        "cases": 40,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 39,
+            "end": 20,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "6"
+            }
+          },
+          {
+            "role": "main",
+            "start": 19,
+            "end": 0,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "7"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "7"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 20,
+            "end": 39,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "6"
+            }
+          }
+        ]
+      },
+      {
+        "id": "1792173385919-b45d5ebe6534e",
+        "orientation": "horizontal",
+        "reversed": true,
+        "x": 0.13436393576914618,
+        "y": 0.9208555629517771,
+        "length": 0.7295652173913043,
+        "cases": 50,
+        "assignments": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "moduleRanges": [
+          {
+            "role": "main",
+            "start": 0,
+            "end": 19,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "1"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 19,
+            "end": 0,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "1"
+            }
+          },
+          {
+            "role": "main",
+            "start": 20,
+            "end": 39,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "2"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 39,
+            "end": 20,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "2"
+            }
+          },
+          {
+            "role": "main",
+            "start": 40,
+            "end": 49,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-3",
+              "outputId": "3"
+            }
+          },
+          {
+            "role": "backup",
+            "start": 49,
+            "end": 40,
+            "assignment": {
+              "machineId": "1783432154855",
+              "machineName": "H5-Main",
+              "cardId": "O-4",
+              "outputId": "3"
+            }
+          }
+        ]
+      }
+    ],
+    "backgroundMimeType": "image/png",
+    "backgroundExtension": "png",
+    "backgroundUrl": "/api/maps-v2/1792171355781-d72e1d77d819b/background"
+  }
+]

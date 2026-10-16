@@ -3,17 +3,19 @@ const path = require("path");
 const { createArchive, readArchive } = require("./MapArchive");
 
 class MapStore {
-  constructor(filePath) { this.filePath = filePath; }
+  constructor(filePath, apiBase = "/api/maps") { this.filePath = filePath; this.apiBase = apiBase; }
+
+  normalize(value) { return normalizeMap(value, this.apiBase); }
 
   load() {
     if (!fs.existsSync(this.filePath)) { this.save([]); return []; }
     const value = JSON.parse(fs.readFileSync(this.filePath, "utf8"));
-    return Array.isArray(value) ? value.map(normalizeMap) : [];
+    return Array.isArray(value) ? value.map((map) => this.normalize(map)) : [];
   }
 
   save(maps) {
     fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
-    const normalized = maps.map(normalizeMap);
+    const normalized = maps.map((map) => this.normalize(map));
     const temporaryPath = this.filePath + "." + process.pid + ".tmp";
     fs.writeFileSync(temporaryPath, JSON.stringify(normalized, null, 2) + "\n", { encoding: "utf8", mode: 0o600 });
     fs.renameSync(temporaryPath, this.filePath);
@@ -22,7 +24,7 @@ class MapStore {
 
   create(input) {
     const maps = this.load();
-    const map = normalizeMap({ id: createId(), name: input && input.name });
+    const map = this.normalize({ id: createId(), name: input && input.name });
     validateMap(map);
     maps.push(map); this.save(maps); return map;
   }
@@ -30,7 +32,7 @@ class MapStore {
   exportArchive(id) {
     const map = this.find(id);
     if (!map) throw notFound();
-    const exported = normalizeMap(Object.assign({}, map, { id: "" }));
+    const exported = this.normalize(Object.assign({}, map, { id: "" }));
     delete exported.id;
     delete exported.backgroundUrl;
     const entries = { "map.json": Buffer.from(JSON.stringify({ format: "TAV Monitoring Map", version: 1, map: exported }, null, 2), "utf8") };
@@ -47,7 +49,7 @@ class MapStore {
     try { manifest = JSON.parse(entries["map.json"].toString("utf8")); } catch (_) { throw invalidImport(); }
     if (!manifest || manifest.format !== "TAV Monitoring Map" || manifest.version !== 1 || !manifest.map) throw invalidImport();
     const maps = this.load();
-    const imported = normalizeMap(Object.assign({}, manifest.map, {
+    const imported = this.normalize(Object.assign({}, manifest.map, {
       id: createId(),
       name: uniqueName(manifest.map.name, maps)
     }));
@@ -64,16 +66,16 @@ class MapStore {
       fs.writeFileSync(target, entries[backgroundName], { mode: 0o600 });
     }
     const known = new Set((machineIds || []).map(String));
-    const missingMachineIds = Array.from(new Set(imported.segments.flatMap((segment) => segment.assignments)
+    const missingMachineIds = Array.from(new Set(imported.segments.flatMap((segment) => segment.assignments.concat(segment.moduleRanges.map((range) => range.assignment)))
       .filter(Boolean).map((assignment) => String(assignment.machineId)).filter((id) => !known.has(id))));
-    return { map: normalizeMap(imported), missingMachineIds };
+    return { map: this.normalize(imported), missingMachineIds };
   }
 
   update(id, patch) {
     const maps = this.load();
     const index = maps.findIndex((map) => map.id === String(id));
     if (index < 0) throw notFound();
-    maps[index] = normalizeMap(Object.assign({}, maps[index], { name: patch && patch.name }));
+    maps[index] = this.normalize(Object.assign({}, maps[index], { name: patch && patch.name }));
     validateMap(maps[index]); this.save(maps); return maps[index];
   }
 
@@ -101,16 +103,16 @@ class MapStore {
     fs.writeFileSync(target, buffer, { mode: 0o600 });
     if (previousPath && previousPath !== target && fs.existsSync(previousPath)) fs.unlinkSync(previousPath);
     this.save(maps);
-    return normalizeMap(maps[index]);
+    return this.normalize(maps[index]);
   }
 
   setSegments(id, segments) {
     const maps = this.load();
     const index = maps.findIndex((map) => map.id === String(id));
     if (index < 0) throw notFound();
-    maps[index].segments = normalizeSegments(segments);
+    maps[index].segments = normalizeSegments(segments, this.apiBase === "/api/maps-v2");
     this.save(maps);
-    return normalizeMap(maps[index]);
+    return this.normalize(maps[index]);
   }
 
   setReference(id, outputs) {
@@ -122,7 +124,7 @@ class MapStore {
       outputs: normalizeReferenceOutputs(outputs)
     };
     this.save(maps);
-    return normalizeMap(maps[index]);
+    return this.normalize(maps[index]);
   }
 
   backgroundPath(map) {
@@ -133,8 +135,8 @@ class MapStore {
   find(id) { return this.load().find((map) => map.id === String(id)) || null; }
 }
 
-function normalizeMap(value) {
-  const map = { id: String(value.id || ""), name: String(value.name || "").trim(), segments: normalizeSegments(value.segments) };
+function normalizeMap(value, apiBase = "/api/maps") {
+  const map = { id: String(value.id || ""), name: String(value.name || "").trim(), segments: normalizeSegments(value.segments, apiBase === "/api/maps-v2") };
   if (value.monitoringReference && typeof value.monitoringReference === "object") {
     map.monitoringReference = {
       setAt: normalizeDate(value.monitoringReference.setAt),
@@ -144,24 +146,41 @@ function normalizeMap(value) {
   if (extensionForMimeType(value.backgroundMimeType) === value.backgroundExtension) {
     map.backgroundMimeType = value.backgroundMimeType;
     map.backgroundExtension = value.backgroundExtension;
-    map.backgroundUrl = "/api/maps/" + encodeURIComponent(map.id) + "/background";
+    map.backgroundUrl = apiBase + "/" + encodeURIComponent(map.id) + "/background";
   }
   return map;
 }
-function normalizeSegments(value) {
+function normalizeSegments(value, allowOverflow = false) {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 500).map((segment) => {
     const cases = Math.round(clampNumber(segment.cases, 1, 500));
     return {
       id: String(segment.id || "").slice(0, 100),
       orientation: segment.orientation === "vertical" ? "vertical" : "horizontal",
-      x: clampNumber(segment.x, 0, 1),
-      y: clampNumber(segment.y, 0, 1),
-      length: clampNumber(segment.length, 0.005, 1),
+      reversed: segment.reversed === true,
+      x: clampNumber(segment.x, allowOverflow ? -1000 : 0, allowOverflow ? 1000 : 1),
+      y: clampNumber(segment.y, allowOverflow ? -1000 : 0, allowOverflow ? 1000 : 1),
+      length: clampNumber(segment.length, 0.005, allowOverflow ? 1000 : 1),
       cases,
-      assignments: normalizeAssignments(segment.assignments, cases)
+      assignments: normalizeAssignments(segment.assignments, cases),
+      moduleRanges: normalizeModuleRanges(segment.moduleRanges, cases)
     };
   }).filter((segment) => segment.id);
+}
+function normalizeModuleRanges(value, cases) {
+  if (!Array.isArray(value)) return [];
+  const occupied = { main: new Set(), backup: new Set() };
+  return value.slice(0, 1000).map((range) => {
+    if (!range || !["main", "backup"].includes(range.role)) return null;
+    const assignment = normalizeAssignment(range.assignment);
+    const start = Number(range.start), end = Number(range.end);
+    if (!assignment || !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < 0 || start >= cases || end >= cases) return null;
+    for (let index = Math.min(start, end); index <= Math.max(start, end); index++) {
+      if (occupied[range.role].has(index)) return null;
+    }
+    for (let index = Math.min(start, end); index <= Math.max(start, end); index++) occupied[range.role].add(index);
+    return { role: range.role, start, end, assignment };
+  }).filter(Boolean);
 }
 function normalizeAssignments(value, cases) {
   const assignments = Array.isArray(value) ? value : [];

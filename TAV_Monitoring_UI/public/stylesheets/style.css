@@ -2951,3 +2951,116 @@ td,
   .monitoring-card-dialog { width: calc(100% - 12px); max-height: calc(100dvh - 12px); }
   .monitoring-card-dialog #monitoringCardDialogContent { padding: 8px; }
 }
+.map-v2 .module-led {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  padding: 0;
+  background: #454d5f;
+}
+.map-v2 .module-led button.module-triangle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #454d5f;
+  cursor: pointer;
+  box-shadow: none;
+}
+.map-v2 .module-led button.module-triangle.main { clip-path: polygon(0 0, 100% 0, 0 100%); }
+.map-v2 .module-led button.module-triangle.backup { clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.map-v2 .module-led button.module-triangle.ok { background: #32c99a; }
+.map-v2 .module-led button.module-triangle.error { background: #d71920; }
+.map-v2 .module-led button.module-triangle.pending { background: repeating-linear-gradient(135deg, #e8b04b 0 4px, #333d50 4px 8px); }
+.map-v2 .module-led button.module-triangle:hover { filter: brightness(1.25); }
+.map-v2 .module-led button.module-triangle:focus-visible { background: #edbd51; outline: 2px solid white; outline-offset: -2px; }
+.map-v2 .module-led::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, transparent calc(50% - .6px), #101417 50%, transparent calc(50% + .6px));
+}
+.map-v2 .module-number {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  color: white;
+  font-size: clamp(6px, .65vw, 11px);
+  line-height: 1;
+  text-shadow: 0 1px 2px black, 0 0 3px black;
+  z-index: 1;
+}
+.map-v2 #moduleRangeHint { margin: 8px 0; font-size: 13px; color: var(--muted, #aab5c7); }
+.map-v2 .module-led button.module-triangle.micro-interruption { animation: map-v2-interruption 1s steps(2, start) infinite; }
+@keyframes map-v2-interruption { 50% { background: #f0a42e; } }
+.map-v2 .module-start-arrow {
+  position: absolute;
+  display: block;
+  width: clamp(7px, 38%, 12px);
+  height: 12px;
+  z-index: 3;
+  cursor: help;
+  filter: drop-shadow(0 0 1px #101417);
+}
+.map-v2 .module-start-arrow svg { display: block; width: 100%; height: 100%; fill: currentColor; pointer-events: none; }
+.map-v2 .module-start-arrow.main { color: #32c99a; }
+.map-v2 .module-start-arrow.backup { color: #ff9f32; }
+.map-v2 .module-start-arrow.horizontal.main { left: 25%; bottom: calc(100% + 2px); transform: translateX(-50%); }
+.map-v2 .module-start-arrow.horizontal.backup { left: 75%; top: calc(100% + 2px); transform: translateX(-50%); }
+.map-v2 .module-start-arrow.vertical { width: 10px; height: clamp(7px, 38%, 12px); }
+.map-v2 .module-start-arrow.vertical.main { right: calc(100% + 2px); top: 25%; transform: translateY(-50%); }
+.map-v2 .module-start-arrow.vertical.backup { left: calc(100% + 2px); top: 75%; transform: translateY(-50%); }
+.map-v2 .module-start-arrow.horizontal.backup svg { transform: rotate(180deg); }
+.map-v2 .module-start-arrow.vertical.main svg { transform: rotate(-90deg); }
+.map-v2 .module-start-arrow.vertical.backup svg { transform: rotate(90deg); }
+.map-v2 .module-start-label {
+  position: absolute;
+  width: max-content;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(10, 15, 23, .88);
+  color: inherit;
+  font: 600 10px/1.3 sans-serif;
+  white-space: nowrap;
+}
+.map-v2 .horizontal.main .module-start-label { bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); }
+.map-v2 .horizontal.backup .module-start-label { top: calc(100% + 2px); left: 50%; transform: translateX(-50%); }
+.map-v2 .vertical.main .module-start-label { right: calc(100% + 3px); top: 50%; transform: translateY(-50%); }
+.map-v2 .vertical.backup .module-start-label { left: calc(100% + 3px); top: 50%; transform: translateY(-50%); }
+.map-v2 .map-monitoring-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.map-v2 .map-monitoring-dialog[open] { display: flex; flex-direction: column; }
+.map-v2 .map-monitoring-dialog-head {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: 6px 8px;
+  border: 0;
+  background: rgba(23, 28, 41, .86);
+}
+.map-v2 .map-monitoring-dialog .map-monitoring-stage {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto;
+}

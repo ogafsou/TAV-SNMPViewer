@@ -59,7 +59,7 @@ function createFrontend(options) {
       const canAccessMonitoringMaps = currentUser && currentUser.role === "administrator"
         && String(currentUser.login || "").toLowerCase() === "olivier";
       res.render("index", {
-        title: page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-map" ? "Monitoring Map - TAV Monitoring" : (page === "monitoring-maps" ? "Map Configuration - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring"))),
+        title: (page === "map-v2" || page === "map-v2-edit") ? "Map V2 - TAV Monitoring" : page === "monitoring" ? "TAV Monitoring" : (page === "monitoring-map" ? "Monitoring Map - TAV Monitoring" : (page === "monitoring-maps" ? "Map Configuration - TAV Monitoring" : (page === "users" ? "Utilisateurs - TAV Monitoring" : "Configuration - TAV Monitoring"))),
         page,
         canAccessConfiguration,
         canAccessMonitoringMaps,
@@ -84,6 +84,8 @@ function createFrontend(options) {
   });
   app.get("/monitoring", authorizePage(config, ["user", "editor", "administrator"]), renderPage("monitoring"));
   app.get("/monitoring-map", authorizePage(config, ["administrator"], "Olivier"), renderPage("monitoring-map"));
+  app.get("/map-v2/edit", authorizePage(config, ["administrator"], "Olivier"), renderPage("map-v2-edit"));
+  app.get("/map-v2", authorizePage(config, ["administrator"], "Olivier"), renderPage("map-v2"));
   app.get("/configuration", authorizePage(config, ["editor", "administrator"]), renderPage("configuration"));
   app.get("/monitoring-maps", authorizePage(config, ["administrator"], "Olivier"), renderPage("monitoring-maps"));
   app.get("/users", authorizePage(config, ["administrator"]), renderPage("users"));

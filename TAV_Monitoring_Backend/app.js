@@ -22,6 +22,7 @@ function createBackend(options) {
   const store = settings.store || new MachineStore(config.machinesFile);
   const mapsFile = config.mapsFile || path.resolve(path.dirname(config.configPath || "."), config.maps_file || "maps.json");
   const mapStore = settings.mapStore || new MapStore(mapsFile);
+  const mapV2Store = settings.mapV2Store || new MapStore(mapsFile + ".v2.json", "/api/maps-v2");
   const deviceMonitor = settings.deviceMonitor || createDeviceMonitor(undefined, config.io_reconciliation);
   const notifier = settings.notifier || new NtfyClient(config.alerts || {});
   let alerts = settings.alerts || null;
@@ -83,57 +84,67 @@ function createBackend(options) {
   app.delete("/api/users/:id", requireRole("administrator"), (req, res, next) => {
     try { auth.deleteUser(req.params.id, req.user); res.status(204).end(); } catch (error) { next(error); }
   });
-  app.get("/api/maps", requireMapAdministrator, (req, res, next) => {
-    try { res.json(mapStore.load()); } catch (error) { next(error); }
-  });
-  app.post("/api/maps", requireMapAdministrator, (req, res, next) => {
-    try { res.status(201).json({ map: mapStore.create(req.body || {}) }); } catch (error) { next(error); }
-  });
-  app.get("/api/maps/:id/export", requireMapAdministrator, (req, res, next) => {
-    try {
-      const map = mapStore.find(req.params.id);
-      if (!map) { const error = new Error("Map introuvable"); error.status = 404; throw error; }
-      const filename = String(map.name || "Map").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_") + ".MapTav";
-      res.setHeader("Content-Type", "application/zip");
-      res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodeURIComponent(filename));
-      res.send(mapStore.exportArchive(map.id));
-    } catch (error) { next(error); }
-  });
-  app.post("/api/maps/import", requireMapAdministrator, (req, res, next) => {
-    try {
-      if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Fichier MapTav vide" });
-      const result = mapStore.importArchive(req.body, store.load().map((machine) => machine.id));
-      res.status(201).json(result);
-    } catch (error) { next(error); }
-  });
-  app.patch("/api/maps/:id", requireMapAdministrator, (req, res, next) => {
-    try { res.json({ map: mapStore.update(req.params.id, req.body || {}) }); } catch (error) { next(error); }
-  });
-  app.delete("/api/maps/:id", requireMapAdministrator, (req, res, next) => {
-    try { mapStore.remove(req.params.id); res.status(204).end(); } catch (error) { next(error); }
-  });
-  app.put("/api/maps/:id/background", requireMapAdministrator, (req, res, next) => {
-    try {
-      if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Image vide" });
-      res.json({ map: mapStore.setBackground(req.params.id, req.body, String(req.headers["content-type"] || "").toLowerCase()) });
-    } catch (error) { next(error); }
-  });
-  app.get("/api/maps/:id/background", requireMapAdministrator, (req, res, next) => {
-    try {
-      const map = mapStore.find(req.params.id);
-      const filePath = mapStore.backgroundPath(map);
-      if (!map || !filePath || !require("fs").existsSync(filePath)) return res.status(404).json({ error: "Background introuvable" });
-      res.type(map.backgroundMimeType).sendFile(filePath);
-    } catch (error) { next(error); }
-  });
-  app.put("/api/maps/:id/segments", requireMapAdministrator, (req, res, next) => {
-    try { res.json({ map: mapStore.setSegments(req.params.id, req.body && req.body.segments) }); }
-    catch (error) { next(error); }
-  });
-  app.put("/api/maps/:id/reference", requireMapAdministrator, (req, res, next) => {
-    try { res.json({ map: mapStore.setReference(req.params.id, req.body && req.body.outputs) }); }
-    catch (error) { next(error); }
-  });
+  for (const [mapsBase, activeMapStore] of [["/api/maps", mapStore], ["/api/maps-v2", mapV2Store]]) {
+    app.get(mapsBase, requireMapAdministrator, (req, res, next) => {
+      try {
+        if (activeMapStore === mapV2Store && !require("fs").existsSync(mapV2Store.filePath)) {
+          mapV2Store.save([]);
+          for (const source of mapStore.load()) {
+            const copied = mapV2Store.importArchive(mapStore.exportArchive(source.id), store.load().map((machine) => machine.id)).map;
+            mapV2Store.setSegments(copied.id, copied.segments.map((segment) => Object.assign({}, segment, { assignments: [], moduleRanges: [] })));
+          }
+        }
+        res.json(activeMapStore.load()); } catch (error) { next(error); }
+    });
+    app.post(mapsBase, requireMapAdministrator, (req, res, next) => {
+      try { res.status(201).json({ map: activeMapStore.create(req.body || {}) }); } catch (error) { next(error); }
+    });
+    app.get(mapsBase + "/:id/export", requireMapAdministrator, (req, res, next) => {
+      try {
+        const map = activeMapStore.find(req.params.id);
+        if (!map) { const error = new Error("Map introuvable"); error.status = 404; throw error; }
+        const filename = String(map.name || "Map").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_") + ".MapTav";
+        res.setHeader("Content-Type", "application/zip");
+        res.setHeader("Content-Disposition", "attachment; filename*=UTF-8''" + encodeURIComponent(filename));
+        res.send(activeMapStore.exportArchive(map.id));
+      } catch (error) { next(error); }
+    });
+    app.post(mapsBase + "/import", requireMapAdministrator, (req, res, next) => {
+      try {
+        if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Fichier MapTav vide" });
+        const result = activeMapStore.importArchive(req.body, store.load().map((machine) => machine.id));
+        res.status(201).json(result);
+      } catch (error) { next(error); }
+    });
+    app.patch(mapsBase + "/:id", requireMapAdministrator, (req, res, next) => {
+      try { res.json({ map: activeMapStore.update(req.params.id, req.body || {}) }); } catch (error) { next(error); }
+    });
+    app.delete(mapsBase + "/:id", requireMapAdministrator, (req, res, next) => {
+      try { activeMapStore.remove(req.params.id); res.status(204).end(); } catch (error) { next(error); }
+    });
+    app.put(mapsBase + "/:id/background", requireMapAdministrator, (req, res, next) => {
+      try {
+        if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Image vide" });
+        res.json({ map: activeMapStore.setBackground(req.params.id, req.body, String(req.headers["content-type"] || "").toLowerCase()) });
+      } catch (error) { next(error); }
+    });
+    app.get(mapsBase + "/:id/background", requireMapAdministrator, (req, res, next) => {
+      try {
+        const map = activeMapStore.find(req.params.id);
+        const filePath = activeMapStore.backgroundPath(map);
+        if (!map || !filePath || !require("fs").existsSync(filePath)) return res.status(404).json({ error: "Background introuvable" });
+        res.type(map.backgroundMimeType).sendFile(filePath);
+      } catch (error) { next(error); }
+    });
+    app.put(mapsBase + "/:id/segments", requireMapAdministrator, (req, res, next) => {
+      try { res.json({ map: activeMapStore.setSegments(req.params.id, req.body && req.body.segments) }); }
+      catch (error) { next(error); }
+    });
+    app.put(mapsBase + "/:id/reference", requireMapAdministrator, (req, res, next) => {
+      try { res.json({ map: activeMapStore.setReference(req.params.id, req.body && req.body.outputs) }); }
+      catch (error) { next(error); }
+    });
+  }
 
   app.get("/api/config", (req, res) => res.json({
     monitor_interval_s: config.monitor_interval_s,

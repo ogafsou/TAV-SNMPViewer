@@ -1,6 +1,6 @@
 var monitoringMaps = [];
 var requestedMapId = new URLSearchParams(window.location.search).get("mapId") || "";
-var selectedMapId = requestedMapId || localStorage.getItem("tavSelectedMapId") || "";
+var selectedMapId = requestedMapId || localStorage.getItem((mapV2Enabled ? "tavSelectedMapV2Id" : "tavSelectedMapId")) || "";
 var editedMapId = "";
 var contextMapId = "";
 var mapCount = document.getElementById("mapCount");
@@ -52,6 +52,7 @@ var warningsOnlyMapIds = {};
 
 function applyMapTransform() {
   mapContent.style.transform = "translate(" + mapPanX + "px, " + mapPanY + "px) scale(" + mapZoom + ")";
+  if (mapV2Enabled) mapV2UpdateNumbers(mapContent);
   if (resetMapViewButton) {
     var fitted = fittedMapTransform();
     resetMapViewButton.hidden = Math.abs(mapZoom - fitted.zoom) < 0.001 &&
@@ -118,6 +119,7 @@ function segmentThicknessPx(segment) {
 }
 
 function renderMapSegments() {
+  if (mapV2Enabled) return mapV2RenderEditor();
   mapZone.querySelectorAll(".map-segment").forEach(function(node) { node.remove(); });
   var map = selectedMap();
   renderMapNovastarFilters(map);
@@ -266,7 +268,7 @@ function promptCases(currentValue) {
 }
 
 async function saveMapSegments(map) {
-  var response = await fetch("/api/maps/" + encodeURIComponent(map.id) + "/segments", {
+  var response = await fetch(mapsApiBase + "/" + encodeURIComponent(map.id) + "/segments", {
     method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ segments: map.segments || [] })
   });
   var result = await response.json();
@@ -288,6 +290,7 @@ function mapPoint(event) {
 function segmentById(id) { var map = selectedMap(); return map && (map.segments || []).find(function(segment) { return segment.id === id; }); }
 
 mapZone.addEventListener("pointerdown", function(event) {
+  if (mapV2Enabled && mapV2Saving) return;
   var pointedSegment = event.target.closest(".map-segment");
   var startsPan = event.button === 2 || (!mapEditMode.checked && event.button === 0);
   if (startsPan && !pointedSegment) {
@@ -304,6 +307,18 @@ mapZone.addEventListener("pointerdown", function(event) {
     return;
   }
   if (!mapEditMode.checked || event.button !== 0) return;
+  if (mapV2Enabled) {
+    if (pointedSegment && event.ctrlKey) {
+      var movedSegment = segmentById(pointedSegment.dataset.segmentId);
+      if (!movedSegment) return;
+      mapV2CancelRange();
+      segmentGesture = { type: "move", segment: movedSegment, start: mapPoint(event), originalX: movedSegment.x, originalY: movedSegment.y };
+      mapZone.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      return;
+    }
+    if (pointedSegment || event.ctrlKey) return;
+  }
   if (event.target.closest(".map-segment i")) return;
   var segmentNode = pointedSegment;
   if (segmentNode) {
@@ -340,6 +355,10 @@ mapZone.addEventListener("pointermove", function(event) {
     var halfY = segment.orientation === "horizontal" ? thickness / (2 * mapContent.clientHeight) : 0;
     segment.x = Math.min(1 - (segment.orientation === "horizontal" ? segment.length : halfX), Math.max(halfX, segmentGesture.originalX + point.x - segmentGesture.start.x));
     segment.y = Math.min(1 - (segment.orientation === "vertical" ? segment.length : halfY), Math.max(halfY, segmentGesture.originalY + point.y - segmentGesture.start.y));
+    if (mapV2Enabled) {
+      segment.x = segmentGesture.originalX + point.x - segmentGesture.start.x;
+      segment.y = segmentGesture.originalY + point.y - segmentGesture.start.y;
+    }
     renderMapSegments();
   } else {
     segmentGesture.current = point;
@@ -367,6 +386,13 @@ mapZone.addEventListener("pointerup", async function(event) {
   try {
     var map = selectedMap();
     if (gesture.type === "move") {
+      if (mapV2Enabled) {
+        mapV2Saving = true;
+        try { await saveMapSegments(map); setStatus("Bloc déplacé", "ok"); }
+        catch (error) { gesture.segment.x = gesture.originalX; gesture.segment.y = gesture.originalY; setStatus(error.message, "error"); }
+        finally { mapV2Saving = false; renderMapSegments(); }
+        return;
+      }
       await saveMapSegments(map); setStatus("Segment deplace", "ok"); return;
     }
     if (gesture.draft) gesture.draft.remove();
@@ -379,6 +405,7 @@ mapZone.addEventListener("pointerup", async function(event) {
       x: horizontal ? Math.min(gesture.start.x, gesture.current.x) : gesture.start.x,
       y: horizontal ? gesture.start.y : Math.min(gesture.start.y, gesture.current.y), length: length, cases: cases };
     var newThickness = segmentThicknessPx(newSegment);
+    if (mapV2Enabled) newSegment.reversed = horizontal ? dx < 0 : dy < 0;
     var halfX = newThickness / (2 * mapContent.clientWidth); var halfY = newThickness / (2 * mapContent.clientHeight);
     if (horizontal) newSegment.y = Math.min(1 - halfY, Math.max(halfY, newSegment.y));
     else newSegment.x = Math.min(1 - halfX, Math.max(halfX, newSegment.x));
@@ -387,6 +414,11 @@ mapZone.addEventListener("pointerup", async function(event) {
   } catch (error) { renderMapSegments(); setStatus(error.message, "error"); }
 });
 mapZone.addEventListener("pointercancel", function() {
+  if (mapV2Enabled && segmentGesture && segmentGesture.type === "move") {
+    segmentGesture.segment.x = segmentGesture.originalX;
+    segmentGesture.segment.y = segmentGesture.originalY;
+    renderMapSegments();
+  }
   if (segmentGesture && segmentGesture.draft) segmentGesture.draft.remove();
   segmentGesture = null;
   mapPanGesture = null;
@@ -394,6 +426,7 @@ mapZone.addEventListener("pointercancel", function() {
 });
 
 mapZone.addEventListener("click", async function(event) {
+  if (mapV2Enabled) return mapV2Click(event);
   var cell = event.target.closest(".map-segment i");
   if (!cell || mapEditMode.checked && segmentGesture) return;
   event.stopPropagation();
@@ -435,6 +468,11 @@ function openMapAssignmentMonitoring(assignment) {
 }
 
 mapZone.addEventListener("wheel", function(event) {
+  if (mapV2Enabled && mapEditMode.checked && event.ctrlKey) {
+    event.preventDefault();
+    mapV2Rotate(event);
+    return;
+  }
   if (!selectedMap()) return;
   event.preventDefault();
   var rect = mapZone.getBoundingClientRect();
@@ -461,10 +499,12 @@ mapZone.addEventListener("contextmenu", function(event) {
   event.preventDefault();
   selectedSegmentId = node.dataset.segmentId;
   selectedCaseIndex = cell ? Number(cell.dataset.caseIndex) : -1;
+  if (mapV2Enabled) mapV2SelectRole(event, cell);
   openSegmentMenu(event.clientX, event.clientY, true);
 });
 
 function openSegmentMenu(x, y, showEditActions) {
+  if (mapV2Enabled) return mapV2OpenMenu(x, y, showEditActions);
   renderNovastarOutputMenu();
   var segment = segmentById(selectedSegmentId);
   var assignment = segment && segment.assignments && segment.assignments[selectedCaseIndex];
@@ -522,10 +562,10 @@ function renderNovastarOutputMenu() {
     }
     device.cards.forEach(function(card) {
       var cardItem = nestedMenuItem("Carte " + card.id);
-      [
+      (mapV2Enabled ? [] : [
         { label: "Toutes ->", direction: 1 },
         { label: "Toutes <-", direction: -1 }
-      ].forEach(function(action) {
+      ]).forEach(function(action) {
         var button = document.createElement("button");
         button.type = "button";
         button.className = "output-menu-button output-menu-all";
@@ -608,6 +648,7 @@ function assignmentKey(assignment) {
 }
 
 function assignedOutputKeys() {
+  if (mapV2Enabled) return new Set(mapV2Ranges(selectedMap()).map(function(range) { return assignmentKey(range.assignment); }));
   var map = selectedMap();
   var keys = new Set();
   (map && map.segments || []).forEach(function(segment) {
@@ -619,6 +660,7 @@ function assignedOutputKeys() {
 }
 
 async function assignSelectedCase(assignment) {
+  if (mapV2Enabled) return mapV2StartRange(assignment);
   var segment = segmentById(selectedSegmentId);
   var map = selectedMap();
   if (!segment || !map || selectedCaseIndex < 0 || selectedCaseIndex >= segment.cases) return;
@@ -689,7 +731,7 @@ window.addEventListener("resize", function() { fitMapBackground(false); renderMa
 
 async function initializeMonitoringMaps() {
   if (!CURRENT_USER || CURRENT_USER.role !== "administrator" || CURRENT_USER.login.toLowerCase() !== "olivier") return;
-  var response = await fetch("/api/maps");
+  var response = await fetch(mapsApiBase);
   var result = await response.json();
   if (!response.ok) { setStatus(result.error || "Chargement des maps impossible", "error"); return; }
   monitoringMaps = result;
@@ -702,10 +744,11 @@ function renderMapList() {
   mapList.innerHTML = monitoringMaps.map(function(map) { return '<option value="' + escapeHtml(map.id) + '">' + escapeHtml(map.name) + '</option>'; }).join("");
   if (!monitoringMaps.some(function(map) { return map.id === selectedMapId; })) selectedMapId = monitoringMaps.length ? monitoringMaps[0].id : "";
   mapList.value = selectedMapId;
-  localStorage.setItem("tavSelectedMapId", selectedMapId);
+  localStorage.setItem((mapV2Enabled ? "tavSelectedMapV2Id" : "tavSelectedMapId"), selectedMapId);
 }
 
 function renderSelectedMap() {
+  if (mapV2Enabled) mapV2CancelRange();
   var map = monitoringMaps.find(function(item) { return item.id === selectedMapId; });
   selectedMapName.textContent = map ? map.name : "Aucune map";
   mapListHint.textContent = map ? "Selection : " + map.name : "Ajoutez une map pour commencer.";
@@ -733,6 +776,7 @@ function renderSelectedMap() {
 }
 
 function openMapDialog(map) {
+  document.getElementById("mapFormError").hidden = true;
   editedMapId = map ? map.id : "";
   mapDialogTitle.textContent = map ? "Modifier une map" : "Ajouter une map";
   mapForm.name.value = map ? map.name : "";
@@ -745,7 +789,7 @@ if (exportMapButton) exportMapButton.addEventListener("click", function() {
   var map = selectedMap();
   if (!map) return;
   var link = document.createElement("a");
-  link.href = "/api/maps/" + encodeURIComponent(map.id) + "/export";
+  link.href = mapsApiBase + "/" + encodeURIComponent(map.id) + "/export";
   link.download = map.name + ".MapTav";
   document.body.appendChild(link); link.click(); link.remove();
 });
@@ -756,7 +800,7 @@ if (importMapButton && importMapFile) {
     if (!file) return;
     importMapButton.disabled = true;
     try {
-      var response = await fetch("/api/maps/import", {
+      var response = await fetch(mapsApiBase + "/import", {
         method: "POST", headers: { "Content-Type": "application/x-maptav" }, body: file
       });
       var result = await response.json();
@@ -772,14 +816,14 @@ if (importMapButton && importMapFile) {
   });
 }
 cancelMapButton.addEventListener("click", function() { mapDialog.close(); });
-mapEditMode.addEventListener("change", function() { loadMapBackgroundButton.hidden = !mapEditMode.checked || !selectedMapId; renderMapSegments(); });
+mapEditMode.addEventListener("change", function() { if (mapV2Enabled) mapV2CancelRange();  loadMapBackgroundButton.hidden = !mapEditMode.checked || !selectedMapId; renderMapSegments(); });
 loadMapBackgroundButton.addEventListener("click", function() { mapBackgroundFile.click(); });
 mapBackgroundFile.addEventListener("change", async function() {
   var file = mapBackgroundFile.files && mapBackgroundFile.files[0];
   if (!file || !selectedMapId) return;
   loadMapBackgroundButton.disabled = true;
   try {
-    var response = await fetch("/api/maps/" + encodeURIComponent(selectedMapId) + "/background", {
+    var response = await fetch(mapsApiBase + "/" + encodeURIComponent(selectedMapId) + "/background", {
       method: "PUT", headers: { "Content-Type": file.type }, body: file
     });
     var result = await response.json();
@@ -792,7 +836,7 @@ mapBackgroundFile.addEventListener("change", async function() {
 });
 mapList.addEventListener("change", function() {
   selectedMapId = mapList.value;
-  localStorage.setItem("tavSelectedMapId", selectedMapId);
+  localStorage.setItem((mapV2Enabled ? "tavSelectedMapV2Id" : "tavSelectedMapId"), selectedMapId);
   resetMapTransform();
   renderSelectedMap();
 });
@@ -808,24 +852,42 @@ editMapButton.addEventListener("click", function() { mapContextMenu.hidden = tru
 deleteMapButton.addEventListener("click", async function() {
   var map = monitoringMaps.find(function(item) { return item.id === contextMapId; }); mapContextMenu.hidden = true;
   if (!map || !window.confirm("Supprimer la map " + map.name + " ?")) return;
-  var response = await fetch("/api/maps/" + encodeURIComponent(map.id), { method: "DELETE" });
+  var response = await fetch(mapsApiBase + "/" + encodeURIComponent(map.id), { method: "DELETE" });
   if (!response.ok) { var error = await response.json(); setStatus(error.error || "Suppression impossible", "error"); return; }
   monitoringMaps = monitoringMaps.filter(function(item) { return item.id !== map.id; }); resetMapTransform(); renderMapList(); renderSelectedMap(); setStatus("Map supprimee", "ok");
 });
 mapForm.addEventListener("submit", async function(event) {
   event.preventDefault();
-  var url = editedMapId ? "/api/maps/" + encodeURIComponent(editedMapId) : "/api/maps";
-  var response = await fetch(url, { method: editedMapId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: mapForm.name.value }) });
-  var result = await response.json();
-  if (!response.ok) { setStatus(result.error || "Enregistrement impossible", "error"); return; }
-  if (editedMapId) monitoringMaps = monitoringMaps.map(function(map) { return map.id === editedMapId ? result.map : map; });
-  else { monitoringMaps.push(result.map); selectedMapId = result.map.id; resetMapTransform(); }
-  mapDialog.close(); renderMapList(); renderSelectedMap(); setStatus("Map enregistree", "ok");
+  var submit = mapForm.querySelector('button[type="submit"]');
+  if (submit.disabled) return;
+  var errorNode = document.getElementById("mapFormError");
+  errorNode.hidden = true;
+  submit.disabled = true;
+  try {
+    var url = editedMapId ? mapsApiBase + "/" + encodeURIComponent(editedMapId) : mapsApiBase;
+    var response = await fetch(url, { method: editedMapId ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: mapForm.name.value }) });
+    var result = await response.json().catch(function() { return {}; });
+    if (!response.ok) {
+      if (mapV2Enabled && response.status === 404) {
+        throw new Error("L’API Map V2 est introuvable sur le backend configuré. Redémarrez le backend depuis le dossier TAV_Monitoring_Backend de ce projet, puis rechargez cette page.");
+      }
+      throw new Error(result.error || "Enregistrement impossible (HTTP " + response.status + ")");
+    }
+    if (!result.map || !result.map.id) throw new Error("Réponse du backend invalide : map non confirmée.");
+    if (editedMapId) monitoringMaps = monitoringMaps.map(function(map) { return map.id === editedMapId ? result.map : map; });
+    else { monitoringMaps.push(result.map); selectedMapId = result.map.id; resetMapTransform(); }
+    mapDialog.close(); renderMapList(); renderSelectedMap(); setStatus("Map enregistree", "ok");
+  } catch (error) {
+    errorNode.textContent = error.message || "Enregistrement impossible";
+    errorNode.hidden = false;
+    setStatus(errorNode.textContent, "error");
+  } finally { submit.disabled = false; }
 });
 document.addEventListener("click", function(event) { if (!mapContextMenu.hidden && !mapContextMenu.contains(event.target)) mapContextMenu.hidden = true; });
 document.addEventListener("click", function(event) { if (!segmentContextMenu.hidden && !segmentContextMenu.contains(event.target)) segmentContextMenu.hidden = true; });
 
 clearSegmentCaseButton.addEventListener("click", async function() {
+  if (mapV2Enabled) return mapV2Clear("case");
   var segment = segmentById(selectedSegmentId);
   var map = selectedMap();
   if (!segment || !map || selectedCaseIndex < 0 || selectedCaseIndex >= segment.cases || !segment.assignments) return;
@@ -844,6 +906,7 @@ clearSegmentCaseButton.addEventListener("click", async function() {
 });
 
 clearSegmentBlockButton.addEventListener("click", async function() {
+  if (mapV2Enabled) return mapV2Clear("block");
   var segment = segmentById(selectedSegmentId);
   var map = selectedMap();
   if (!segment || !map) return;
@@ -862,6 +925,7 @@ clearSegmentBlockButton.addEventListener("click", async function() {
 });
 
 clearSegmentNovastarButton.addEventListener("click", async function() {
+  if (mapV2Enabled) return mapV2Clear("machine");
   var segment = segmentById(selectedSegmentId);
   var map = selectedMap();
   var assignment = segment && segment.assignments && segment.assignments[selectedCaseIndex];
@@ -898,6 +962,7 @@ clearSegmentNovastarButton.addEventListener("click", async function() {
 editSegmentCasesButton.addEventListener("click", async function() {
   segmentContextMenu.hidden = true; var segment = segmentById(selectedSegmentId); var map = selectedMap(); if (!segment || !map) return;
   var cases = promptCases(segment.cases); if (cases === null) return; segment.cases = cases;
+  if (mapV2Enabled) segment.moduleRanges = (segment.moduleRanges || []).filter(function(range) { return range.start < cases && range.end < cases; });
   try { await saveMapSegments(map); setStatus("Nombre de cases modifie", "ok"); } catch (error) { setStatus(error.message, "error"); }
 });
 deleteSegmentButton.addEventListener("click", async function() {
@@ -907,7 +972,7 @@ deleteSegmentButton.addEventListener("click", async function() {
 });
 copySegmentButton.addEventListener("click", async function() {
   segmentContextMenu.hidden = true; var source = segmentById(selectedSegmentId); var map = selectedMap(); if (!source || !map) return;
-  var copy = Object.assign({}, source, { id: Date.now() + "-" + Math.random().toString(16).slice(2) });
+  var copy = Object.assign(JSON.parse(JSON.stringify(source)), { id: Date.now() + "-" + Math.random().toString(16).slice(2) });
   var thickness = segmentThicknessPx(copy);
   if (copy.orientation === "horizontal") copy.y = Math.min(1 - thickness / (2 * mapContent.clientHeight), copy.y + thickness / mapContent.clientHeight);
   else copy.x = Math.min(1 - thickness / (2 * mapContent.clientWidth), copy.x + thickness / mapContent.clientWidth);

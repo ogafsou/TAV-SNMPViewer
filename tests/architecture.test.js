@@ -91,7 +91,7 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20260827-1/);
+  assert.match(view, /style\.css\?v=20261016-10/);
   assert.match(view, /monitoring-renderers\.js\?v=20260831-1/);
   assert.match(view, /utils\.js\?v=20260723-2/);
   assert.match(view, /auth\.js\?v=20260725-1/);
@@ -99,8 +99,8 @@ test("monitoring assets use the current cache-busting version", () => {
   assert.match(view, /monitoring\.js\?v=20260816-1/);
   assert.match(view, /configuration\.js\?v=20260816-4/);
   assert.match(view, /application\.js\?v=20260816-3/);
-  assert.match(view, /monitoring-maps\.js\?v=20260827-1/);
-  assert.match(view, /map-monitoring\.js\?v=20260827-1/);
+  assert.match(view, /monitoring-maps\.js\?v=20261016-9/);
+  assert.match(view, /map-monitoring\.js\?v=20261016-10/);
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
   assert.match(css, /#toggleMonitoringView\[hidden\],[\s\S]*?#refreshMonitoring\[hidden\]\s*\{\s*display:\s*none !important;/);
   assert.match(css, /\.topbar\s*\{[^}]*align-items:\s*center;[^}]*padding-bottom:\s*0;/s);
@@ -283,7 +283,7 @@ test("large monitoring maps open the assigned NovaStar output", () => {
   assert.match(css, /\.monitoring-card-dialog \.io-status-table td\.map-output-highlight\s*\{[^}]*outline:\s*5px solid #fff;/s);
   assert.match(css, /\.map-monitoring-dialog-actions \.icon-mode-switch img\s*\{[^}]*width:\s*22px;[^}]*height:\s*22px;/s);
   assert.match(view, /if \(canAccessMonitoringMaps && page === 'monitoring-map'\)[\s\S]*?id="configureMapMonitoringDialog"[\s\S]*?Configuration\.png/);
-  assert.match(mapMonitoring, /configureMapMonitoringDialog\.href = "\/monitoring-maps\?mapId=" \+ encodeURIComponent\(map\.id\)/);
+  assert.match(mapMonitoring, /configureMapMonitoringDialog\.href = \(mapV2Enabled \? "\/map-v2\/edit\?mapId=" : "\/monitoring-maps\?mapId="\) \+ encodeURIComponent\(map\.id\)/);
   assert.match(view, /id="resetMapMonitoringViewButton"[^>]*hidden/);
   assert.match(configurationView, /id="resetMapViewButton"[^>]*hidden/);
   assert.match(view, /id="resetMapMonitoringViewButton"[\s\S]*?\/images\/resetview\.png/);

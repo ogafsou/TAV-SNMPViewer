@@ -131,6 +131,37 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(allowedMapMonitoringHtml.includes('src="/images/Configuration.png"'), true);
   assert.equal(allowedMapMonitoringHtml.includes('id="mapReferenceContextMenu"'), true);
 
+  assert.equal(html.includes('href="/map-v2"'), false);
+  assert.equal(olivierHtml.includes('href="/map-v2"'), true);
+  for (const cookie of ["session=user", "session=admin"]) {
+    const deniedV2 = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2", {
+      headers: { cookie }, redirect: "manual"
+    });
+    assert.equal(deniedV2.status, 302);
+    assert.equal(deniedV2.headers.get("location"), "/monitoring");
+  }
+  const mapV2 = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2", {
+    headers: { cookie: "session=olivier" }
+  });
+  assert.equal(mapV2.status, 200);
+  const mapV2Html = await mapV2.text();
+  assert.match(mapV2Html, /<title>Map V2 - TAV Monitoring<\/title>/);
+  assert.match(mapV2Html, /id="mapV2Link" class="tab active"/);
+  assert.match(mapV2Html, /id="mapMonitoringTab" class="tab-panel active"/);
+  assert.equal((mapV2Html.match(/id="mapMonitoringGrid"/g) || []).length, 1);
+  assert.equal(mapV2Html.includes('<h2>Map V2</h2>'), true);
+  assert.equal(mapV2Html.includes('id="configureMapMonitoringDialog"'), true);
+
+  const editV2 = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2/edit", { headers: { cookie: "session=olivier" } });
+  const editV2Html = await editV2.text();
+  assert.equal(editV2.status, 200);
+  assert.match(editV2Html, /id="monitoringMapsTab" class="tab-panel active"/);
+  assert.equal(editV2Html.includes('id="mapEditMode"'), true);
+  assert.equal(editV2Html.includes('/javascripts/map-v2.js'), true);
+  assert.equal(editV2Html.includes('href="/map-v2"'), true);
+  const forbiddenV2Edit = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2/edit", { redirect: "manual" });
+  assert.equal(forbiddenV2Edit.status, 302);
+
   const applicationScript = await fetch("http://127.0.0.1:" + frontendPort + "/javascripts/application.js");
   assert.equal(applicationScript.status, 200);
   assert.equal((await applicationScript.text()).includes("document.body.dataset.restRefreshS"), true);

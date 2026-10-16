@@ -1,3 +1,5 @@
+var mapV2Enabled = /^\/map-v2(?:\/|$)/.test(window.location.pathname);
+var mapsApiBase = mapV2Enabled ? "/api/maps-v2" : "/api/maps";
 var mapMonitoringMaps = [];
 var mapMonitoringGrid = document.getElementById("mapMonitoringGrid");
 var mapMonitoringEmpty = document.getElementById("mapMonitoringEmpty");
@@ -30,6 +32,7 @@ function applyMapMonitoringDialogTransform() {
   var canvas = mapMonitoringDialogStage && mapMonitoringDialogStage.querySelector(".map-monitoring-canvas");
   if (canvas) {
     canvas.style.transform = "translate(" + mapMonitoringDialogPanX + "px, " + mapMonitoringDialogPanY + "px) scale(" + mapMonitoringDialogZoom + ")";
+    if (mapV2Enabled) mapV2UpdateNumbers(canvas);
   }
   if (resetMapMonitoringViewButton) resetMapMonitoringViewButton.hidden = mapMonitoringViewIsInitial();
 }
@@ -92,6 +95,7 @@ function mapMonitoringOutputKey(output) {
 }
 
 function mapMonitoringCurrentOutputs(map) {
+  if (mapV2Enabled) return mapV2CurrentOutputs(map);
   var outputs = [];
   (map.segments || []).forEach(function(segment) {
     (segment.assignments || []).forEach(function(assignment) {
@@ -163,6 +167,7 @@ function createMapMonitoringStage(map, large, referenceOutputs) {
   (map.segments || []).forEach(function(segment) {
     var node = document.createElement("div");
     node.className = "map-monitoring-segment " + segment.orientation;
+    if (mapV2Enabled) mapV2ApplyDirection(node, segment);
     node.style.left = (segment.x * 100) + "%";
     node.style.top = (segment.y * 100) + "%";
     node.dataset.length = String(segment.length || 0);
@@ -170,6 +175,7 @@ function createMapMonitoringStage(map, large, referenceOutputs) {
     if (segment.orientation === "horizontal") node.style.width = (segment.length * 100) + "%";
     else node.style.height = (segment.length * 100) + "%";
     for (var index = 0; index < segment.cases; index += 1) {
+      if (mapV2Enabled) { node.appendChild(mapV2CreateCell(segment, index, false)); continue; }
       var cell = document.createElement("i");
       var assignment = segment.assignments && segment.assignments[index];
       cell.className = assignment
@@ -212,8 +218,9 @@ function fitMapMonitoringCanvas(stage, naturalWidth, naturalHeight) {
   var image = canvas.querySelector("img");
   var width = naturalWidth || (image && image.naturalWidth);
   var height = naturalHeight || (image && image.naturalHeight);
-  var availableWidth = Math.max(1, stage.clientWidth - 16);
-  var availableHeight = Math.max(1, stage.clientHeight - 16);
+  var padding = mapV2Enabled && stage.classList.contains("map-monitoring-stage-large") ? 0 : 16;
+  var availableWidth = Math.max(1, stage.clientWidth - padding);
+  var availableHeight = Math.max(1, stage.clientHeight - padding);
   if (!width || !height) {
     canvas.style.width = availableWidth + "px";
     canvas.style.height = availableHeight + "px";
@@ -242,6 +249,7 @@ function sizeMapMonitoringSegments(stage) {
     var axis = segment.classList.contains("horizontal") ? canvas.clientWidth : canvas.clientHeight;
     segment.style.setProperty("--monitoring-segment-thickness", Math.max(1, length * axis / cases) + "px");
   });
+  if (mapV2Enabled) mapV2UpdateNumbers(canvas);
 }
 
 function renderMapMonitoringCards() {
@@ -356,7 +364,7 @@ function openMapMonitoring(mapId) {
   if (!map) return;
   mapMonitoringDialogTitle.textContent = map.name;
   if (configureMapMonitoringDialog) {
-    configureMapMonitoringDialog.href = "/monitoring-maps?mapId=" + encodeURIComponent(map.id);
+    configureMapMonitoringDialog.href = (mapV2Enabled ? "/map-v2/edit?mapId=" : "/monitoring-maps?mapId=") + encodeURIComponent(map.id);
   }
   mapMonitoringDialogStage.replaceWith(createMapMonitoringStage(map, true, null));
   mapMonitoringDialogStage = mapMonitoringDialog.querySelector(".map-monitoring-stage");
@@ -369,7 +377,7 @@ function openMapMonitoring(mapId) {
 async function setMapMonitoringReference(mapId) {
   var map = mapMonitoringMaps.find(function(item) { return String(item.id) === String(mapId); });
   if (!map || !REFERENCE_MODE_ENABLED) return;
-  var response = await fetch("/api/maps/" + encodeURIComponent(map.id) + "/reference", {
+  var response = await fetch(mapsApiBase + "/" + encodeURIComponent(map.id) + "/reference", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ outputs: mapMonitoringCurrentOutputs(map) })
@@ -387,7 +395,7 @@ async function setMapMonitoringReference(mapId) {
 
 async function initializeMapMonitoring() {
   if (!mapMonitoringGrid) return;
-  var response = await fetch("/api/maps");
+  var response = await fetch(mapsApiBase);
   var result = await response.json();
   if (!response.ok) {
     setStatus(result.error || "Chargement des maps impossible", "error");
@@ -514,7 +522,7 @@ if (mapMonitoringGrid) {
     if (event.target.closest(".map-monitoring-stage-large") && !event.target.closest(".map-monitoring-segment")) event.preventDefault();
   });
   mapMonitoringDialog.addEventListener("click", function(event) {
-    var outputCell = event.target.closest(".map-monitoring-stage-large .map-monitoring-segment i[data-machine-id]");
+    var outputCell = event.target.closest(".map-monitoring-stage-large .map-monitoring-segment [data-machine-id], .map-monitoring-stage-large .map-monitoring-segment i[data-machine-id]");
     if (outputCell) {
       event.stopPropagation();
       if (typeof openMapAssignmentMonitoring === "function") {

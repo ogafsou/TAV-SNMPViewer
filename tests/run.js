@@ -7,6 +7,7 @@ require("./backend-alerts.test");
 require("./backend-websocket.test");
 require("./auth.test");
 require("./frontend-proxy.test");
+require("./map-v2.test");
 require("./public-status.test");
 require("./novastar-traps.test");
 require("./logger.test");

@@ -1,0 +1,113 @@
+<section id="monitoringMapsTab" class="tab-panel<%= page === 'map-v2-edit' ? ' active' : '' %>"<% if (page !== 'map-v2-edit') { %> hidden<% } %>>
+
+  <section class="configuration-layout">
+
+    <aside class="machine-sidebar">
+
+      <div class="add-zone map-file-actions"><button id="addMapButton" type="button">Add</button><button id="importMapButton" type="button">Import</button><input id="importMapFile" type="file" accept=".MapTav,.maptav,application/zip" hidden /></div>
+
+      <div class="machine-list-zone">
+
+        <div class="section-title compact"><h2>Maps V2</h2><span id="mapCount">0</span></div>
+
+        <select id="mapList" class="machine-list" size="12" aria-label="Liste des maps"></select>
+
+        <p id="mapListHint" class="sidebar-help">Ajoutez une map pour commencer.</p>
+
+      </div>
+
+    </aside>
+
+    <section class="monitor-zone map-view-zone">
+
+      <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2><button id="exportMapButton" type="button" hidden>Export</button></div>
+
+      <div class="map-editor-toolbar">
+
+        <button id="resetMapViewButton" class="map-view-icon-button map-reset-view-button" type="button" aria-label="Réinitialiser la vue" title="Réinitialiser la vue" hidden>
+
+          <img src="/images/resetview.png" alt="" />
+
+        </button>
+
+        <button id="mapWarningsFilter" class="map-novastar-filter" type="button" hidden>Warning</button>
+
+        <label id="mapEditModeLabel"><input id="mapEditMode" type="checkbox" /> Mode édition</label>
+
+        <button id="loadMapBackgroundButton" type="button" hidden>Load Background</button>
+
+        <input id="mapBackgroundFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+
+        <div id="mapNovastarFilters" class="map-novastar-filters" aria-label="Affichage des sorties NovaStar"></div>
+
+      </div>
+
+      <p id="moduleRangeHint" role="status">Haut : Main · Bas : Backup. En édition, cliquez sur un triangle et choisissez une sortie, puis cliquez sur le module d’arrivée. Échap annule.</p>
+
+      <div id="mapZone" class="map-zone">
+
+        <div id="mapContent" class="map-content"><img id="mapBackgroundImage" alt="" hidden /></div>
+
+        <span id="mapZonePlaceholder">Aucun background</span>
+
+      </div>
+
+    </section>
+
+  </section>
+
+
+
+  <div id="mapContextMenu" class="context-menu" hidden>
+
+    <button id="editMapButton" type="button">Edit</button>
+
+    <button id="deleteMapButton" type="button">Delete</button>
+
+  </div>
+
+  <div id="segmentContextMenu" class="context-menu" hidden>
+
+    <div id="novastarOutputMenu" class="nested-menu"></div>
+
+    <div id="segmentClearAction" class="segment-clear-action">
+
+      <button id="clearSegmentCaseButton" type="button">Clear Case</button>
+
+      <button id="clearSegmentBlockButton" type="button">Clear Block</button>
+
+      <button id="clearSegmentNovastarButton" type="button" hidden>Clear NovaStar</button>
+
+    </div>
+
+    <div id="segmentEditActions" class="segment-edit-actions">
+
+      <button id="editSegmentCasesButton" type="button">Modifier le nombre de cases</button>
+
+      <button id="copySegmentButton" type="button">Copier</button>
+
+      <button id="deleteSegmentButton" type="button">Supprimer</button>
+
+    </div>
+
+  </div>
+
+
+
+  <dialog id="mapDialog" class="map-dialog">
+
+    <form id="mapForm" method="dialog">
+
+      <h2 id="mapDialogTitle">Ajouter une map</h2>
+
+      <label>Nom de la map<input name="name" type="text" maxlength="100" required /></label>
+
+      <p id="mapFormError" role="alert" hidden></p>
+      <div class="dialog-actions"><button id="cancelMapButton" class="secondary-button" type="button">Annuler</button><button type="submit">Enregistrer</button></div>
+
+    </form>
+
+  </dialog>
+
+</section>
+

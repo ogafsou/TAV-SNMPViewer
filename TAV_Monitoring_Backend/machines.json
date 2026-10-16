@@ -14,7 +14,7 @@
     "includeReceivingCards": false,
     "type": "novastar-h",
     "color": "#ffdb00",
-    "accessMethod": "snmp",
+    "accessMethod": "snmp+api",
     "apiProtocol": "legacy",
     "apiBaseUrl": "",
     "apiUsername": "admin",
@@ -26,17 +26,17 @@
     "snmpPort": "161",
     "monitoringReference": {
       "version": 1,
-      "setAt": "2026-08-13T08:26:41.951Z",
+      "setAt": "2026-10-16T16:49:16.538Z",
       "snapshot": {
         "connected": true,
         "controls": {
           "controller": "\"ok\"",
           "input:I-1:1": "{\"icon\":\"hdmi\",\"state\":\"ok\"}",
-          "input:I-1:2": "{\"icon\":\"bnc\",\"state\":\"ok\"}",
+          "input:I-1:2": "{\"icon\":\"hdmi\",\"state\":\"ok\"}",
           "input:I-1:3": "{\"icon\":\"dvi\",\"state\":\"ok\"}",
           "input:I-1:4": "{\"icon\":\"dp\",\"state\":\"ok\"}",
           "input:I-2:1": "{\"icon\":\"hdmi\",\"state\":\"ok\"}",
-          "input:I-2:2": "{\"icon\":\"bnc\",\"state\":\"ok\"}",
+          "input:I-2:2": "{\"icon\":\"hdmi\",\"state\":\"ok\"}",
           "input:I-2:3": "{\"icon\":\"dvi\",\"state\":\"ok\"}",
           "input:I-2:4": "{\"icon\":\"dp\",\"state\":\"ok\"}",
           "output:O-3:1": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
@@ -55,12 +55,28 @@
           "output:O-3:14": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
           "output:O-3:15": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
           "output:O-3:16": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:1": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:2": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:3": "{\"icon\":\"rj45\",\"state\":\"warning\"}",
+          "output:O-4:4": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:5": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:6": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:7": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:8": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:9": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:10": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:11": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:12": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:13": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:14": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:15": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
+          "output:O-4:16": "{\"icon\":\"rj45\",\"state\":\"ok\"}",
           "health:temperature": "{\"icon\":\"temperature\",\"state\":\"ok\"}",
           "health:voltage": "{\"icon\":\"psu\",\"state\":\"ok\"}",
           "health:genlock": "{\"frame\":\"60\",\"icon\":\"bnc\",\"state\":\"ok\"}",
           "screen:Device": "\"ok\"",
-          "usb:1": "{\"icon\":\"usb\",\"state\":\"ok\"}",
-          "usb:2": "{\"icon\":\"usb\",\"state\":\"ok\"}",
+          "usb:1": "{\"icon\":\"usb\",\"state\":\"inactive\"}",
+          "usb:2": "{\"icon\":\"usb\",\"state\":\"inactive\"}",
           "fan:1": "{\"icon\":\"fan\",\"state\":\"ok\"}",
           "fan:2": "{\"icon\":\"fan\",\"state\":\"ok\"}",
           "fan:3": "{\"icon\":\"fan\",\"state\":\"ok\"}",
@@ -68,7 +84,10 @@
           "power:2": "{\"icon\":\"psu\",\"state\":\"ok\"}"
         }
       }
-    }
+    },
+    "snmpScanEnabled": true,
+    "trapSnmpEnabled": false,
+    "snmpScanIntervalS": 600
   },
   {
     "id": "1783432208742",
@@ -84,7 +103,10 @@
     "recvCardsPerPort": "1",
     "includeReceivingCards": false,
     "type": "novastar-h",
-    "color": "#32c99a"
+    "color": "#32c99a",
+    "snmpScanEnabled": true,
+    "trapSnmpEnabled": false,
+    "snmpScanIntervalS": 600
   },
   {
     "id": "1784150076768",
@@ -200,6 +222,9 @@
           "power:2": "{\"icon\":\"psu\",\"state\":\"ok\"}"
         }
       }
-    }
+    },
+    "snmpScanEnabled": true,
+    "trapSnmpEnabled": false,
+    "snmpScanIntervalS": 600
   }
 ]

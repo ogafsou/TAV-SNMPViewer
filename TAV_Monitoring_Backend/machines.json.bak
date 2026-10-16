@@ -14,7 +14,7 @@
     "includeReceivingCards": false,
     "type": "novastar-h",
     "color": "#ffdb00",
-    "accessMethod": "api",
+    "accessMethod": "snmp+api",
     "apiProtocol": "legacy",
     "apiBaseUrl": "",
     "apiUsername": "admin",
@@ -68,7 +68,10 @@
           "power:2": "{\"icon\":\"psu\",\"state\":\"ok\"}"
         }
       }
-    }
+    },
+    "snmpScanEnabled": true,
+    "trapSnmpEnabled": false,
+    "snmpScanIntervalS": 600
   },
   {
     "id": "1783432208742",
@@ -84,7 +87,10 @@
     "recvCardsPerPort": "1",
     "includeReceivingCards": false,
     "type": "novastar-h",
-    "color": "#32c99a"
+    "color": "#32c99a",
+    "snmpScanEnabled": true,
+    "trapSnmpEnabled": false,
+    "snmpScanIntervalS": 600
   },
   {
     "id": "1784150076768",
@@ -200,6 +206,9 @@
           "power:2": "{\"icon\":\"psu\",\"state\":\"ok\"}"
         }
       }
-    }
+    },
+    "snmpScanEnabled": true,
+    "trapSnmpEnabled": false,
+    "snmpScanIntervalS": 600
   }
 ]
