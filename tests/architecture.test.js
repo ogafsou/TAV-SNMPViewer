@@ -74,7 +74,7 @@ test("a reference difference colors the control red without replacing the icon s
   assert.match(css, /\.state-icon\.state-warning\s*\{[^}]*filter:\s*url\("#icon-orange"\)/s);
   assert.match(css, /\.state-icon\.state-error\s*\{[^}]*filter:\s*url\("#icon-red"\)/s);
   assert.doesNotMatch(css, /\.reference-changed\s+\.state-icon\s*\{[^}]*filter:/s);
-  assert.match(renderer, /statusIcon\(item\.icon, className, item\.label\)/);
+  assert.match(renderer, /statusIcon\(item\.icon, className, item\.label, item\)/);
 });
 
 test("a NovaStar item matching the reference keeps its status icon inside a transparent control", () => {
@@ -91,8 +91,8 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20261016-10/);
-  assert.match(view, /monitoring-renderers\.js\?v=20260831-1/);
+  assert.match(view, /style\.css\?v=20261020-8/);
+  assert.match(view, /monitoring-renderers\.js\?v=20261020-1/);
   assert.match(view, /utils\.js\?v=20260723-2/);
   assert.match(view, /auth\.js\?v=20260725-1/);
   assert.match(view, /machine-details\.js\?v=20260723-6/);
@@ -157,7 +157,7 @@ test("monitoring cards group system health in one compact section", () => {
   assert.match(css, /\.monitoring-card\.never-connected\s*\{[^}]*color:\s*var\(--ink\);[^}]*filter:\s*none;/s);
   assert.doesNotMatch(renderer, /"Nom : "/);
   assert.doesNotMatch(renderer, /"Statut : "/);
-  assert.match(renderer, /Etat de reference : " \+ stateTitle\(item\.referenceState\)/);
+  assert.match(renderer, /Etat de reference : " \+ stateTitle\(item\.referenceState, item\)/);
   assert.match(css, /table th,[\s\S]*?table td:first-child,[\s\S]*?\.io-status-group > span\s*\{[^}]*font-family:\s*Poppins/);
   assert.match(css, /\.io-status-table th\s*\{[^}]*vertical-align:\s*middle;/s);
 });

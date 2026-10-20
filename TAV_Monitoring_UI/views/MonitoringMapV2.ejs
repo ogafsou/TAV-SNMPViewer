@@ -1,37 +1,37 @@
-<section id="mapMonitoringTab" class="tab-panel<%= page === 'map-v2' ? ' active' : '' %>"<% if (page !== 'map-v2') { %> hidden<% } %>>
-  <div class="map-monitoring-heading">
-    <div>
-      <p class="eyebrow">Vue d'ensemble</p>
-      <h2>Map V2</h2>
-      <p>Un module LED par case · Triangle haut : Main · Triangle bas : Backup</p>
-    </div>
-    <span id="mapMonitoringCount" class="map-monitoring-count">0 map</span>
-  </div>
-  <div id="mapMonitoringFilters" class="map-monitoring-filters" aria-label="Maps affichées"></div>
-  <div id="mapMonitoringGrid" class="map-monitoring-grid" aria-live="polite"></div>
-  <p id="mapMonitoringEmpty" class="map-monitoring-empty" hidden>Aucune map configurée.</p>
-
-  <div id="mapReferenceContextMenu" class="context-menu" hidden>
-    <button id="setMapReferenceMenuItem" type="button">Set Reference</button>
-  </div>
-
-  <dialog id="mapMonitoringDialog" class="map-monitoring-dialog">
-    <div class="map-monitoring-dialog-head">
-      <strong id="mapMonitoringDialogTitle">Map V2</strong>
-      <div class="map-monitoring-dialog-actions">
-        <button id="resetMapMonitoringViewButton" class="icon-mode-switch map-reset-view-button" type="button" aria-label="Réinitialiser la vue" title="Réinitialiser la vue" hidden>
-          <img src="/images/resetview.png" alt="" />
-        </button>
-        <% if (canAccessMonitoringMaps && page === 'map-v2') { %>
-          <a id="configureMapMonitoringDialog" class="icon-mode-switch" href="/map-v2/edit" aria-label="Configurer cette map" title="Configurer cette map">
-            <img src="/images/Configuration.png" alt="" />
-          </a>
-        <% } %>
-        <button id="closeMapMonitoringDialog" class="icon-mode-switch" type="button" aria-label="Fermer" title="Fermer">
-          <img src="/images/close.png" alt="" />
-        </button>
-      </div>
-    </div>
-    <div id="mapMonitoringDialogStage" class="map-monitoring-stage map-monitoring-stage-large"></div>
-  </dialog>
-</section>
+<section id="mapMonitoringTab" class="tab-panel<%= page === 'map-v2' ? ' active' : '' %>"<% if (page !== 'map-v2') { %> hidden<% } %>>
+  <div class="map-monitoring-heading">
+    <div>
+      <p class="eyebrow">Vue d'ensemble</p>
+      <h2>Map V2</h2>
+      <p>Un module LED par case · Triangle haut : Main · Triangle bas : Backup</p>
+    </div>
+    <span id="mapMonitoringCount" class="map-monitoring-count">0 map</span>
+  </div>
+  <div id="mapMonitoringFilters" class="map-monitoring-filters" aria-label="Maps affichées"></div>
+  <div id="mapMonitoringGrid" class="map-monitoring-grid" aria-live="polite"></div>
+  <p id="mapMonitoringEmpty" class="map-monitoring-empty" hidden>Aucune map configurée.</p>
+
+  <div id="mapReferenceContextMenu" class="context-menu" hidden>
+    <button id="setMapReferenceMenuItem" type="button">Set Reference</button>
+  </div>
+
+  <dialog id="mapMonitoringDialog" class="map-monitoring-dialog">
+    <div class="map-monitoring-dialog-head">
+      <strong id="mapMonitoringDialogTitle">Map V2</strong>
+      <div class="map-monitoring-dialog-actions">
+        <button id="resetMapMonitoringViewButton" class="icon-mode-switch map-reset-view-button" type="button" aria-label="Réinitialiser la vue" title="Réinitialiser la vue" hidden>
+          <img src="/images/resetview.png" alt="" />
+        </button>
+        <% if (canEditMapV2 && page === 'map-v2') { %>
+          <a id="configureMapMonitoringDialog" class="icon-mode-switch" href="/map-v2/edit" aria-label="Configurer cette map" title="Configurer cette map">
+            <img src="/images/Configuration.png" alt="" />
+          </a>
+        <% } %>
+        <button id="closeMapMonitoringDialog" class="icon-mode-switch" type="button" aria-label="Fermer" title="Fermer">
+          <img src="/images/close.png" alt="" />
+        </button>
+      </div>
+    </div>
+    <div id="mapMonitoringDialogStage" class="map-monitoring-stage map-monitoring-stage-large"></div>
+  </dialog>
+</section>

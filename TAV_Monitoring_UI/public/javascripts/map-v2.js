@@ -122,6 +122,42 @@ function mapV2CreateStartArrow(segment, range, pending) {
   return arrow;
 }
 
+function mapV2HoverOutput(event) {
+  var target = event.target.closest(".module-triangle, .module-start-arrow");
+  var cell = target && target.closest(".module-led");
+  var block = cell && cell.closest(".map-segment, .map-monitoring-segment");
+  var outputs = cell ? Array.from(cell.querySelectorAll(".module-triangle[data-machine-id]")) : [];
+  document.querySelectorAll(".module-start-arrow").forEach(function(arrow) {
+    var matches = block && arrow.closest(".map-segment, .map-monitoring-segment") === block &&
+      outputs.some(function(output) {
+        return arrow.dataset.machineId === output.dataset.machineId &&
+          arrow.dataset.cardId === output.dataset.cardId &&
+          arrow.dataset.outputId === output.dataset.outputId;
+      });
+    arrow.classList.toggle("output-hovered", !!matches);
+  });
+}
+
+document.addEventListener("pointerover", mapV2HoverOutput);
+document.addEventListener("pointerout", function(event) {
+  mapV2HoverOutput({ target: event.relatedTarget && event.relatedTarget.closest ? event.relatedTarget : { closest: function() { return null; } } });
+});
+
+function mapV2OutputState(assignment) {
+  var state = monitoringState[assignment.machineId];
+  if (!state || state.connected !== true) return "error";
+  var card = (state.outputTables || []).find(function(item) {
+    return String(item.label) === String(assignment.cardId);
+  });
+  var output = card && (card.ports || []).find(function(item) {
+    return String(item.label) === String(assignment.outputId);
+  });
+  if (!output) return "error";
+  if (output.state === "warning") return "backup-state";
+  if (output.state) return output.state === "ok" ? "ok" : "error";
+  return output.ok === true ? "ok" : "error";
+}
+
 function mapV2CreateCell(segment, index, editing) {
   var cell = document.createElement("i");
   cell.className = "module-led";
@@ -134,7 +170,7 @@ function mapV2CreateCell(segment, index, editing) {
     var triangle = document.createElement("button");
     triangle.type = "button";
     triangle.dataset.role = role;
-    triangle.className = "module-triangle " + role + (pending ? " pending" : assignment ? (assignmentOutputIsOk(assignment) ? " ok" : " error") : " unassigned");
+    triangle.className = "module-triangle " + role + (pending ? " pending" : assignment ? " " + mapV2OutputState(assignment) : " unassigned");
     var title = "Module " + (index + 1) + " · " + (role === "main" ? "Main" : "Backup");
     if (assignment) {
       title += " · " + (assignment.machineName || assignment.machineId) + " · Carte " + assignment.cardId + " / Sortie " + assignment.outputId;

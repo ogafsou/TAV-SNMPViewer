@@ -1038,7 +1038,7 @@ function ioStatusCell(item) {
   var title = monitoringItemTooltip(item, className);
   var referenceAttribute = item.referenceKey ? ' data-reference-key="' + escapeHtml(item.referenceKey) + '"' : "";
   return '<td class="' + className + referenceComparisonClass(item) + (item.microInterruption ? ' micro-interruption' : '') + '"' + referenceAttribute + ' title="' + escapeHtml(title) + '">' +
-    (item.icon ? statusIcon(item.icon, className, item.label) : "") +
+    (item.icon ? statusIcon(item.icon, className, item.label, item) : "") +
     '<span>' + escapeHtml(item.label) + '</span></td>';
 }
 
@@ -1048,7 +1048,7 @@ function statusPill(item) {
   var title = monitoringItemTooltip(item, state);
 
   return '<span class="monitor-pill ' + className + (item.icon ? ' icon-pill' : '') + referenceComparisonClass(item) + '" title="' + escapeHtml(title) + '">' +
-    (item.icon ? statusIcon(item.icon, state, item.label) : "") +
+    (item.icon ? statusIcon(item.icon, state, item.label, item) : "") +
     '<span>' + escapeHtml(item.label) + '</span>' +
   '</span>';
 }
@@ -1059,22 +1059,26 @@ function referenceComparisonClass(item) {
   return '';
 }
 
-function stateTitle(state) {
+function isOutputItem(item) {
+  return /^output:/.test(String(item && item.referenceKey || ""));
+}
+
+function stateTitle(state, item) {
   if (state === "ok") return "OK";
-  if (state === "warning") return "Avertissement";
+  if (state === "warning") return isOutputItem(item) ? "Backup" : "Avertissement";
   if (state === "error") return "Erreur";
   return "Inactif / Inconnu / Aucun signal";
 }
 
 function monitoringItemTooltip(item, state) {
-  var lines = [monitoringItemIdentity(item) + (state ? " - " + stateTitle(state) : "")];
+  var lines = [monitoringItemIdentity(item) + (state ? " - " + stateTitle(state, item) : "")];
   if (item && item.changed) {
     var currentValue = item.value === undefined || item.value === null || item.value === "" ? "-" : String(item.value);
     var expectedValue = item.referenceExpectedValue === undefined || item.referenceExpectedValue === null || item.referenceExpectedValue === ""
       ? null : String(item.referenceExpectedValue);
     lines.push("Valeur courante : " + currentValue);
     if (expectedValue !== null) lines.push("Valeur de reference : " + expectedValue);
-    else if (item.referenceState) lines.push("Etat de reference : " + stateTitle(item.referenceState));
+    else if (item.referenceState) lines.push("Etat de reference : " + stateTitle(item.referenceState, item));
     if (item.referenceKey === "kiloview:videoBitrate" && expectedValue !== null) {
       var currentMbps = monitoringBitrateMbps(currentValue);
       var expectedMbps = monitoringBitrateMbps(expectedValue);
@@ -1130,7 +1134,7 @@ function interfaceIcon(fields) {
   return "";
 }
 
-function statusIcon(icon, state, label) {
+function statusIcon(icon, state, label, item) {
   var files = {
     bnc: "BNC-white.png",
     dp: "DP-White.png",
@@ -1143,5 +1147,8 @@ function statusIcon(icon, state, label) {
     usb: "USB-White.png"
   };
   if (!files[icon]) return "";
+  if (state === "warning" && isOutputItem(item)) {
+    return '<span class="state-icon state-backup" aria-hidden="true"><img class="backup-green" src="/images/' + files[icon] + '" alt="" /><img class="backup-orange" src="/images/' + files[icon] + '" alt="" /></span>';
+  }
   return '<img class="state-icon state-' + escapeHtml(state) + '" src="/images/' + files[icon] + '" alt="" aria-hidden="true" />';
 }

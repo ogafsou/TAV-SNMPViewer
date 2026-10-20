@@ -4,7 +4,7 @@
     <title><%= title %></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/stylesheets/style.css?v=20261016-10" />
+  <link rel="stylesheet" href="/stylesheets/style.css?v=20261020-8" />
   </head>
   <body data-rest-refresh-s="<%= rest_refresh_s || 0 %>" data-backend-url="<%= backend_url %>" data-browser-logs-enabled="<%= browser_logs_enabled %>" data-browser-log-batch-ms="<%= browser_batch_interval_ms %>" data-monitoring-problem-sound="<%= typeof monitoring_problem_sound === "undefined" ? "" : monitoring_problem_sound %>" data-monitoring-recovery-sound="<%= typeof monitoring_recovery_sound === "undefined" ? "" : monitoring_recovery_sound %>" style="--map-background-opacity:<%= bkgnd_opacity %>">
     <script src="/javascripts/browser-logger.js?v=20260816-2"></script>
@@ -12,8 +12,8 @@
       <%- include("partials/shared/header") %>
       <%- include("Configuration") %>
       <%- include("Monitoring") %>
-      <% if (canAccessMonitoringMaps) { %><%- include(page === "map-v2" || page === "map-v2-edit" ? "MonitoringMapV2" : "MonitoringMap") %><% } %>
-      <% if (canAccessMonitoringMaps) { %><%- include(page === "map-v2" || page === "map-v2-edit" ? "MonitoringMapsV2" : "MonitoringMaps") %><% } %>
+      <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><%- include(page === "map-v2" || page === "map-v2-edit" ? "MonitoringMapV2" : "MonitoringMap") %><% } %>
+      <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><%- include(page === "map-v2" || page === "map-v2-edit" ? "MonitoringMapsV2" : "MonitoringMaps") %><% } %>
       <%- include("Users") %>
     </main>
 
@@ -29,13 +29,13 @@
 
     <script src="/javascripts/auth.js?v=20260725-1"></script>
     <script src="/javascripts/utils.js?v=20260723-2"></script>
-    <script src="/javascripts/monitoring-renderers.js?v=20260831-1"></script>
+    <script src="/javascripts/monitoring-renderers.js?v=20261020-1"></script>
     <script src="/javascripts/machine-details.js?v=20260723-6"></script>
     <script src="/javascripts/monitoring.js?v=20260816-1"></script>
     <script src="/javascripts/configuration.js?v=20260816-4"></script>
-    <% if (canAccessMonitoringMaps) { %><script src="/javascripts/map-monitoring.js?v=20261016-10"></script><% } %>
-    <% if (canAccessMonitoringMaps) { %><script src="/javascripts/monitoring-maps.js?v=20261016-9"></script><% } %>
-    <% if (canAccessMonitoringMaps && (page === 'map-v2' || page === 'map-v2-edit')) { %><script src="/javascripts/map-v2.js?v=20261016-11"></script><% } %>
+    <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><script src="/javascripts/map-monitoring.js?v=20261016-10"></script><% } %>
+    <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><script src="/javascripts/monitoring-maps.js?v=20261016-9"></script><% } %>
+    <% if (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit')) { %><script src="/javascripts/map-v2.js?v=20261020-3"></script><% } %>
     <script src="/javascripts/application.js?v=20260816-3"></script>
   </body>
 </html>

@@ -85,7 +85,9 @@ function createBackend(options) {
     try { auth.deleteUser(req.params.id, req.user); res.status(204).end(); } catch (error) { next(error); }
   });
   for (const [mapsBase, activeMapStore] of [["/api/maps", mapStore], ["/api/maps-v2", mapV2Store]]) {
-    app.get(mapsBase, requireMapAdministrator, (req, res, next) => {
+    const readMap = activeMapStore === mapV2Store ? requireRole("user", "editor", "administrator") : requireMapAdministrator;
+    const editMap = activeMapStore === mapV2Store ? requireRole("editor", "administrator") : requireMapAdministrator;
+    app.get(mapsBase, readMap, (req, res, next) => {
       try {
         if (activeMapStore === mapV2Store && !require("fs").existsSync(mapV2Store.filePath)) {
           mapV2Store.save([]);
@@ -96,10 +98,10 @@ function createBackend(options) {
         }
         res.json(activeMapStore.load()); } catch (error) { next(error); }
     });
-    app.post(mapsBase, requireMapAdministrator, (req, res, next) => {
+    app.post(mapsBase, editMap, (req, res, next) => {
       try { res.status(201).json({ map: activeMapStore.create(req.body || {}) }); } catch (error) { next(error); }
     });
-    app.get(mapsBase + "/:id/export", requireMapAdministrator, (req, res, next) => {
+    app.get(mapsBase + "/:id/export", editMap, (req, res, next) => {
       try {
         const map = activeMapStore.find(req.params.id);
         if (!map) { const error = new Error("Map introuvable"); error.status = 404; throw error; }
@@ -109,26 +111,26 @@ function createBackend(options) {
         res.send(activeMapStore.exportArchive(map.id));
       } catch (error) { next(error); }
     });
-    app.post(mapsBase + "/import", requireMapAdministrator, (req, res, next) => {
+    app.post(mapsBase + "/import", editMap, (req, res, next) => {
       try {
         if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Fichier MapTav vide" });
         const result = activeMapStore.importArchive(req.body, store.load().map((machine) => machine.id));
         res.status(201).json(result);
       } catch (error) { next(error); }
     });
-    app.patch(mapsBase + "/:id", requireMapAdministrator, (req, res, next) => {
+    app.patch(mapsBase + "/:id", editMap, (req, res, next) => {
       try { res.json({ map: activeMapStore.update(req.params.id, req.body || {}) }); } catch (error) { next(error); }
     });
-    app.delete(mapsBase + "/:id", requireMapAdministrator, (req, res, next) => {
+    app.delete(mapsBase + "/:id", editMap, (req, res, next) => {
       try { activeMapStore.remove(req.params.id); res.status(204).end(); } catch (error) { next(error); }
     });
-    app.put(mapsBase + "/:id/background", requireMapAdministrator, (req, res, next) => {
+    app.put(mapsBase + "/:id/background", editMap, (req, res, next) => {
       try {
         if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ error: "Image vide" });
         res.json({ map: activeMapStore.setBackground(req.params.id, req.body, String(req.headers["content-type"] || "").toLowerCase()) });
       } catch (error) { next(error); }
     });
-    app.get(mapsBase + "/:id/background", requireMapAdministrator, (req, res, next) => {
+    app.get(mapsBase + "/:id/background", readMap, (req, res, next) => {
       try {
         const map = activeMapStore.find(req.params.id);
         const filePath = activeMapStore.backgroundPath(map);
@@ -136,11 +138,11 @@ function createBackend(options) {
         res.type(map.backgroundMimeType).sendFile(filePath);
       } catch (error) { next(error); }
     });
-    app.put(mapsBase + "/:id/segments", requireMapAdministrator, (req, res, next) => {
+    app.put(mapsBase + "/:id/segments", editMap, (req, res, next) => {
       try { res.json({ map: activeMapStore.setSegments(req.params.id, req.body && req.body.segments) }); }
       catch (error) { next(error); }
     });
-    app.put(mapsBase + "/:id/reference", requireMapAdministrator, (req, res, next) => {
+    app.put(mapsBase + "/:id/reference", editMap, (req, res, next) => {
       try { res.json({ map: activeMapStore.setReference(req.params.id, req.body && req.body.outputs) }); }
       catch (error) { next(error); }
     });

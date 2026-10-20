@@ -89,6 +89,7 @@ test("start arrows mark the directed first module and expose NovaStar output det
   c.document.createElement = node;
   c.document.createElementNS = node;
   c.assignmentOutputIsOk = () => true;
+  c.monitoringState = {};
   c.mapMonitoringHasMicroInterruption = () => false;
   const segment = map.segments[0];
   segment.moduleRanges = [
@@ -106,6 +107,22 @@ test("start arrows mark the directed first module and expose NovaStar output det
   assert.equal(backup.length, 1);
   assert.match(backup[0].className, /backup vertical/);
   assert.match(backup[0].attributes["aria-label"], /Backup.*Spare NovaStar.*14 → 3/);
+  for (const editing of [true, false]) {
+    for (const state of ["ok", "warning", "error", "inactive"]) {
+      for (const machineId of ["Main NovaStar", "Spare NovaStar"]) {
+        c.monitoringState[machineId] = { connected: true, outputTables: [
+          { label: "1", ports: [{ label: "1", state, ok: true }] }
+        ] };
+      }
+      const triangles = c.mapV2CreateCell(segment, 7, editing).children.filter(child => child.className.startsWith("module-triangle"));
+      assert.equal(triangles.length, 2);
+      const expected = state === "warning" ? "backup-state" : state === "ok" ? "ok" : "error";
+      triangles.forEach(triangle => assert.equal(triangle.className.split(" ").pop(), expected));
+    }
+  }
+  c.monitoringState["Main NovaStar"].connected = false;
+  assert.equal(c.mapV2OutputState(output("Main NovaStar")), "error");
+  assert.equal(c.mapV2OutputState(output("missing")), "error");
 });
 
 test("quarter turns preserve pixel dimensions, center, module identities and creation direction", () => {
@@ -246,7 +263,7 @@ test("failed saves roll back, overlaps are rejected, and cancellation leaves sto
   assert.match(c.message, /chevauche/);
 });
 
-test("V2 API is restricted to Olivier, seeds independent geometry/backgrounds, and never scans", async (t) => {
+test("V2 API allows all readers and administrator/editor writes, seeds independent geometry/backgrounds, and never scans", async (t) => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-map-v2-api-"));
   const legacy = new MapStore(path.join(folder, "maps.json"));
   const source = legacy.create({ name: "Original" });
@@ -255,18 +272,20 @@ test("V2 API is restricted to Olivier, seeds independent geometry/backgrounds, a
   let scans = 0;
   const backend = createBackend({
     config: { mapsFile: legacy.filePath, machinesFile: path.join(folder, "machines.json"), loglevel: "error", monitor_interval_s: 0 },
-    auth: { authenticateRequest: (req) => ({ id: "test", login: req.headers.cookie === "olivier" ? "Olivier" : "admin", role: "administrator" }) },
+    auth: { authenticateRequest: (req) => ({ id: "test", login: req.headers.cookie === "olivier" ? "Olivier" : "admin", role: req.headers.cookie === "user" ? "user" : req.headers.cookie === "editor" ? "editor" : "administrator" }) },
     deviceMonitor: { monitor: async () => { scans++; } }
   });
   const server = http.createServer(backend.app);
   const port = await listen(server);
   t.after(async () => { backend.monitoring.stop(); await close(server); fs.rmSync(folder, { recursive: true, force: true }); });
   const base = "http://127.0.0.1:" + port;
-  for (const method of ["GET", "POST", "PUT", "DELETE"]) {
-    const suffix = method === "PUT" ? "/unknown/segments" : method === "DELETE" ? "/unknown" : "";
-    assert.equal((await fetch(base + "/api/maps-v2" + suffix, { method })).status, 403);
+  for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+    const suffix = method === "PUT" ? "/unknown/segments" : ["DELETE", "PATCH"].includes(method) ? "/unknown" : "";
+    assert.equal((await fetch(base + "/api/maps-v2" + suffix, { method, headers: { cookie: "user" } })).status, 403);
   }
-  const headers = { cookie: "olivier", "content-type": "application/json" };
+  assert.equal((await fetch(base + "/api/maps-v2", { headers: { cookie: "user" } })).status, 200);
+  assert.equal((await fetch(base + "/api/maps-v2", { headers: { cookie: "admin" } })).status, 200);
+  const headers = { cookie: "editor", "content-type": "application/json" };
   const response = await fetch(base + "/api/maps-v2", { headers });
   assert.equal(response.status, 200);
   const maps = await response.json();

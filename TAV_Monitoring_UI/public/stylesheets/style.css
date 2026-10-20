@@ -1159,6 +1159,11 @@ button:disabled {
   filter: url("#icon-orange");
 }
 
+.state-icon.state-backup { position: relative; }
+.state-backup img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.state-backup .backup-green { filter: url("#icon-green"); clip-path: polygon(0 0, 100% 0, 0 100%); }
+.state-backup .backup-orange { filter: url("#icon-orange"); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
 .state-icon.state-error {
   filter: url("#icon-red");
 }
@@ -2951,6 +2956,8 @@ td,
   .monitoring-card-dialog { width: calc(100% - 12px); max-height: calc(100dvh - 12px); }
   .monitoring-card-dialog #monitoringCardDialogContent { padding: 8px; }
 }
+.map-v2 .map-monitoring-segment { overflow: visible; }
+.map-v2 .module-led:has(.module-start-arrow.output-hovered) { z-index: 4; }
 .map-v2 .module-led {
   position: relative;
   isolation: isolate;
@@ -2975,6 +2982,22 @@ td,
 .map-v2 .module-led button.module-triangle.main { clip-path: polygon(0 0, 100% 0, 0 100%); }
 .map-v2 .module-led button.module-triangle.backup { clip-path: polygon(100% 0, 100% 100%, 0 100%); }
 .map-v2 .module-led button.module-triangle.ok { background: #32c99a; }
+.map-v2 .module-led button.module-triangle.backup-state { background: #32c99a; }
+.map-v2 .module-triangle.backup-state::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #ff9f32;
+  pointer-events: none;
+}
+.map-v2 .module-triangle.main.backup-state::before {
+  clip-path: polygon(calc(8% + 1px) calc(8% + 1px), calc(80% - 2.414px) calc(8% + 1px), calc(8% + 1px) calc(80% - 2.414px));
+}
+.map-v2 .module-triangle.backup.backup-state::before {
+  clip-path: polygon(calc(92% - 1px) calc(20% + 2.414px), calc(92% - 1px) calc(92% - 1px), calc(20% + 2.414px) calc(92% - 1px));
+}
 .map-v2 .module-led button.module-triangle.error { background: #d71920; }
 .map-v2 .module-led button.module-triangle.pending { background: repeating-linear-gradient(135deg, #e8b04b 0 4px, #333d50 4px 8px); }
 .map-v2 .module-led button.module-triangle:hover { filter: brightness(1.25); }
@@ -3023,6 +3046,8 @@ td,
 .map-v2 .module-start-arrow.vertical.backup svg { transform: rotate(90deg); }
 .map-v2 .module-start-label {
   position: absolute;
+  visibility: hidden;
+  pointer-events: none;
   width: max-content;
   padding: 2px 4px;
   border-radius: 3px;
@@ -3031,6 +3056,7 @@ td,
   font: 600 10px/1.3 sans-serif;
   white-space: nowrap;
 }
+.map-v2 .module-start-arrow.output-hovered .module-start-label { visibility: visible; }
 .map-v2 .horizontal.main .module-start-label { bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); }
 .map-v2 .horizontal.backup .module-start-label { top: calc(100% + 2px); left: 50%; transform: translateX(-50%); }
 .map-v2 .vertical.main .module-start-label { right: calc(100% + 3px); top: 50%; transform: translateY(-50%); }

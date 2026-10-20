@@ -131,14 +131,17 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(allowedMapMonitoringHtml.includes('src="/images/Configuration.png"'), true);
   assert.equal(allowedMapMonitoringHtml.includes('id="mapReferenceContextMenu"'), true);
 
-  assert.equal(html.includes('href="/map-v2"'), false);
+  assert.equal(html.includes('href="/map-v2"'), true);
   assert.equal(olivierHtml.includes('href="/map-v2"'), true);
   for (const cookie of ["session=user", "session=admin"]) {
     const deniedV2 = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2", {
       headers: { cookie }, redirect: "manual"
     });
-    assert.equal(deniedV2.status, 302);
-    assert.equal(deniedV2.headers.get("location"), "/monitoring");
+    assert.equal(deniedV2.status, 200);
+    const view = await deniedV2.text();
+    assert.equal(view.includes('id="configureMapMonitoringDialog"'), cookie === "session=admin");
+    const edit = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2/edit", { headers: { cookie }, redirect: "manual" });
+    assert.equal(edit.status, cookie === "session=admin" ? 200 : 302);
   }
   const mapV2 = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2", {
     headers: { cookie: "session=olivier" }
@@ -160,7 +163,7 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   assert.equal(editV2Html.includes('/javascripts/map-v2.js'), true);
   assert.equal(editV2Html.includes('href="/map-v2"'), true);
   const forbiddenV2Edit = await fetch("http://127.0.0.1:" + frontendPort + "/map-v2/edit", { redirect: "manual" });
-  assert.equal(forbiddenV2Edit.status, 302);
+  assert.equal(forbiddenV2Edit.status, 200);
 
   const applicationScript = await fetch("http://127.0.0.1:" + frontendPort + "/javascripts/application.js");
   assert.equal(applicationScript.status, 200);
