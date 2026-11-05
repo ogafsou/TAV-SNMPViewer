@@ -84,6 +84,7 @@ function createFrontend(options) {
     res.setHeader("Referrer-Policy", "no-referrer");
     res.render("status", { title: "Etat général - TAV Monitoring" });
   });
+  app.get("/favorites", authorizePage(config, ["user", "editor", "administrator"]), renderPage("favorites"));
   app.get("/monitoring", authorizePage(config, ["user", "editor", "administrator"]), renderPage("monitoring"));
   app.get("/monitoring-map", authorizePage(config, ["administrator"], "Olivier"), renderPage("monitoring-map"));
   app.get("/map-v2/edit", authorizePage(config, ["editor", "administrator"]), renderPage("map-v2-edit"));

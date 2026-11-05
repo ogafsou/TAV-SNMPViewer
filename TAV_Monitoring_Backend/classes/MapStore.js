@@ -153,7 +153,9 @@ function normalizeMap(value, apiBase = "/api/maps") {
 function normalizeSegments(value, allowOverflow = false) {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 500).map((segment) => {
-    const cases = Math.round(clampNumber(segment.cases, 1, 500));
+    const rows = Math.round(clampNumber(segment.rows || 1, 1, 500));
+    const columns = Math.round(clampNumber(segment.columns || segment.cases, 1, Math.floor(500 / rows)));
+    const cases = rows * columns;
     return {
       id: String(segment.id || "").slice(0, 100),
       orientation: segment.orientation === "vertical" ? "vertical" : "horizontal",
@@ -162,6 +164,7 @@ function normalizeSegments(value, allowOverflow = false) {
       y: clampNumber(segment.y, allowOverflow ? -1000 : 0, allowOverflow ? 1000 : 1),
       length: clampNumber(segment.length, 0.005, allowOverflow ? 1000 : 1),
       cases,
+      ...(segment.rows || segment.columns ? { rows, columns, gridTransposed: segment.gridTransposed === true, cellAspectRatio: clampNumber(segment.cellAspectRatio || 1, 0.000001, 1000000), gridRotation: Number.isInteger(segment.gridRotation) ? ((segment.gridRotation % 4) + 4) % 4 : 0, wiringMode: segment.wiringMode === "mouse" ? "mouse" : "numbering" } : {}),
       assignments: normalizeAssignments(segment.assignments, cases),
       moduleRanges: normalizeModuleRanges(segment.moduleRanges, cases)
     };
@@ -175,11 +178,11 @@ function normalizeModuleRanges(value, cases) {
     const assignment = normalizeAssignment(range.assignment);
     const start = Number(range.start), end = Number(range.end);
     if (!assignment || !Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < 0 || start >= cases || end >= cases) return null;
-    for (let index = Math.min(start, end); index <= Math.max(start, end); index++) {
-      if (occupied[range.role].has(index)) return null;
-    }
-    for (let index = Math.min(start, end); index <= Math.max(start, end); index++) occupied[range.role].add(index);
-    return { role: range.role, start, end, assignment };
+    const indexes = Array.isArray(range.modules) ? range.modules : Array.from({ length: Math.abs(end - start) + 1 }, (_, i) => start + i * (end >= start ? 1 : -1));
+    if (!indexes.length || indexes.length > cases || indexes[0] !== start || indexes[indexes.length - 1] !== end ||
+        new Set(indexes).size !== indexes.length || indexes.some(index => !Number.isInteger(index) || index < 0 || index >= cases || occupied[range.role].has(index))) return null;
+    indexes.forEach(index => occupied[range.role].add(index));
+    return { role: range.role, start, end, assignment, ...(Array.isArray(range.modules) ? { modules: indexes } : {}) };
   }).filter(Boolean);
 }
 function normalizeAssignments(value, cases) {

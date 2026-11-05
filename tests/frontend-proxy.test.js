@@ -75,6 +75,13 @@ test("frontend renders EJS and proxies REST and WebSocket traffic", async (t) =>
   const configurationMarkup = html.slice(html.indexOf('id="configurationTab"'), html.indexOf('id="monitoringTab"'));
   assert.equal((configurationMarkup.match(/<section\b/g) || []).length, (configurationMarkup.match(/<\/section>/g) || []).length);
 
+  const favoritesPage = await fetch("http://127.0.0.1:" + frontendPort + "/favorites", { headers: { cookie: "session=user" } });
+  const favoritesHtml = await favoritesPage.text();
+  assert.equal(favoritesPage.status, 200);
+  assert.match(favoritesHtml, /data-favorites-only="true"/);
+  assert.match(favoritesHtml, /class="tab active" href="\/favorites">Favoris/);
+  assert.match(favoritesHtml, /id="monitoringTab" class="tab-panel active"/);
+
   const configurationPage = await fetch("http://127.0.0.1:" + frontendPort + "/configuration");
   const configurationHtml = await configurationPage.text();
   assert.equal(configurationPage.status, 200);

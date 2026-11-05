@@ -74,6 +74,17 @@ function createBackend(options) {
       res.json({ ok: true });
     } catch (error) { next(error); }
   });
+  app.get("/api/auth/favorites", (req, res, next) => {
+    try { res.json({ favorites: auth ? auth.getFavorites(req.user.id) : [] }); } catch (error) { next(error); }
+  });
+  app.put("/api/auth/favorites/:machineId", (req, res, next) => {
+    try {
+      if (!auth) return res.status(503).json({ error: "Authentication unavailable" });
+      if (!req.body || typeof req.body.enabled !== "boolean") return res.status(400).json({ error: "enabled must be a boolean" });
+      if (req.body.enabled && !store.find(req.params.machineId)) return res.status(404).json({ error: "Machine not found" });
+      res.json({ favorites: auth.setFavorite(req.user.id, req.params.machineId, req.body.enabled) });
+    } catch (error) { next(error); }
+  });
   app.get("/api/users", requireRole("administrator"), (req, res) => res.json({ users: auth.listUsers() }));
   app.post("/api/users", requireRole("administrator"), (req, res, next) => {
     try { res.status(201).json({ user: auth.createUser(req.body || {}) }); } catch (error) { next(error); }

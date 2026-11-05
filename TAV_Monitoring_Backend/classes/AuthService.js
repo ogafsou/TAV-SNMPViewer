@@ -59,6 +59,23 @@ class AuthService {
     if (token) this.sessions.delete(token);
   }
 
+  getFavorites(userId) {
+    const user = this.load().find((entry) => entry.id === userId);
+    if (!user) throw httpError(404, "User not found");
+    return Array.isArray(user.favorites) ? user.favorites : [];
+  }
+
+  setFavorite(userId, machineId, enabled) {
+    const users = this.load();
+    const user = users.find((entry) => entry.id === userId);
+    if (!user) throw httpError(404, "User not found");
+    const favorites = new Set(Array.isArray(user.favorites) ? user.favorites : []);
+    if (enabled) favorites.add(machineId); else favorites.delete(machineId);
+    user.favorites = Array.from(favorites);
+    this.save(users);
+    return user.favorites;
+  }
+
   listUsers() { return this.load().map(sanitizeUser); }
 
   createUser(data) {

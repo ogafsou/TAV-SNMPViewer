@@ -1,4 +1,4 @@
-<section id="monitoringTab" class="tab-panel<%= page === 'monitoring' ? ' active' : '' %>"<% if (page !== 'monitoring') { %> hidden<% } %>>
+<section id="monitoringTab" class="tab-panel<%= (page === 'monitoring' || page === 'favorites') ? ' active' : '' %>"<% if (page !== 'monitoring' && page !== 'favorites') { %> hidden<% } %>>
   <%- include("partials/monitoring/header") %>
   <%- include("partials/monitoring/machine-cards") %>
 </section>

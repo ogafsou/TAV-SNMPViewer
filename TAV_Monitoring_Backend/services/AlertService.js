@@ -71,7 +71,7 @@ class AlertService {
   }
 
   async sendProblem(machine, issues) {
-    const severity = issues.some((issue) => issue.state === "error" || issue.state === "offline") ? "error" : "warning";
+    const severity = issues.some((issue) => ["error", "offline", "inactive"].includes(issue.state)) ? "error" : "warning";
     const shown = issues.slice(0, 6).map((issue) => `- ${issue.label}: ${stateLabel(issue.state)}`);
     if (issues.length > shown.length) shown.push(`- +${issues.length - shown.length} autre(s) probleme(s)`);
     const machineName = machine.name || machine.host || machine.id;
@@ -112,8 +112,9 @@ function collectIssues(view) {
   COLLECTIONS.forEach((name) => {
     (collections[name] || []).forEach((item) => {
       // Les alertes suivent la comparaison avec la reference, pas l'etat brut.
-      // Un warning deja present dans la reference ne doit pas etre notifie.
-      if (!item || item.changed !== true || !["warning", "error"].includes(item.state)) return;
+      // Toute difference affichee en rouge doit etre notifiee, meme si l'etat
+      // courant est inactif, inconnu ou OK.
+      if (!item || item.changed !== true) return;
       const key = item.referenceKey || `${name}:${item.label}`;
       found.set(key, {
         key,
@@ -159,7 +160,15 @@ function interfaceType(icon) {
 }
 
 function stateLabel(state) {
-  return state === "offline" ? "Hors ligne" : state === "error" ? "Erreur" : "Avertissement";
+  const labels = {
+    offline: "Hors ligne",
+    error: "Erreur",
+    warning: "Avertissement",
+    inactive: "Inactif",
+    unknown: "Inconnu",
+    ok: "OK (different de la reference)"
+  };
+  return labels[state] || "Different de la reference";
 }
 
 AlertService.collectIssues = collectIssues;

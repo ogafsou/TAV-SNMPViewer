@@ -91,14 +91,14 @@ test("a NovaStar item matching the reference keeps its status icon inside a tran
 
 test("monitoring assets use the current cache-busting version", () => {
   const view = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "views", "index.ejs"), "utf8");
-  assert.match(view, /style\.css\?v=20261104-1/);
-  assert.match(view, /monitoring-renderers\.js\?v=20261020-1/);
+  assert.match(view, /style\.css\?v=20261105-favorites/);
+  assert.match(view, /monitoring-renderers\.js\?v=20261105-favorites/);
   assert.match(view, /utils\.js\?v=20260723-2/);
   assert.match(view, /auth\.js\?v=20260725-1/);
   assert.match(view, /machine-details\.js\?v=20260723-6/);
-  assert.match(view, /monitoring\.js\?v=20260816-1/);
+  assert.match(view, /monitoring\.js\?v=20261105-favorites/);
   assert.match(view, /configuration\.js\?v=20260816-4/);
-  assert.match(view, /application\.js\?v=20260816-3/);
+  assert.match(view, /application\.js\?v=20261105-favorites/);
   assert.match(view, /monitoring-maps\.js\?v=20261103-2/);
   assert.match(view, /map-monitoring\.js\?v=20261103-2/);
   const css = fs.readFileSync(path.join(root, "TAV_Monitoring_UI", "public", "stylesheets", "style.css"), "utf8");
