@@ -44,6 +44,9 @@
 
       <p id="moduleRangeHint" role="status">Haut : Main · Bas : Backup. En édition, cliquez sur un triangle et choisissez une sortie, puis cliquez sur le module d’arrivée. Échap annule.</p>
 
+      <p id="moduleWiringCoverage" role="status"></p>
+      <button id="finishModulePathButton" type="button" hidden>Terminer le parcours</button>
+
       <div id="mapZone" class="map-zone">
 
         <div id="mapContent" class="map-content"><img id="mapBackgroundImage" alt="" hidden /></div>
@@ -82,8 +85,9 @@
 
     <div id="segmentEditActions" class="segment-edit-actions">
 
-      <button id="editSegmentCasesButton" type="button">Modifier le nombre de cases</button>
+      <button id="editSegmentCasesButton" type="button">Modifier la grille et le câblage</button>
 
+      <button id="transposeSegmentButton" type="button">Inverser les lignes et les colonnes</button>
       <button id="copySegmentButton" type="button">Copier</button>
 
       <button id="deleteSegmentButton" type="button">Supprimer</button>
@@ -111,3 +115,28 @@
 
 </section>
 
+
+<dialog id="moduleGridDialog" class="map-dialog">
+  <form id="moduleGridForm">
+    <h2>Grille de modules</h2>
+    <label>Nombre de lignes<input name="rows" type="number" min="1" max="500" step="1" required /></label>
+    <label>Nombre de colonnes<input name="columns" type="number" min="1" max="500" step="1" required /></label>
+    <label>Câblage<select name="wiringMode"><option value="numbering">Le câblage suit la numérotation</option><option value="mouse">Faire un câblage en suivant le pointeur de la souris</option></select></label>
+    <p>Maximum : 500 modules. Modifier les dimensions efface les affectations du bloc.</p>
+    <p id="moduleGridError" role="alert"></p>
+    <div class="dialog-actions"><button id="cancelModuleGridButton" type="button">Annuler</button><button type="submit">Enregistrer</button></div>
+  </form>
+</dialog>
+
+<dialog id="moduleBackupDialog" class="map-dialog">
+  <form id="moduleBackupForm">
+    <h2>Choisir la sortie Backup</h2>
+    <p>Le Backup suit le Main en sens inverse et remplace les affectations Backup sur ces modules.</p>
+    <label>Sortie NovaStar<select name="output" required></select></label>
+    <p id="moduleBackupError" role="alert"></p>
+    <div class="dialog-actions">
+      <button type="button" onclick="if (!mapV2Saving) this.closest('dialog').close()">Ignorer</button>
+      <button type="submit">Enregistrer</button>
+    </div>
+  </form>
+</dialog>

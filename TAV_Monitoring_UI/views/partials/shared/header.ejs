@@ -38,7 +38,6 @@
         <div>
           <nav class="tabs" aria-label="Sections">
             <a class="tab<%= page === 'monitoring' ? ' active' : '' %>" href="/monitoring">Monitoring</a>
-            <% if (canAccessMonitoringMaps) { %><a id="mapMonitoringLink" class="tab<%= page === 'monitoring-map' ? ' active' : '' %>" href="/monitoring-map">Monitoring Map</a><% } %>
             <% if (canViewMapV2) { %><a id="mapV2Link" class="tab<%= (page === 'map-v2' || page === 'map-v2-edit') ? ' active' : '' %>" href="/map-v2">Map V2</a><% } %>
           </nav>
         </div>

@@ -71,8 +71,7 @@ test("range selection is provisional, follows numbering both ways, and keeps the
   assert.equal(c.mapV2Pending, null);
   c.mapV2Role = "backup";
   c.selectedCaseIndex = 13;
-  c.mapV2StartRange(output("backup"));
-  await c.click(2, "backup");
+  await c.mapV2StartRange(output("backup"));
   const ranges = map.segments[0].moduleRanges;
   assert.equal(ranges.length, 2);
   assert.deepEqual(Array.from(ranges, (r) => [r.role, r.start, r.end]), [["main", 2, 13], ["backup", 13, 2]]);
@@ -101,12 +100,12 @@ test("start arrows mark the directed first module and expose NovaStar output det
   const main = arrows(2, true);
   assert.equal(main.length, 1);
   assert.match(main[0].className, /main horizontal/);
-  assert.match(main[0].title, /Main NovaStar.*Carte 1 \/ Sortie 1.*3 → 14/);
+  assert.match(main[0].title, /Main NovaStar.*Carte 1 \/ Sortie 1.*1 → 12/);
   segment.orientation = "vertical";
   const backup = arrows(13, false);
   assert.equal(backup.length, 1);
   assert.match(backup[0].className, /backup vertical/);
-  assert.match(backup[0].attributes["aria-label"], /Backup.*Spare NovaStar.*14 → 3/);
+  assert.match(backup[0].attributes["aria-label"], /Backup.*Spare NovaStar.*12 → 1/);
   for (const editing of [true, false]) {
     for (const state of ["ok", "warning", "error", "inactive"]) {
       for (const machineId of ["Main NovaStar", "Spare NovaStar"]) {
@@ -213,8 +212,8 @@ test("one NovaStar output can be reused across ranges, halves and blocks and sur
   const assign = async (start, end, role) => {
     c.selectedCaseIndex = start;
     c.mapV2Role = role;
-    c.mapV2StartRange(output("shared"));
-    await c.click(end, role);
+    await c.mapV2StartRange(output("shared"));
+    if (c.mapV2Pending) await c.click(end, role);
   };
   await assign(0, 2, "main");
   await assign(5, 7, "main");
@@ -353,4 +352,188 @@ test("map form displays V2 backend errors inside the dialog and allows retry", a
   assert.equal(element("mapDialog").closed, true);
   assert.equal(c.monitoringMaps.length, 1);
   assert.equal(c.selectedMapId, "new");
+});
+
+
+test("mouse wiring expands rows and columns but skips intermediate diagonal modules", async () => {
+  const { context: c, map } = editor();
+  Object.assign(map.segments[0], { rows: 3, columns: 3, cases: 9, wiringMode: "mouse" });
+  assert.deepEqual(Array.from(c.mapV2LineModules(map.segments[0], 0, 8)), [0, 8]);
+  c.selectedCaseIndex = 0;
+  c.mapV2StartRange(output("main"));
+  await c.click(2, "main");
+  await c.click(8, "main");
+  await c.click(6, "main");
+  await c.click(3, "main");
+  await c.click(4, "main");
+  assert.equal(new Set(c.mapV2Pending.modules).size, 9);
+  await c.click(0, "main");
+  assert.equal(c.mapV2Pending.modules.length, 9);
+  await c.mapV2FinishRange();
+  assert.equal(c.mapV2Pending, null);
+  assert.deepEqual(Array.from(map.segments[0].moduleRanges[0].modules), [0, 1, 2, 5, 8, 7, 6, 3, 4]);
+  c.mapV2Role = "backup";
+  c.selectedCaseIndex = 8;
+  c.mapV2StartRange(output("backup"));
+  await c.click(0, "backup");
+  await c.mapV2FinishRange();
+  assert.deepEqual(Array.from(map.segments[0].moduleRanges[1].modules), [8, 0]);
+});
+
+test("grid geometry and arbitrary routes survive persistence and export", (t) => {
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-grid-"));
+  t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
+  const store = new MapStore(path.join(folder, "maps.json"), "/api/maps-v2");
+  const map = store.create({ name: "Grid" });
+  const segment = { ...block(), rows: 3, columns: 3, cases: 9, gridRotation: 1, wiringMode: "mouse", moduleRanges: [
+    { role: "main", start: 0, end: 8, modules: [0, 4, 8], assignment: output("main") },
+    { role: "main", start: 1, end: 2, modules: [1, 4, 2], assignment: output("overlap") },
+    { role: "main", start: 1, end: 1, modules: [1, 1], assignment: output("duplicate") },
+    { role: "backup", start: 8, end: 0, modules: [8, 4, 0], assignment: output("backup") }
+  ] };
+  const saved = store.setSegments(map.id, [segment]).segments[0];
+  assert.equal(saved.cases, 9);
+  assert.equal(saved.rows, 3);
+  assert.equal(saved.wiringMode, "mouse");
+  assert.equal(saved.moduleRanges.length, 2);
+  assert.deepEqual(store.importArchive(store.exportArchive(map.id), ["main", "backup"]).map.segments[0], saved);
+});
+
+test("grid quarter turns preserve module identities and square cells", () => {
+  const { context: c } = editor();
+  let segment = { ...block(), rows: 2, columns: 3, cases: 6, gridRotation: 0 };
+  const initial = { ...segment };
+  for (let turn = 0; turn < 4; turn++) {
+    Object.assign(segment, c.mapV2RotatedGeometry(segment, true, 1000, 500));
+    const positions = Array.from({ length: 6 }, (_, i) => c.mapV2CellPosition(segment, i));
+    assert.equal(new Set(positions.map(p => p.row + ":" + p.column)).size, 6);
+    assert.ok(Math.abs(c.mapV2Thickness(segment, 1000, 500) - (700 / 3 * 2)) < 1e-8);
+  }
+  assert.ok(Math.abs(segment.x - initial.x) < 1e-8);
+  assert.ok(Math.abs(segment.y - initial.y) < 1e-8);
+  assert.deepEqual(c.mapV2CellPosition(segment, 4), c.mapV2CellPosition(initial, 4));
+});
+
+
+test("rectangle creation preserves both dragged dimensions through save, reload and rotation", (t) => {
+  const { context: c } = editor();
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), "tav-rectangle-"));
+  t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
+  const store = new MapStore(path.join(folder, "maps.json"), "/api/maps-v2");
+  const map = store.create({ name: "Rectangle" });
+  for (const [start, end] of [
+    [{ x: .1, y: .2 }, { x: .7, y: .8 }],
+    [{ x: .7, y: .8 }, { x: .1, y: .2 }],
+    [{ x: .1, y: .8 }, { x: .7, y: .2 }]
+  ]) {
+    const rect = c.mapV2SelectionRect(start, end);
+    const geometry = c.mapV2GridFromRectangle(rect, { rows: 2, columns: 3, cases: 6, wiringMode: "mouse" }, 1000, 500);
+    let segment = store.setSegments(map.id, [{ ...geometry, id: "rectangle" }]).segments[0];
+    assert.equal(segment.orientation, "horizontal");
+    assert.ok(Math.abs(segment.x - .1) < 1e-8);
+    assert.ok(Math.abs(segment.y - .5) < 1e-8);
+    assert.ok(Math.abs(segment.length * 1000 - 600) < 1e-8);
+    assert.ok(Math.abs(c.mapV2Thickness(segment, 1000, 500) - 300) < 1e-8);
+    Object.assign(segment, c.mapV2RotatedGeometry(segment, true, 1000, 500));
+    segment = store.setSegments(map.id, [segment]).segments[0];
+    assert.ok(Math.abs(segment.length * 500 - 600) < 1e-8);
+    assert.ok(Math.abs(c.mapV2Thickness(segment, 1000, 500) - 300) < 1e-8);
+  }
+});
+
+test("diagonal skipping is independent of rotation and reversed numbering", () => {
+  const { context: c, map } = editor();
+  for (const reversed of [false, true]) for (let gridRotation = 0; gridRotation < 4; gridRotation++) {
+    const segment = { ...map.segments[0], rows: 3, columns: 3, cases: 9, gridRotation, reversed };
+    assert.deepEqual(Array.from(c.mapV2LineModules(segment, 0, 8)), [0, 8]);
+    assert.deepEqual(Array.from(c.mapV2LineModules(segment, 0, 2)), [0, 1, 2]);
+    assert.deepEqual(Array.from(c.mapV2LineModules(segment, 0, 6)), [0, 3, 6]);
+  }
+});
+
+
+test("reclicking a corner undoes its whole leg and allows correcting the route", async () => {
+  const { context: c, map } = editor();
+  Object.assign(map.segments[0], { rows: 3, columns: 3, cases: 9, wiringMode: "mouse" });
+  c.selectedCaseIndex = 0;
+  c.mapV2StartRange(output("main"));
+  await c.click(2, "main");
+  await c.click(8, "main");
+  c.mapV2Pending.previewModules = [0, 1, 2, 5, 8, 7, 6];
+  c.mapV2Pending.previewIndex = 6;
+  await c.click(8, "backup");
+  assert.equal(c.mapV2Pending.end, 8);
+  await c.click(8, "main");
+  assert.deepEqual(Array.from(c.mapV2Pending.modules), [0, 1, 2]);
+  assert.equal(c.mapV2Pending.end, 2);
+  assert.equal(c.mapV2Pending.previewModules, undefined);
+  assert.equal(c.mapV2Pending.previewIndex, undefined);
+  assert.equal(map.segments[0].moduleRanges.length, 0);
+  await c.click(5, "main");
+  await c.click(4, "main");
+  await c.click(2, "main");
+  assert.deepEqual(Array.from(c.mapV2Pending.modules), [0]);
+  assert.equal(c.mapV2Pending.corners.length, 1);
+  await c.click(8, "main");
+  await c.mapV2FinishRange();
+  assert.deepEqual(Array.from(map.segments[0].moduleRanges[0].modules), [0, 8]);
+});
+
+
+test("choosing a Backup output reverses the Main and replaces only overlapping modules", async () => {
+  const { context: c, map } = editor();
+  const segment = map.segments[0];
+  segment.moduleRanges = [{ role: "backup", start: 0, end: 8, assignment: output("old") }];
+  const select = { value: "0", replaceChildren() {}, add() {} };
+  const submit = {};
+  const dialog = { showModal() { this.open = true; }, close() { this.open = false; this.onclose(); } };
+  const form = { elements: { output: select }, querySelector: () => submit };
+  c.document.getElementById = (id) => ({ moduleBackupDialog: dialog, moduleBackupForm: form }[id] || {});
+  c.Option = function() {};
+  c.novastarOutputs = () => [{ cards: [{ outputs: [output("new")] }] }];
+  c.mapV2StartRange(output("main"));
+  await c.click(5, "main");
+  assert.equal(dialog.open, true);
+  assert.equal(segment.moduleRanges.length, 2);
+  await form.onsubmit({ preventDefault() {} });
+  assert.equal(dialog.open, false);
+  const backup = segment.moduleRanges.filter(range => range.role === "backup");
+  assert.deepEqual(Array.from(backup, range => Array.from(range.modules)), [[0, 1], [6, 7, 8], [5, 4, 3, 2]]);
+  assert.equal(backup[2].assignment.machineId, "new");
+});
+
+test("transposing a rotated grid swaps coordinates without renumbering the wiring", async () => {
+  const { context: c, map } = editor();
+  const range = { role: "main", start: 0, end: 5, modules: [0, 5], assignment: output("main") };
+  const segment = Object.assign(map.segments[0], { rows: 2, columns: 3, cases: 6, gridRotation: 1, moduleRanges: [range] });
+  c.mapContent = { clientWidth: 1000, clientHeight: 500 };
+  const before = Array.from({ length: 6 }, (_, index) => c.mapV2CellPosition(segment, index));
+  const thickness = c.mapV2Thickness(segment, 1000, 500);
+  const { x, y, length, orientation } = segment;
+  await c.mapV2Transpose();
+  assert.deepEqual({ x: segment.x, y: segment.y, length: segment.length, orientation: segment.orientation }, { x, y, length, orientation });
+  assert.ok(Math.abs(c.mapV2Thickness(segment, 1000, 500) - thickness) < 1e-8);
+  for (const [index, position] of before.entries()) {
+    const after = c.mapV2CellPosition(segment, index);
+    assert.equal(after.row, position.column);
+    assert.equal(after.column, position.row);
+  }
+  assert.equal(segment.moduleRanges[0], range);
+  await c.mapV2Transpose();
+  assert.deepEqual(Array.from({ length: 6 }, (_, index) => c.mapV2CellPosition(segment, index)), before);
+});
+
+test("each Main starts at one and its last module can provision a deferred reverse Backup", async () => {
+  const { context: c, map } = editor();
+  const segment = Object.assign(map.segments[0], { rows: 3, columns: 3, cases: 9, wiringMode: "mouse" });
+  segment.moduleRanges = [
+    { role: "main", start: 8, end: 0, modules: [8, 5, 2, 0], assignment: output("first") },
+    { role: "main", start: 6, end: 3, modules: [6, 3], assignment: output("second") }
+  ];
+  assert.deepEqual([8, 5, 2, 0, 6, 3].map(index => c.mapV2ModuleNumber(segment, index)), [1, 2, 3, 4, 1, 2]);
+  c.selectedCaseIndex = 0;
+  c.mapV2Role = "backup";
+  await c.mapV2StartRange(output("deferred"));
+  assert.deepEqual(Array.from(segment.moduleRanges[2].modules), [0, 2, 5, 8]);
+  assert.equal(segment.moduleRanges[2].assignment.machineId, "deferred");
 });

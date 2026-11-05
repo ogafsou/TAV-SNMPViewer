@@ -2,6 +2,8 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const NtfyClient = require("../TAV_Monitoring_Backend/services/NtfyClient");
 const AlertService = require("../TAV_Monitoring_Backend/services/AlertService");
+const { canonicalizeIo } = require("../TAV_Monitoring_Backend/services/CanonicalIo");
+const { buildMonitoringView, buildReferenceSnapshot, applyReferenceMode } = require("../TAV_Monitoring_Backend/services/MonitoringState");
 
 function config(overrides) {
   return Object.assign({
@@ -92,3 +94,48 @@ function recordWithInput(input) {
   result.view.inputSlots = [input];
   return result;
 }
+
+test("all reference differences are alerted regardless of current visual state", () => {
+  for (const state of ["ok", "inactive", "unknown", "warning", "error"]) {
+    const item = { label: "1", state, referenceKey: "fan:1" };
+    assert.equal(AlertService.collectIssues(record([{ ...item, changed: true }]).view).length, 1);
+    assert.equal(AlertService.collectIssues(record([{ ...item, changed: false }]).view).length, 0);
+    assert.equal(AlertService.collectIssues(record([item]).view).length, 0);
+  }
+});
+
+test("NovaStar disconnection against an active reference alerts once and reconnecting confirms recovery", async () => {
+  function view(status) {
+    const data = { controller: {}, outputSlots: { slots: [{
+      slotId: "O-1", outputPorts: [{ portId: 2, fields: { status: { value: status, ok: true } } }]
+    }] } };
+    canonicalizeIo(data, "api");
+    return buildMonitoringView(data);
+  }
+  const machine = { id: "output-test", name: "NovaStar test", monitoringReference: {
+    setAt: new Date().toISOString(), snapshot: buildReferenceSnapshot(view(1))
+  } };
+  const disconnected = { view: applyReferenceMode(machine, view(0), true) };
+  const connected = { view: applyReferenceMode(machine, view(1), true) };
+  assert.equal(disconnected.view.outputSlots[0].state, "inactive");
+  assert.equal(disconnected.view.outputSlots[0].changed, true);
+  const sent = [];
+  const alerts = new AlertService({ config: config(), notifier: {
+    isConfigured: () => true, send: async (message) => { sent.push(message); }
+  } });
+  await alerts.handleRecord(machine, disconnected);
+  assert.equal(sent.length, 0);
+  await alerts.handleRecord(machine, disconnected);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].priority, 5);
+  assert.match(sent[0].message, /Carte de sortie O-1, sortie 2: Inactif/);
+  await alerts.handleRecord(machine, disconnected);
+  assert.equal(sent.length, 1);
+  await alerts.handleRecord(machine, connected);
+  assert.equal(sent.length, 1);
+  await alerts.handleRecord(machine, connected);
+  assert.equal(sent.length, 2);
+  assert.match(sent[1].title, /RETABLI/);
+  machine.monitoringReference.snapshot = buildReferenceSnapshot(view(0));
+  assert.deepEqual(AlertService.collectIssues(applyReferenceMode(machine, view(0), true)), []);
+});
