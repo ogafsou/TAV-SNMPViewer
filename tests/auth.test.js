@@ -51,6 +51,7 @@ test("favorites rendering filters equipment and individual Ping rows and display
   const vm = require("vm");
   const context = {
     machines: [{ id: "a", type: "novastar-h" }, { id: "b", type: "novastar-h" }, { id: "p", type: "other" }, { id: "q", type: "other" }],
+    draggedPingMachineId: "", draggedKiloviewMachineId: "",
     favoritesOnly: true, favoritesLoaded: true, favoriteMachineIds: ["b", "q"],
     monitoringCards: { innerHTML: "", classList: { toggle() {} } },
     monitoringViewToggleButton: { setAttribute() {} }, monitoringMinimized: false,
@@ -58,15 +59,51 @@ test("favorites rendering filters equipment and individual Ping rows and display
     buildUnknownState: () => ({})
   };
   vm.createContext(context);
+  context.isFavoriteMachine = (machine) => context.favoriteMachineIds.includes(machine.id) || context.favoriteMachineIds.includes(machine.type === "other" ? "__ping__" : machine.type === "kiloview" ? "__kiloview__" : "");
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../TAV_Monitoring_UI/public/javascripts/monitoring-renderers.js"), "utf8"), context);
   context.renderFullMonitoringCard = (machine) => "card:" + machine.id;
   context.renderPingMonitoringCard = (machines) => "ping:" + machines.map((machine) => machine.id).join(",");
   context.renderMonitoringCards();
   assert.equal(context.monitoringCards.innerHTML, "card:bping:q");
+  context.favoriteMachineIds = ["__ping__"];
+  context.renderMonitoringCards();
+  assert.equal(context.monitoringCards.innerHTML, "ping:p,q");
   context.favoriteMachineIds = [];
   context.renderMonitoringCards();
   assert.match(context.monitoringCards.innerHTML, /Aucun équipement favori/);
   context.favoritesOnly = false;
   context.renderMonitoringCards();
   assert.equal(context.monitoringCards.innerHTML, "card:acard:bping:p,q");
+});
+
+
+test("group favorites preserve individual selections and hide their buttons", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "tav-favorite-group-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const auth = new AuthService({ filePath: path.join(directory, "users.json") });
+  const id = auth.listUsers()[0].id;
+  auth.setFavorite(id, "ping-a", true);
+  auth.setFavorite(id, "__ping__", true);
+  auth.setFavorite(id, "__kiloview__", true);
+  const vm = require("vm");
+  const context = { document: { body: { dataset: {} } }, machines: [
+    { id: "ping-a", type: "other" }, { id: "ping-b", type: "other" }, { id: "kv", type: "kiloview" }
+  ], escapeHtml: String };
+  vm.createContext(context);
+  const source = fs.readFileSync(path.join(__dirname, "../TAV_Monitoring_UI/public/javascripts/application.js"), "utf8");
+  vm.runInContext(source.slice(0, source.indexOf('document.addEventListener("click"')), context);
+  context.favoriteMachineIds = auth.getFavorites(id);
+  context.favoritesLoaded = true;
+  assert.equal(context.isFavoriteMachine(context.machines[1]), true);
+  assert.equal(context.favoriteButton("ping-a"), "");
+  assert.equal(context.favoriteButton("kv"), "");
+  assert.match(context.favoriteButton("__ping__"), /starOn/);
+  auth.setFavorite(id, "__ping__", false);
+  auth.setFavorite(id, "__kiloview__", false);
+  context.favoriteMachineIds = auth.getFavorites(id);
+  assert.deepEqual(context.favoriteMachineIds, ["ping-a"]);
+  assert.match(context.favoriteButton("ping-a"), /starOn/);
+  assert.match(context.favoriteButton("ping-b"), /starOff/);
+  assert.match(context.favoriteButton("kv"), /starOff/);
+  assert.equal(context.isFavoriteMachine(context.machines[1]), false);
 });

@@ -81,7 +81,7 @@ function createBackend(options) {
     try {
       if (!auth) return res.status(503).json({ error: "Authentication unavailable" });
       if (!req.body || typeof req.body.enabled !== "boolean") return res.status(400).json({ error: "enabled must be a boolean" });
-      if (req.body.enabled && !store.find(req.params.machineId)) return res.status(404).json({ error: "Machine not found" });
+      if (req.body.enabled && !["__ping__", "__kiloview__"].includes(req.params.machineId) && !store.find(req.params.machineId)) return res.status(404).json({ error: "Machine not found" });
       res.json({ favorites: auth.setFavorite(req.user.id, req.params.machineId, req.body.enabled) });
     } catch (error) { next(error); }
   });

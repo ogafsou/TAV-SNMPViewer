@@ -62,6 +62,7 @@ function editor() {
 
 test("range selection is provisional, follows numbering both ways, and keeps the other half", async () => {
   const { context: c, map } = editor();
+  c.mapV2ChooseBackup = () => { throw new Error("Le choix du Backup ne doit pas s’ouvrir automatiquement"); };
   c.mapV2StartRange(output("main"));
   assert.equal(map.segments[0].moduleRanges.length, 0);
   assert.equal(c.mapV2Pending.start, 2);
@@ -493,10 +494,12 @@ test("choosing a Backup output reverses the Main and replaces only overlapping m
   c.novastarOutputs = () => [{ cards: [{ outputs: [output("new")] }] }];
   c.mapV2StartRange(output("main"));
   await c.click(5, "main");
-  assert.equal(dialog.open, true);
+  assert.notEqual(dialog.open, true);
   assert.equal(segment.moduleRanges.length, 2);
-  await form.onsubmit({ preventDefault() {} });
-  assert.equal(dialog.open, false);
+  c.mapV2Role = "backup";
+  c.selectedCaseIndex = 5;
+  await c.mapV2StartRange(output("new"));
+  assert.notEqual(dialog.open, true);
   const backup = segment.moduleRanges.filter(range => range.role === "backup");
   assert.deepEqual(Array.from(backup, range => Array.from(range.modules)), [[0, 1], [6, 7, 8], [5, 4, 3, 2]]);
   assert.equal(backup[2].assignment.machineId, "new");

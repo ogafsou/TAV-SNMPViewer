@@ -1,4 +1,5 @@
 require("./architecture.test");
+require("./ping-order.test");
 require("./backend-api.test");
 require("./backend-monitoring.test");
 require("./novastar-output-ports.test");
