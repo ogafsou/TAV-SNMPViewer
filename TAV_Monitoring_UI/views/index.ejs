@@ -4,7 +4,7 @@
     <title><%= title %></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/stylesheets/style.css?v=20261105-ping-order" />
+  <link rel="stylesheet" href="/stylesheets/style.css?v=20261106-editor-fullscreen-close" />
   </head>
   <body data-favorites-only="<%= page === 'favorites' %>" data-rest-refresh-s="<%= rest_refresh_s || 0 %>" data-backend-url="<%= backend_url %>" data-browser-logs-enabled="<%= browser_logs_enabled %>" data-browser-log-batch-ms="<%= browser_batch_interval_ms %>" data-monitoring-problem-sound="<%= typeof monitoring_problem_sound === "undefined" ? "" : monitoring_problem_sound %>" data-monitoring-recovery-sound="<%= typeof monitoring_recovery_sound === "undefined" ? "" : monitoring_recovery_sound %>" style="--map-background-opacity:<%= bkgnd_opacity %>">
     <script src="/javascripts/browser-logger.js?v=20260816-2"></script>
@@ -34,8 +34,8 @@
     <script src="/javascripts/monitoring.js?v=20261105-favorites"></script>
     <script src="/javascripts/configuration.js?v=20260816-4"></script>
     <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><script src="/javascripts/map-monitoring.js?v=20261103-2"></script><% } %>
-    <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><script src="/javascripts/monitoring-maps.js?v=20261103-2"></script><% } %>
-    <% if (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit')) { %><script src="/javascripts/map-v2.js?v=20261106-manual-backup"></script><% } %>
+    <% if (canAccessMonitoringMaps || (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit'))) { %><script src="/javascripts/monitoring-maps.js?v=20261106-editor-fullscreen"></script><% } %>
+    <% if (canViewMapV2 && (page === 'map-v2' || page === 'map-v2-edit')) { %><script src="/javascripts/map-v2.js?v=20261106-grid-input-select"></script><% } %>
     <script src="/javascripts/application.js?v=20261106-group-favorites"></script>
   </body>
 </html>

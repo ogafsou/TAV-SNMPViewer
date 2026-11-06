@@ -20,7 +20,11 @@
 
     <section class="monitor-zone map-view-zone">
 
-      <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2><button id="exportMapButton" type="button" hidden>Export</button></div>
+      <div class="section-title map-title"><h2 id="selectedMapName">Aucune map</h2><button id="exportMapButton" type="button" hidden>Export</button>
+        <button id="closeMapEditorFullscreenButton" class="map-view-icon-button" type="button" aria-label="Quitter le plein écran" title="Quitter le plein écran" hidden>
+          <img src="/images/Close.png" alt="" />
+        </button>
+      </div>
 
       <div class="map-editor-toolbar">
 
@@ -31,6 +35,10 @@
         </button>
 
         <button id="mapWarningsFilter" class="map-novastar-filter" type="button" hidden>Warning</button>
+        <button id="maximizeMapEditorButton" class="map-view-icon-button" type="button" aria-label="Agrandir l’éditeur" title="Agrandir l’éditeur" aria-expanded="false" aria-controls="mapZone">
+          <img src="/images/Maximize.png" alt="" />
+        </button>
+
 
         <label id="mapEditModeLabel"><input id="mapEditMode" type="checkbox" /> Mode édition</label>
 

@@ -864,6 +864,7 @@ button:disabled {
   color: var(--ink);
   font-size: 9px;
   text-align: left;
+  vertical-align: middle;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -875,7 +876,7 @@ button:disabled {
 
 .ping-monitoring-table .ping-status {
   font-weight: 800;
-  text-align: center;
+  text-align: left;
 }
 
 .ping-monitoring-table .ping-status.ok { color: #1f9d55; }
@@ -3007,7 +3008,8 @@ td,
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(135deg, transparent calc(50% - .6px), #101417 50%, transparent calc(50% + .6px));
+  /* Match the shared edge of the two clip paths even on rectangular modules. */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100 0 L0 100' stroke='%23101417' stroke-width='1.2' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
 .map-v2 .module-number {
   position: absolute;
@@ -3090,3 +3092,91 @@ td,
   max-height: none;
   aspect-ratio: auto;
 }
+
+.map-v2 .module-grid { display: grid; }
+body.map-editor-fullscreen-open { overflow: hidden; }
+.map-v2 #maximizeMapEditorButton[hidden],
+.map-v2 #closeMapEditorFullscreenButton[hidden] { display: none; }
+.map-v2 #monitoringMapsTab .map-view-zone.map-editor-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  margin: 0;
+  padding: 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--panel);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.map-v2 .map-editor-fullscreen .map-editor-toolbar { flex-wrap: wrap; flex: 0 0 auto; margin: 4px 0; }
+.map-v2 .map-editor-fullscreen .map-title { flex: 0 0 auto; padding: 4px 8px; }
+.map-v2 .map-editor-fullscreen #exportMapButton { display: none; }
+.map-v2 .map-editor-fullscreen #moduleRangeHint,
+.map-v2 .map-editor-fullscreen #moduleWiringCoverage { flex: 0 0 auto; margin: 3px 0; }
+.map-v2 #monitoringMapsTab .map-editor-fullscreen .map-zone { flex: 1 1 0; height: auto; min-height: 0; }
+.map-v2:has(.map-editor-fullscreen) .context-menu { z-index: 110; }
+
+.map-v2 .module-wiring-path { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible; }
+.map-v2 .module-wiring-path polyline { fill: none; stroke: #fff; stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.map-v2 .module-wiring-path .backup { stroke: #75c9ff; stroke-dasharray: 4 3; }
+
+.map-v2 .map-segment.rectangle-selection { transform: none; outline: 1px dashed #75c9ff; background: rgba(117, 201, 255, .2); }
+
+.favorite-button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 28px; width:28px; height:28px; padding:3px; border:0; background:transparent; cursor:pointer; }
+.favorite-button img { width:22px; height:22px; object-fit:contain; }
+.favorite-button-compact img { width:11px; height:11px; }
+button.favorite-button:not(.secondary-button):not(.ghost-button):not(.tab),
+button.favorite-button:hover:not(:disabled) { background:transparent; box-shadow:none; }
+.favorite-button:disabled { opacity:.5; cursor:wait; }
+.ping-favorite-name { display:flex; align-items:center; justify-content:flex-start; gap:12px; }
+.ping-favorite-name .favorite-button { margin-left:auto; }
+.ping-row-drag-handle { cursor:grab; user-select:none; }
+.ping-row-drag-handle:active { cursor:grabbing; }
+.ping-row-dragging { opacity:.42; }
+.ping-row-target td { box-shadow:inset 0 2px var(--accent); }
+.ping-row-target.ping-row-target-after td { box-shadow:inset 0 -2px var(--accent); }
+.monitoring-mini-card > .favorite-button { margin-left:auto; }
+
+.card-title-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.card-title-row h3 { flex:1; min-width:0; }
+
+/* Kiloview: identity on the first row, status summary on the second. */
+.monitoring-card.kiloview-compact-card { grid-template-rows: auto auto; align-content: start; gap: 0; padding: 0; overflow: hidden; }
+.kiloview-compact-card .card-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+.kiloview-compact-card .card-title-row,
+.kiloview-compact-card .card-head-meta { min-width: 0; padding: 5px 4px; }
+.kiloview-compact-card .card-title-row { border-right: 1px solid var(--line); }
+.kiloview-compact-card .card-head h3 { font-size: 11px; }
+.kiloview-compact-card .card-head-meta { flex-wrap: wrap; gap: 3px; }
+.kiloview-compact-card .card-head-meta > span { width: auto; min-width: 0; margin: 0; font: 10px monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kiloview-compact-card .kiloview-summary-table-wrap { margin: 0; }
+.kiloview-compact-card .kiloview-summary-table td { padding: 5px 1px; }
+.kiloview-compact-card .kiloview-status-label { color: var(--muted); font-weight: 700; }
+
+.kiloview-collection-card { grid-template-rows: auto auto; align-content: start; }
+.kiloview-machine-list { min-width: 0; }
+.kiloview-machine-row { padding: 7px 0; border-bottom: 2px solid var(--line); }
+.kiloview-machine-row:last-child { border-bottom: 0; }
+.kiloview-machine-identity { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--line); border-bottom: 0; font-size: 10px; }
+.kiloview-machine-name { display: flex; align-items: center; min-width: 0; gap: 4px; padding: 4px; border-right: 1px solid var(--line); }
+.kiloview-row-drag-handle { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: grab; }
+.kiloview-machine-ip { padding: 4px; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kiloview-machine-status .kiloview-summary-table-wrap { margin: 0; }
+.kiloview-machine-status .kiloview-status-label { color: var(--muted); }
+.kiloview-row-dragging { opacity: .42; }
+.kiloview-row-target { box-shadow: inset 0 2px var(--accent); }
+.kiloview-row-target.kiloview-row-target-after { box-shadow: inset 0 -2px var(--accent); }
+
+/* Make each device's reference comparison visible in the grouped card. */
+.kiloview-machine-row.kiloview-reference-mode { border-left: 4px solid var(--line); padding-left: 5px; padding-right: 5px; }
+.kiloview-machine-row.kiloview-reference-mode.ok { border-left-color: #1f9d55; background: rgba(31, 157, 85, .16); }
+.kiloview-machine-row.kiloview-reference-mode.warning { border-left-color: #e8a600; background: rgba(232, 166, 0, .16); }
+.kiloview-machine-row.kiloview-reference-mode.error,
+.kiloview-machine-row.kiloview-reference-mode.offline { border-left-color: #d92d20; background: rgba(217, 45, 32, .16); }
+.kiloview-collection-card .kiloview-reference-set { border-color: #1f9d55; background: rgba(31, 157, 85, .16); }

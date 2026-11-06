@@ -114,6 +114,7 @@ if (resetMapViewButton) {
 }
 
 function segmentThicknessPx(segment) {
+  if (mapV2Enabled && segment.rows) return mapV2Thickness(segment, mapContent.clientWidth, mapContent.clientHeight);
   var axisLength = segment.orientation === "horizontal" ? mapContent.clientWidth : mapContent.clientHeight;
   return Math.max(1, segment.length * axisLength / Math.max(1, segment.cases));
 }
@@ -367,6 +368,15 @@ mapZone.addEventListener("pointermove", function(event) {
     }
     var dx = point.x - segmentGesture.start.x; var dy = point.y - segmentGesture.start.y;
     var horizontal = Math.abs(dx) >= Math.abs(dy); var draft = segmentGesture.draft;
+    if (mapV2Enabled) {
+      var selection = mapV2SelectionRect(segmentGesture.start, point);
+      draft.className = "map-segment draft rectangle-selection";
+      draft.style.left = (selection.x * 100) + "%";
+      draft.style.top = (selection.y * 100) + "%";
+      draft.style.width = (selection.width * 100) + "%";
+      draft.style.height = (selection.height * 100) + "%";
+      return;
+    }
     draft.className = "map-segment draft " + (horizontal ? "horizontal" : "vertical");
     draft.style.left = ((horizontal ? Math.min(segmentGesture.start.x, point.x) : segmentGesture.start.x) * 100) + "%";
     draft.style.top = ((horizontal ? segmentGesture.start.y : Math.min(segmentGesture.start.y, point.y)) * 100) + "%";
@@ -398,14 +408,18 @@ mapZone.addEventListener("pointerup", async function(event) {
     if (gesture.draft) gesture.draft.remove();
     var dx = gesture.current.x - gesture.start.x; var dy = gesture.current.y - gesture.start.y;
     var horizontal = Math.abs(dx) >= Math.abs(dy); var length = horizontal ? Math.abs(dx) : Math.abs(dy);
-    if (length < 0.01) return;
-    var cases = promptCases(1); if (cases === null) return;
+    var selection = mapV2Enabled ? mapV2SelectionRect(gesture.start, gesture.current) : null;
+    if (selection ? selection.width < 0.005 || selection.height < 0.005 : length < 0.01) return;
+    var grid = mapV2Enabled ? await mapV2PromptGrid({}) : null;
+    if (mapV2Enabled && !grid) return;
+    var cases = mapV2Enabled ? grid.cases : promptCases(1); if (cases === null) return;
     map.segments = map.segments || [];
     var newSegment = { id: Date.now() + "-" + Math.random().toString(16).slice(2), orientation: horizontal ? "horizontal" : "vertical",
       x: horizontal ? Math.min(gesture.start.x, gesture.current.x) : gesture.start.x,
       y: horizontal ? gesture.start.y : Math.min(gesture.start.y, gesture.current.y), length: length, cases: cases };
+    if (grid) Object.assign(newSegment, mapV2GridFromRectangle(selection, grid, mapContent.clientWidth, mapContent.clientHeight));
     var newThickness = segmentThicknessPx(newSegment);
-    if (mapV2Enabled) newSegment.reversed = horizontal ? dx < 0 : dy < 0;
+    if (mapV2Enabled) horizontal = true;
     var halfX = newThickness / (2 * mapContent.clientWidth); var halfY = newThickness / (2 * mapContent.clientHeight);
     if (horizontal) newSegment.y = Math.min(1 - halfY, Math.max(halfY, newSegment.y));
     else newSegment.x = Math.min(1 - halfX, Math.max(halfX, newSegment.x));
@@ -730,6 +744,7 @@ mapBackgroundImage.addEventListener("load", function() { fitMapBackground(true);
 window.addEventListener("resize", function() { fitMapBackground(false); renderMapSegments(); });
 
 async function initializeMonitoringMaps() {
+  if (mapV2Enabled) mapV2InitializeEditorFullscreen();
   if (!CURRENT_USER || CURRENT_USER.role !== "administrator" || CURRENT_USER.login.toLowerCase() !== "olivier") return;
   var response = await fetch(mapsApiBase);
   var result = await response.json();
@@ -961,9 +976,18 @@ clearSegmentNovastarButton.addEventListener("click", async function() {
 
 editSegmentCasesButton.addEventListener("click", async function() {
   segmentContextMenu.hidden = true; var segment = segmentById(selectedSegmentId); var map = selectedMap(); if (!segment || !map) return;
-  var cases = promptCases(segment.cases); if (cases === null) return; segment.cases = cases;
+  var previous = JSON.parse(JSON.stringify(map.segments));
+  var grid = mapV2Enabled ? await mapV2PromptGrid(segment) : null;
+  if (mapV2Enabled && !grid) return;
+  var cases = mapV2Enabled ? grid.cases : promptCases(segment.cases); if (cases === null) return;
+  if (grid) {
+    if (grid.rows !== (segment.rows || 1) || grid.columns !== (segment.columns || segment.cases)) segment.moduleRanges = [];
+    Object.assign(segment, grid);
+    mapV2CancelRange();
+  }
+  segment.cases = cases;
   if (mapV2Enabled) segment.moduleRanges = (segment.moduleRanges || []).filter(function(range) { return range.start < cases && range.end < cases; });
-  try { await saveMapSegments(map); setStatus("Nombre de cases modifie", "ok"); } catch (error) { setStatus(error.message, "error"); }
+  try { await saveMapSegments(map); setStatus("Grille enregistrée", "ok"); } catch (error) { map.segments = previous; renderMapSegments(); setStatus(error.message, "error"); }
 });
 deleteSegmentButton.addEventListener("click", async function() {
   segmentContextMenu.hidden = true; var map = selectedMap(); if (!map) return;

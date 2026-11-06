@@ -1,3 +1,56 @@
+var favoritesOnly = document.body.dataset.favoritesOnly === "true";
+var favoriteMachineIds = [];
+var favoritesLoaded = false;
+var favoriteSaveInProgress = false;
+
+async function loadFavorites() {
+  try {
+    var response = await fetch("/api/auth/favorites", { cache: "no-store" });
+    var result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Chargement des favoris impossible");
+    favoriteMachineIds = result.favorites || [];
+    favoritesLoaded = true;
+  } catch (error) { setStatus(error.message, "error"); }
+}
+
+function isFavoriteMachine(machine) {
+  var groupId = machine.type === "other" ? "__ping__" : machine.type === "kiloview" ? "__kiloview__" : "";
+  return favoriteMachineIds.indexOf(machine.id) !== -1 || (!!groupId && favoriteMachineIds.indexOf(groupId) !== -1);
+}
+
+function favoriteButton(machineId) {
+  var enabled = favoriteMachineIds.indexOf(machineId) !== -1;
+  var machine = machines.find(function(entry) { return entry.id === machineId; });
+  var groupId = machine && (machine.type === "other" ? "__ping__" : machine.type === "kiloview" ? "__kiloview__" : "");
+  if (groupId && favoriteMachineIds.indexOf(groupId) !== -1) return "";
+  var compact = machine && (machine.type === "other" || machine.type === "kiloview");
+  var label = enabled ? "Retirer des favoris" : "Ajouter aux favoris";
+  return '<button class="favorite-button' + (compact ? ' favorite-button-compact' : '') + '" type="button" data-favorite-id="' + escapeHtml(machineId) + '" aria-pressed="' + enabled + '" aria-label="' + label + '" title="' + label + '"' + (!favoritesLoaded || favoriteSaveInProgress ? ' disabled' : '') + '><img src="/images/' + (enabled ? 'starOn.png' : 'starOff.png') + '" alt="" /></button>';
+}
+
+document.addEventListener("click", async function(event) {
+  var button = event.target.closest("[data-favorite-id]");
+  if (!button || favoriteSaveInProgress || !favoritesLoaded) return;
+  favoriteSaveInProgress = true;
+  var id = button.dataset.favoriteId;
+  renderMonitoringCards();
+  try {
+    var response = await fetch("/api/auth/favorites/" + encodeURIComponent(id), {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: favoriteMachineIds.indexOf(id) === -1 })
+    });
+    var result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Sauvegarde des favoris impossible");
+    favoriteMachineIds = result.favorites;
+    if (favoritesOnly && monitoringCardDialog.open) monitoringCardDialog.close();
+  } catch (error) { setStatus(error.message, "error"); }
+  finally {
+    favoriteSaveInProgress = false;
+    renderMonitoringCards();
+    if (monitoringCardDialog.open) renderMonitoringCardDialog(monitoringCardDialog.dataset.machineId, false);
+  }
+});
+
 var LEGACY_STORAGE_KEY = "novastarMachines";
 var AUTOREFRESH_S = Number(document.body.dataset.restRefreshS || 0) || 0;
 var BACKEND_URL = document.body.dataset.backendUrl || (window.location.origin + "/api");
@@ -26,6 +79,37 @@ var monitoringMinimized = localStorage.getItem("tavMonitoringMinimized") === "tr
 var minimizedMonitoringCards = loadMinimizedMonitoringCards();
 var monitoringCardOrder = loadMonitoringCardOrder();
 var draggedMonitoringCardId = "";
+var draggedPingMachineId = "";
+var pingMachineOrder = (function() {
+  try {
+    var value = JSON.parse(localStorage.getItem("tavPingMachineOrder") || "[]");
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch (_) { return []; }
+})();
+
+function orderedPingMachines(items) {
+  var ordered = pingMachineOrder.map(function(id) {
+    return items.find(function(machine) { return String(machine.id) === id; });
+  }).filter(function(machine, index, result) { return machine && result.indexOf(machine) === index; });
+  items.forEach(function(machine) { if (ordered.indexOf(machine) === -1) ordered.push(machine); });
+  return ordered;
+}
+
+var draggedKiloviewMachineId = "";
+var kiloviewMachineOrder = (function() {
+  try {
+    var value = JSON.parse(localStorage.getItem("tavKiloviewMachineOrder") || "[]");
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch (_) { return []; }
+})();
+
+function orderedKiloviewMachines(items) {
+  var ordered = kiloviewMachineOrder.map(function(id) {
+    return items.find(function(machine) { return String(machine.id) === id; });
+  }).filter(function(machine, index, result) { return machine && result.indexOf(machine) === index; });
+  items.forEach(function(machine) { if (ordered.indexOf(machine) === -1) ordered.push(machine); });
+  return ordered;
+}
 
 function loadMinimizedMonitoringCards() {
   try {
@@ -151,6 +235,10 @@ monitoringCardDialogContent.addEventListener("pointerdown", function(event) {
   renderMonitoringCardDialog(machine.id, true);
 });
 monitoringCardDialogContent.addEventListener("click", function(event) {
+  if (event.target.closest("[data-kiloview-reference]")) {
+    setKiloviewReferences();
+    return;
+  }
   var refreshButton = event.target.closest("[data-monitoring-refresh]");
   if (refreshButton) {
     refreshMonitoringCard(refreshButton.dataset.monitoringRefresh);
@@ -166,6 +254,11 @@ monitoringCardDialogContent.addEventListener("click", function(event) {
   setMachineReference(machine.id);
 });
 monitoringCardDialogContent.addEventListener("contextmenu", function(event) {
+  if (event.target.closest("[data-kiloview-reference]")) {
+    event.preventDefault();
+    setKiloviewReferences();
+    return;
+  }
   var button = event.target.closest(".reference-button");
   if (button && button.hasAttribute("data-ping-reference")) {
     event.preventDefault();
@@ -454,6 +547,7 @@ monitoringCards.addEventListener("pointerdown", function(event) {
 });
 
 monitoringCards.addEventListener("dragstart", function(event) {
+  if (event.target.closest(".ping-row-drag-handle, .kiloview-row-drag-handle")) return;
   var handle = event.target.closest(".monitoring-drag-handle");
   var card = handle && handle.closest("[data-monitoring-card-id]");
   if (!handle || !card) {
@@ -502,7 +596,112 @@ monitoringCards.addEventListener("dragend", function() {
   });
 });
 
+[monitoringCards, monitoringCardDialogContent].forEach(function(container) {
+  container.addEventListener("dragstart", function(event) {
+    var handle = event.target.closest(".kiloview-row-drag-handle");
+    if (!handle) return;
+    draggedKiloviewMachineId = handle.closest("[data-kiloview-machine-id]").dataset.kiloviewMachineId;
+    handle.closest("[data-kiloview-machine-id]").classList.add("kiloview-row-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedKiloviewMachineId);
+  });
+  container.addEventListener("dragover", function(event) {
+    var row = event.target.closest("[data-kiloview-machine-id]");
+    if (!draggedKiloviewMachineId || !row || row.dataset.kiloviewMachineId === draggedKiloviewMachineId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    container.querySelectorAll(".kiloview-row-target").forEach(function(item) { item.classList.remove("kiloview-row-target"); });
+    row.classList.add("kiloview-row-target");
+    row.classList.toggle("kiloview-row-target-after", event.clientY > row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2);
+  });
+  container.addEventListener("drop", function(event) {
+    var row = event.target.closest("[data-kiloview-machine-id]");
+    if (!draggedKiloviewMachineId || !row) return;
+    event.preventDefault();
+    var ids = orderedKiloviewMachines(machines.filter(function(machine) { return machine.type === "kiloview"; })).map(function(machine) { return String(machine.id); });
+    var from = ids.indexOf(draggedKiloviewMachineId);
+    var targetId = row.dataset.kiloviewMachineId;
+    if (from === -1 || ids.indexOf(targetId) === -1 || targetId === draggedKiloviewMachineId) return;
+    ids.splice(from, 1);
+    var bounds = row.getBoundingClientRect();
+    ids.splice(ids.indexOf(targetId) + (event.clientY > bounds.top + bounds.height / 2 ? 1 : 0), 0, draggedKiloviewMachineId);
+    try {
+      localStorage.setItem("tavKiloviewMachineOrder", JSON.stringify(ids));
+      kiloviewMachineOrder = ids;
+    } catch (_) {
+      setStatus("Impossible de sauvegarder l'ordre des kiloviews", "error");
+    }
+    finishKiloviewDrag();
+  });
+  container.addEventListener("dragend", function() {
+    if (draggedKiloviewMachineId) finishKiloviewDrag();
+  });
+});
+
+function finishKiloviewDrag() {
+  draggedKiloviewMachineId = "";
+  renderMonitoringCards();
+  if (monitoringCardDialog.open && monitoringCardDialog.dataset.machineId === "__kiloview__") {
+    renderMonitoringCardDialog("__kiloview__", referencePreviewMachineId === "__kiloview__");
+  }
+}
+
+[monitoringCards, monitoringCardDialogContent].forEach(function(container) {
+  container.addEventListener("dragstart", function(event) {
+    var handle = event.target.closest(".ping-row-drag-handle");
+    if (!handle) return;
+    draggedPingMachineId = handle.closest("[data-ping-machine-id]").dataset.pingMachineId;
+    handle.closest("tr").classList.add("ping-row-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedPingMachineId);
+  });
+  container.addEventListener("dragover", function(event) {
+    var row = event.target.closest("[data-ping-machine-id]");
+    if (!draggedPingMachineId || !row || row.dataset.pingMachineId === draggedPingMachineId) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    container.querySelectorAll(".ping-row-target").forEach(function(item) { item.classList.remove("ping-row-target"); });
+    row.classList.add("ping-row-target");
+    row.classList.toggle("ping-row-target-after", event.clientY > row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2);
+  });
+  container.addEventListener("drop", function(event) {
+    var row = event.target.closest("[data-ping-machine-id]");
+    if (!draggedPingMachineId || !row) return;
+    event.preventDefault();
+    var ids = orderedPingMachines(machines.filter(function(machine) { return machine.type === "other"; })).map(function(machine) { return String(machine.id); });
+    var from = ids.indexOf(draggedPingMachineId);
+    var targetId = row.dataset.pingMachineId;
+    if (from === -1 || ids.indexOf(targetId) === -1 || targetId === draggedPingMachineId) return;
+    ids.splice(from, 1);
+    var bounds = row.getBoundingClientRect();
+    ids.splice(ids.indexOf(targetId) + (event.clientY > bounds.top + bounds.height / 2 ? 1 : 0), 0, draggedPingMachineId);
+    try {
+      localStorage.setItem("tavPingMachineOrder", JSON.stringify(ids));
+      pingMachineOrder = ids;
+    } catch (_) {
+      setStatus("Impossible de sauvegarder l'ordre des pings", "error");
+    }
+    finishPingDrag();
+  });
+  container.addEventListener("dragend", function() {
+    if (draggedPingMachineId) finishPingDrag();
+  });
+});
+
+function finishPingDrag() {
+  draggedPingMachineId = "";
+  renderMonitoringCards();
+  if (monitoringCardDialog.open && monitoringCardDialog.dataset.machineId === "__ping__") {
+    renderMonitoringCardDialog("__ping__", referencePreviewMachineId === "__ping__");
+  }
+}
+
 monitoringCards.addEventListener("click", function(event) {
+  if (event.target.closest("[data-kiloview-reference]")) {
+    setKiloviewReferences();
+    return;
+  }
+  if (event.target.closest("[data-favorite-id]")) return;
   var cardRefreshButton = event.target.closest("[data-monitoring-refresh]");
   if (cardRefreshButton) {
     refreshMonitoringCard(cardRefreshButton.dataset.monitoringRefresh);
@@ -522,6 +721,7 @@ monitoringCards.addEventListener("click", function(event) {
         minimizedMonitoringCards[machine.id] = true;
       });
       if (machines.some(function(machine) { return machine.type === "other"; })) minimizedMonitoringCards.__ping__ = true;
+      minimizedMonitoringCards.__kiloview__ = true;
       monitoringMinimized = false;
       localStorage.setItem("tavMonitoringMinimized", "false");
     }
@@ -582,6 +782,11 @@ monitoringCards.addEventListener("contextmenu", function(event) {
 });
 
 setReferenceMenuItem.addEventListener("click", function() {
+  if (referenceContextMachineId === "__kiloview__") {
+    referenceContextMenu.hidden = true;
+    setKiloviewReferences();
+    return;
+  }
   if (referenceContextMachineId === "__ping__") {
     referenceContextMenu.hidden = true;
     if (!window.confirm("Remplacer la reference Ping par la liste des machines qui repondent actuellement ?")) return;
@@ -607,3 +812,11 @@ initializeAuthentication().then(function(authenticated) {
   setupRestRefresh();
   setupWebSocket();
 }).catch(function() { window.location.replace("/login"); });
+
+[monitoringCards, monitoringCardDialogContent].forEach(function(container) {
+  container.addEventListener("dblclick", function(event) {
+    if (event.target.closest("button")) return;
+    var row = event.target.closest("[data-kiloview-machine-id]");
+    if (row) openMonitoringCardDialog(row.dataset.kiloviewMachineId);
+  });
+});

@@ -172,6 +172,7 @@ function createMapMonitoringStage(map, large, referenceOutputs) {
     node.style.top = (segment.y * 100) + "%";
     node.dataset.length = String(segment.length || 0);
     node.dataset.cases = String(segment.cases || 1);
+    if (mapV2Enabled) mapV2DrawPaths(node, segment);
     if (segment.orientation === "horizontal") node.style.width = (segment.length * 100) + "%";
     else node.style.height = (segment.length * 100) + "%";
     for (var index = 0; index < segment.cases; index += 1) {
@@ -247,7 +248,9 @@ function sizeMapMonitoringSegments(stage) {
     var length = Number(segment.dataset.length) || 0;
     var cases = Math.max(1, Number(segment.dataset.cases) || 1);
     var axis = segment.classList.contains("horizontal") ? canvas.clientWidth : canvas.clientHeight;
-    segment.style.setProperty("--monitoring-segment-thickness", Math.max(1, length * axis / cases) + "px");
+    var thickness = Math.max(1, length * axis / cases);
+    if (mapV2Enabled && segment.dataset.gridRows) thickness = mapV2Thickness({ orientation: segment.classList.contains("horizontal") ? "horizontal" : "vertical", length: length, rows: Number(segment.dataset.gridRows), columns: Number(segment.dataset.gridColumns), cellAspectRatio: Number(segment.dataset.cellAspectRatio) || 1 }, canvas.clientWidth, canvas.clientHeight);
+    segment.style.setProperty("--monitoring-segment-thickness", thickness + "px");
   });
   if (mapV2Enabled) mapV2UpdateNumbers(canvas);
 }

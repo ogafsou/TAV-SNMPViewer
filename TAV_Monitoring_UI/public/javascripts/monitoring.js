@@ -40,7 +40,7 @@ async function refreshMonitoringCard(cardId) {
   if (!cardId || targetedMonitoringRefreshes[cardId]) return;
   var machineIds = cardId === "__ping__"
     ? machines.filter(function(machine) { return machine.type === "other"; }).map(function(machine) { return machine.id; })
-    : [cardId];
+    : cardId === "__kiloview__" ? machines.filter(function(machine) { return machine.type === "kiloview"; }).map(function(machine) { return machine.id; }) : [cardId];
   if (!machineIds.length) return;
 
   targetedMonitoringRefreshes[cardId] = true;
@@ -123,6 +123,7 @@ function updateAutoRefreshHint() {
 async function initializeApplication() {
   await loadBackendConfig();
   machines = await loadMachines();
+  await loadFavorites();
   await loadNovaStarTrapStatuses();
   renderMachines();
   renderSelectedMachine();
