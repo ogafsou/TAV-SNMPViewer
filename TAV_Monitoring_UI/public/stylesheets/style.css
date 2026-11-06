@@ -3130,6 +3130,7 @@ body.map-editor-fullscreen-open { overflow: hidden; }
 
 .favorite-button { display:inline-flex; align-items:center; justify-content:center; flex:0 0 28px; width:28px; height:28px; padding:3px; border:0; background:transparent; cursor:pointer; }
 .favorite-button img { width:22px; height:22px; object-fit:contain; }
+.favorite-button-compact { flex:0 0 20px; width:20px; height:11px; min-width:0; min-height:0; padding:0; line-height:1; }
 .favorite-button-compact img { width:11px; height:11px; }
 button.favorite-button:not(.secondary-button):not(.ghost-button):not(.tab),
 button.favorite-button:hover:not(:disabled) { background:transparent; box-shadow:none; }
