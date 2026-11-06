@@ -242,6 +242,9 @@ function mapV2CreateCell(segment, index, editing) {
     triangle.type = "button";
     triangle.dataset.role = role;
     triangle.className = "module-triangle " + role + (pending ? " pending" : assignment ? " " + mapV2OutputState(assignment) : " unassigned");
+    if (role === "backup" && !pending && assignment && mapV2OutputState(assignment) === "ok") {
+      cell.className += " backup-active";
+    }
     var title = "Module " + number + " · " + (role === "main" ? "Main" : "Backup");
     if (assignment) {
       title += " · " + (assignment.machineName || assignment.machineId) + " · Carte " + assignment.cardId + " / Sortie " + assignment.outputId;

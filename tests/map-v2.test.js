@@ -80,6 +80,43 @@ test("range selection is provisional, follows numbering both ways, and keeps the
   assert.equal(c.mapV2RangeAt(map.segments[0], 7, "backup").assignment.machineId, "backup");
 });
 
+test("editor fullscreen keeps pending wiring and restores the original zoom and pan on close", () => {
+  const { context: c, map } = editor();
+  const classes = new Set();
+  const editorNode = { classList: {
+    contains: (name) => classes.has(name),
+    toggle: (name, enabled) => enabled ? classes.add(name) : classes.delete(name)
+  } };
+  const button = () => ({ hidden: false, setAttribute() {}, focus() { this.focused = true; } });
+  const maximize = button(), close = button();
+  c.mapZone.closest = () => editorNode;
+  c.document.body = { classList: { toggle() {} } };
+  c.document.getElementById = (id) => id === "maximizeMapEditorButton" ? maximize : close;
+  c.mapZoom = 2.5; c.mapPanX = 42; c.mapPanY = -17;
+  c.fitMapBackground = () => {};
+  c.resetMapTransform = () => { c.mapZoom = 1; c.mapPanX = 0; c.mapPanY = 0; };
+  c.applyMapTransform = () => {};
+  const pending = { start: 2, end: 5 };
+  c.mapV2Pending = pending;
+  const segments = JSON.stringify(map.segments);
+  c.mapV2SetEditorFullscreen(true);
+  assert.equal(classes.has("map-editor-fullscreen"), true);
+  assert.equal(maximize.hidden, true);
+  assert.equal(close.hidden, false);
+  assert.equal(close.focused, true);
+  assert.equal(c.mapV2Pending, pending);
+  c.mapV2SetEditorFullscreen(false);
+  assert.equal(classes.has("map-editor-fullscreen"), false);
+  assert.equal(maximize.hidden, false);
+  assert.equal(close.hidden, true);
+  assert.equal(maximize.focused, true);
+  assert.equal(c.mapZoom, 2.5);
+  assert.equal(c.mapPanX, 42);
+  assert.equal(c.mapPanY, -17);
+  assert.equal(c.mapV2Pending, pending);
+  assert.equal(JSON.stringify(map.segments), segments);
+});
+
 test("start arrows mark the directed first module and expose NovaStar output details", () => {
   const { context: c, map } = editor();
   const node = () => ({ children: [], dataset: {}, className: "", attributes: {},
@@ -114,7 +151,9 @@ test("start arrows mark the directed first module and expose NovaStar output det
           { label: "1", ports: [{ label: "1", state, ok: true }] }
         ] };
       }
-      const triangles = c.mapV2CreateCell(segment, 7, editing).children.filter(child => child.className.startsWith("module-triangle"));
+      const cell = c.mapV2CreateCell(segment, 7, editing);
+      assert.equal(cell.className.includes("backup-active"), state === "ok");
+      const triangles = cell.children.filter(child => child.className.startsWith("module-triangle"));
       assert.equal(triangles.length, 2);
       const expected = state === "warning" ? "backup-state" : state === "ok" ? "ok" : "error";
       triangles.forEach(triangle => assert.equal(triangle.className.split(" ").pop(), expected));
@@ -123,6 +162,16 @@ test("start arrows mark the directed first module and expose NovaStar output det
   c.monitoringState["Main NovaStar"].connected = false;
   assert.equal(c.mapV2OutputState(output("Main NovaStar")), "error");
   assert.equal(c.mapV2OutputState(output("missing")), "error");
+  c.monitoringState["Main NovaStar"].connected = true;
+  c.monitoringState["Main NovaStar"].outputTables[0].ports[0].state = "ok";
+  c.monitoringState["Spare NovaStar"].connected = false;
+  assert.equal(c.mapV2CreateCell(segment, 7, false).className, "module-led");
+  c.monitoringState["Spare NovaStar"].connected = true;
+  c.monitoringState["Spare NovaStar"].outputTables[0].ports[0].state = "ok";
+  assert.match(c.mapV2CreateCell(segment, 7, false).className, /backup-active/);
+  assert.equal(c.mapV2CreateCell(segment, 0, false).className, "module-led");
+  c.mapV2Pending = { segmentId: segment.id, role: "backup", start: 2, end: 13, assignment: output("Spare NovaStar") };
+  assert.equal(c.mapV2CreateCell(segment, 7, true).className, "module-led");
 });
 
 test("quarter turns preserve pixel dimensions, center, module identities and creation direction", () => {
