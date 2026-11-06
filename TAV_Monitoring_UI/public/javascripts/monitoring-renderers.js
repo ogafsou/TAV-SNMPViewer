@@ -89,7 +89,7 @@ function renderPingMonitoringCard(pingMachines) {
       ? "Dernier ping : " + formatDate(lastSuccessfulAt)
       : "Aucun ping reussi depuis le demarrage du monitoring";
     return '<tr data-ping-machine-id="' + escapeHtml(machine.id) + '">' +
-      '<td><span class="ping-favorite-name"><span class="ping-row-drag-handle" draggable="true" title="Glisser pour déplacer ce ping">&#9776; ' + escapeHtml(machine.name) + '</span>' + favoriteButton(machine.id) + '</span></td>' +
+      '<td><span class="ping-favorite-name"><span class="ping-row-drag-handle" draggable="true" title="' + escapeHtml(machine.name) + '">&#9776; ' + escapeHtml(machine.name) + '</span>' + favoriteButton(machine.id) + '</span></td>' +
       '<td>' + escapeHtml(machine.host) + '</td>' +
       '<td class="ping-status ' + (isOk ? 'ok' : 'error') + '" title="' + escapeHtml(statusTitle) + '">' + escapeHtml(statusText) + '</td>' +
     '</tr>';
@@ -1202,7 +1202,7 @@ function renderKiloviewMonitoringCard(items) {
       var preview = referencePreviewMachineId === machine.id;
       var state = preview ? buildReferencePreviewState(machine, baseState) : baseState;
       return '<section class="kiloview-machine-row ' + escapeHtml(state.state || "unknown") + (REFERENCE_MODE_ENABLED ? ' kiloview-reference-mode' : '') + '" data-kiloview-machine-id="' + escapeHtml(machine.id) + '" data-machine-id="' + escapeHtml(machine.id) + '"' + novastarColorAttribute(machine) + '>' +
-        '<div class="kiloview-machine-identity"><div class="kiloview-machine-name"><span class="kiloview-row-drag-handle" draggable="true" title="Glisser pour déplacer ce Kiloview">&#9776; ' + escapeHtml(machine.name) + '</span>' + favoriteButton(machine.id) + '</div>' +
+        '<div class="kiloview-machine-identity"><div class="kiloview-machine-name"><span class="kiloview-row-drag-handle" draggable="true" title="' + escapeHtml(machine.name) + '">&#9776; ' + escapeHtml(machine.name) + '</span>' + favoriteButton(machine.id) + '</div>' +
         '<span class="kiloview-machine-ip">' + escapeHtml(machine.host) + '</span></div>' +
         '<div class="kiloview-machine-status" title="' + escapeHtml(state.message || "") + '">' + kiloviewStatusSummary(state.kiloviewGroups || []) + '</div></section>';
     }).join("") + '</div></article>';
